@@ -1,6 +1,7 @@
 ---
 name: finishing-a-development-branch
 description: Use when implementation is complete, tests have been verified, and local branch or worktree completion needs an explicit next-step decision.
+category: completion
 ---
 
 # Finishing a Development Branch
@@ -12,6 +13,8 @@ Guide completion of development work by choosing the correct local context befor
 **Core principle:** Verify tests -> commit verified local work when workflow commits are enabled -> identify durable branch vs temporary worktree branch -> present local-first options -> execute choice.
 
 **Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
+
+Before claiming implementation is complete, invoke `verification-before-completion` as the final evidence gate. This skill handles branch/worktree completion decisions; `verification-before-completion` handles proof that completion claims are supported.
 
 ## The Process
 

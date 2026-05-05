@@ -94,14 +94,16 @@ export const loadBundledAgents = (agentsDir) => {
     const description = frontmatter.description;
     const prompt = content.trim();
     if (!name || !description || !prompt) continue;
+    const editPermission = frontmatter.permission_edit || 'deny';
+    const todoPermission = frontmatter.permission_todowrite || 'deny';
 
     const agent = {
       description,
       mode: 'subagent',
       prompt,
       permission: {
-        edit: 'deny',
-        todowrite: 'deny'
+        edit: editPermission === 'allow' ? 'allow' : 'deny',
+        todowrite: todoPermission === 'allow' ? 'allow' : 'deny'
       }
     };
 

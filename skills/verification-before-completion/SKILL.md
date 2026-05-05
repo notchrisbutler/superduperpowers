@@ -1,6 +1,7 @@
 ---
 name: verification-before-completion
 description: Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires running verification commands and confirming output before making any success claims; evidence before assertions always
+category: completion
 ---
 
 # Verification Before Completion
@@ -10,6 +11,8 @@ description: Use when about to claim work is complete, fixed, or passing, before
 Claiming work is complete without verification is unreliable and creates avoidable risk.
 
 **Core principle:** Evidence before claims, always.
+
+This is a completion gate used by `executing-plans`, `subagent-driven-development`, and `finishing-a-development-branch`. It is not a routing skill and should rarely be invoked directly by users; workflow skills load it before final success claims, local commits, PR summaries, or branch completion options.
 
 **Violating the letter of this rule is violating the spirit of this rule.**
 

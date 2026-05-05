@@ -3,11 +3,11 @@ import crypto from 'crypto';
 import { execFileSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
-import { expectedCommandNames } from './sdp-registration.js';
+import { expectedCommandNames, extractAndStripFrontmatter } from './sdp-registration.js';
 
 const SDP_SCHEMA_VERSION = 1;
 const SDP_RUNTIME_DIR = 'superduperpowers';
-const SDP_DEFAULT_RETENTION_DAYS = 30;
+const SDP_DEFAULT_RETENTION_DAYS = 7;
 const SDP_DOC_ROOT_CANDIDATES = ['docs', 'documents', 'documentation', '.docs', '.documents', '.documentation'];
 const SDP_DOCS_DIR = 'superduperpowers';
 const SDP_SETTINGS_FILE_CANDIDATES = [
@@ -487,12 +487,27 @@ const listKnownOpenCodeSessions = () => {
   }
 };
 
+const cleanupRetentionDays = (requested, configured) => Math.min(requested || configured || SDP_DEFAULT_RETENTION_DAYS, SDP_DEFAULT_RETENTION_DAYS);
+
 const writeJsonAtomic = (filePath, value) => {
   fs.mkdirSync(path.dirname(filePath), { recursive: true });
   const tmpPath = `${filePath}.${process.pid}.${Date.now()}.tmp`;
   fs.writeFileSync(tmpPath, `${JSON.stringify(value, null, 2)}\n`);
   JSON.parse(fs.readFileSync(tmpPath, 'utf8'));
   fs.renameSync(tmpPath, filePath);
+};
+
+const touchDirectory = (dirPath) => {
+  if (!dirPath) return false;
+  try {
+    const stat = fs.lstatSync(dirPath);
+    if (stat.isSymbolicLink() || !stat.isDirectory()) return false;
+    const now = new Date();
+    fs.utimesSync(dirPath, now, now);
+    return true;
+  } catch {
+    return false;
+  }
 };
 
 const appendEvent = (stateDir, event) => {
@@ -686,7 +701,10 @@ const recordRepairFailureIfSafe = (baseProfile, context, errors) => {
 export const autoRepairRuntimeState = ({ configDir, context }) => {
   if (!context?.sessionID) return { ok: true, repaired: false, reason: 'missing-session-id' };
   const inspection = inspectRuntimeDrift(configDir, context);
-  if (!inspection.drifted) return { ok: true, repaired: false, reason: inspection.reason };
+  if (!inspection.drifted) {
+    if (inspection.reason === 'ok') touchDirectory(inspection.baseProfile.stateDir);
+    return { ok: true, repaired: false, reason: inspection.reason };
+  }
 
   const stateDir = inspection.baseProfile.stateDir;
   const stateRoot = inspection.baseProfile.stateRoot;
@@ -733,6 +751,7 @@ export const autoRepairRuntimeState = ({ configDir, context }) => {
     }
     fs.rmSync(repairMarkerPath, { force: true });
     fs.rmSync(repairTempDir, { recursive: true, force: true });
+    touchDirectory(stateDir);
     return { ok: true, repaired: true, stateDir, quarantineDir, errors: inspection.errors };
   } catch (error) {
     const errors = [...inspection.errors, error.message];
@@ -1008,6 +1027,7 @@ const createProfileTool = (configDir, packageInfo) => tool({
     if (operation === 'get') {
       const existing = readExisting();
       if (existing?.corrupted) return JSON.stringify({ ok: false, reason: 'corrupt-profile', errors: existing.errors }, null, 2);
+      touchDirectory(stateDir);
       return JSON.stringify({ ok: true, profile: existing || baseProfile }, null, 2);
     }
 
@@ -1020,6 +1040,7 @@ const createProfileTool = (configDir, packageInfo) => tool({
       writeJsonAtomic(profilePath, profile);
       writeJsonAtomic(path.join(stateDir, 'artifacts.json'), { schemaVersion: SDP_SCHEMA_VERSION, artifacts: [] });
       appendEvent(stateDir, { type: 'profile.set', messageID: context.messageID || null });
+      touchDirectory(stateDir);
       return JSON.stringify({ ok: true, profile }, null, 2);
     }
 
@@ -1045,12 +1066,14 @@ const createProfileTool = (configDir, packageInfo) => tool({
       if (!validation.ok) return JSON.stringify({ ok: false, errors: validation.errors }, null, 2);
       writeJsonAtomic(profilePath, profile);
       appendEvent(stateDir, { type: 'profile.merge', updates: Object.keys(args.updates || {}) });
+      touchDirectory(stateDir);
       return JSON.stringify({ ok: true, profile }, null, 2);
     }
 
     if (operation === 'summary') {
       const profile = readExisting() || baseProfile;
       if (profile?.corrupted) return JSON.stringify({ ok: false, reason: 'corrupt-profile', errors: profile.errors }, null, 2);
+      touchDirectory(stateDir);
       return JSON.stringify({ ok: true, summary: profileSummaryText(profile) }, null, 2);
     }
 
@@ -1060,6 +1083,7 @@ const createProfileTool = (configDir, packageInfo) => tool({
       const profile = existing || baseProfile;
       const errors = [...validateProfile(profile, { allowIncomplete: !existing }).errors];
       if (existing) errors.push(...validateRelatedStateFiles(stateDir));
+      if (errors.length === 0) touchDirectory(stateDir);
       return JSON.stringify({ ok: errors.length === 0, errors, profile }, null, 2);
     }
 
@@ -1079,11 +1103,12 @@ const createProfileTool = (configDir, packageInfo) => tool({
       writeJsonAtomic(profilePath, baseProfile);
       writeJsonAtomic(path.join(stateDir, 'artifacts.json'), { schemaVersion: SDP_SCHEMA_VERSION, artifacts: [] });
       appendEvent(stateDir, { type: 'profile.repair', quarantineDir });
+      touchDirectory(stateDir);
       return JSON.stringify({ ok: true, profile: baseProfile, quarantineDir }, null, 2);
     }
 
     if (operation === 'cleanup') {
-      const retentionDays = args.retentionDays || SDP_DEFAULT_RETENTION_DAYS;
+      const retentionDays = cleanupRetentionDays(args.retentionDays, settingsInput.settings.cleanup?.retentionDays);
       const cutoff = Date.now() - retentionDays * 24 * 60 * 60 * 1000;
       const knownSessions = listKnownOpenCodeSessions();
       const removed = [];
@@ -1097,7 +1122,9 @@ const createProfileTool = (configDir, packageInfo) => tool({
             continue;
           }
           const stat = fs.statSync(dir);
-          if ((knownSessions && !knownSessions.has(entry.name)) || stat.mtimeMs < cutoff) {
+          const missingOpenCodeSession = knownSessions ? !knownSessions.has(entry.name) : false;
+          const staleByAge = stat.mtimeMs < cutoff;
+          if (missingOpenCodeSession || staleByAge) {
             fs.rmSync(dir, { recursive: true, force: true });
             removed.push(dir);
           } else {
@@ -1105,7 +1132,14 @@ const createProfileTool = (configDir, packageInfo) => tool({
           }
         }
       }
-      return JSON.stringify({ ok: true, removed, kept, retentionDays }, null, 2);
+      return JSON.stringify({
+        ok: true,
+        removed,
+        kept,
+        retentionDays,
+        openCodeSessionPresence: knownSessions ? 'available' : 'unavailable',
+        staleDefinition: `OpenCode session is gone, or state directory has not been updated/session has not been reactivated in ${retentionDays} days`
+      }, null, 2);
     }
 
     return JSON.stringify({ ok: false, reason: `unsupported operation ${operation}` }, null, 2);
@@ -1199,13 +1233,35 @@ const createDoctorTool = (configDir, packageInfo, getRegistrationReport) => tool
       { skillsPath: registration?.skillsPath || null }
     );
 
-    const requiredSkills = ['using-superpowers', 'brainstorming', 'writing-plans', 'executing-plans', 'subagent-driven-development', 'requesting-spec-review', 'requesting-code-review', 'verification-before-completion'];
-    const missingSkills = requiredSkills.filter((name) => !skillsDir || !fileExists(path.join(skillsDir, name, 'SKILL.md')));
-    doctorCheck(checks, 'required-skills', missingSkills.length === 0 ? 'ok' : 'error', missingSkills.length === 0 ? 'required skills exist' : `missing skills: ${missingSkills.join(', ')}`, { requiredSkills, missingSkills });
+    const requiredSkills = {
+      'using-superpowers': 'routing',
+      brainstorming: 'guidance',
+      'writing-plans': 'guidance',
+      'executing-plans': 'action',
+      'subagent-driven-development': 'action',
+      'requesting-spec-review': 'review',
+      'requesting-code-review': 'review',
+      'receiving-spec-review': 'review',
+      'receiving-code-review': 'review',
+      'verification-before-completion': 'completion'
+    };
+    const missingSkills = Object.keys(requiredSkills).filter((name) => !skillsDir || !fileExists(path.join(skillsDir, name, 'SKILL.md')));
+    doctorCheck(checks, 'required-skills', missingSkills.length === 0 ? 'ok' : 'error', missingSkills.length === 0 ? 'required skills exist' : `missing skills: ${missingSkills.join(', ')}`, { requiredSkills: Object.keys(requiredSkills), missingSkills });
 
-    const requiredAgents = ['code-reviewer', 'spec-reviewer', 'lite-code-reviewer', 'lite-spec-reviewer'];
+    const skillCategoryMismatches = [];
+    for (const [name, expectedCategory] of Object.entries(requiredSkills)) {
+      const skillPath = skillsDir ? path.join(skillsDir, name, 'SKILL.md') : null;
+      if (!skillPath || !fileExists(skillPath)) continue;
+      const { frontmatter } = extractAndStripFrontmatter(fs.readFileSync(skillPath, 'utf8'));
+      if (frontmatter.category !== expectedCategory) {
+        skillCategoryMismatches.push(`${name}:${frontmatter.category || 'missing'}!=${expectedCategory}`);
+      }
+    }
+    doctorCheck(checks, 'skill-categories', skillCategoryMismatches.length === 0 ? 'ok' : 'error', skillCategoryMismatches.length === 0 ? 'required skills have expected categories' : `skill category mismatches: ${skillCategoryMismatches.join(', ')}`, { expectedCategories: requiredSkills, mismatches: skillCategoryMismatches });
+
+    const requiredAgents = ['code-reviewer', 'spec-reviewer', 'lite-code-reviewer', 'lite-spec-reviewer', 'brainstorming-facilitator', 'plan-writer', 'plan-reviewer', 'implementer', 'tdd-implementer', 'debugging-investigator', 'parallelization-advisor'];
     const missingAgents = requiredAgents.filter((name) => !agentsDir || !fileExists(path.join(agentsDir, `${name}.md`)));
-    doctorCheck(checks, 'reviewer-agents', missingAgents.length === 0 ? 'ok' : 'error', missingAgents.length === 0 ? 'reviewer agents exist' : `missing agents: ${missingAgents.join(', ')}`, { requiredAgents, missingAgents });
+    doctorCheck(checks, 'reviewer-agents', missingAgents.length === 0 ? 'ok' : 'error', missingAgents.length === 0 ? 'workflow agents exist' : `missing agents: ${missingAgents.join(', ')}`, { requiredAgents, missingAgents });
 
     const registeredAgents = registration?.agents || {};
     const missingAgentRegistrations = registration ? requiredAgents.filter((name) => !registeredAgents[name]) : [];
@@ -1213,7 +1269,7 @@ const createDoctorTool = (configDir, packageInfo, getRegistrationReport) => tool
       checks,
       'agent-registration',
       !registration ? 'warning' : (missingAgentRegistrations.length === 0 ? 'ok' : 'error'),
-      !registration ? 'registration report unavailable until config hook runs' : (missingAgentRegistrations.length === 0 ? 'reviewer agents registered or preserved' : `missing reviewer agent registrations: ${missingAgentRegistrations.join(', ')}`),
+      !registration ? 'registration report unavailable until config hook runs' : (missingAgentRegistrations.length === 0 ? 'workflow agents registered or preserved' : `missing workflow agent registrations: ${missingAgentRegistrations.join(', ')}`),
       { agents: registeredAgents, missingAgentRegistrations }
     );
 

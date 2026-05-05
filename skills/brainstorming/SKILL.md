@@ -1,6 +1,7 @@
 ---
 name: brainstorming
 description: "Use when the user explicitly asks for SuperDuperPowers brainstorming or when a request clearly needs design discovery, decomposition, or an approved spec before implementation."
+category: guidance
 ---
 
 # Brainstorming Ideas Into Designs
@@ -16,6 +17,18 @@ Once this skill is intentionally selected, do NOT invoke any implementation skil
 ## When To Use This Skill
 
 Use this skill for explicit SuperDuperPowers brainstorming requests and for work that clearly needs design discovery before implementation. Do not use this skill for quick flow, small reviews, wording edits, simple config tweaks, bounded code changes, or no-SuperDuperPowers work unless the user asks for brainstorming.
+
+## Agent Dispatch
+
+When the active harness supports named agents and the brainstorming work is large enough to benefit from isolated context, dispatch `brainstorming-facilitator` with:
+
+- Current user request and constraints
+- Compact workflow profile summary
+- Relevant project context and file paths already discovered
+- Required docs root and generated-doc policy
+- Explicit instruction that it may write the approved spec but must not implement code
+
+Keep direct user collaboration in the main session when the design is small, the user is actively answering questions, or subagent dispatch would obscure the approval gates. Whether done inline or by `brainstorming-facilitator`, the next workflow step after approval is always `writing-plans`.
 
 ## Checklist
 

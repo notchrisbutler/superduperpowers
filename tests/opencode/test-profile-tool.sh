@@ -113,8 +113,14 @@ fs.mkdirSync(oldDir, { recursive: true });
 fs.writeFileSync(path.join(oldDir, 'profile.json'), '{}\n');
 const old = new Date(Date.now() - 40 * 24 * 60 * 60 * 1000);
 fs.utimesSync(oldDir, old, old);
+const missingOpenCodeSessionDir = path.join(process.env.OPENCODE_CONFIG_DIR, 'superduperpowers', 'state', 'ses_missing_from_opencode');
+fs.mkdirSync(missingOpenCodeSessionDir, { recursive: true });
+fs.writeFileSync(path.join(missingOpenCodeSessionDir, 'profile.json'), '{}\n');
 const cleanup = JSON.parse(await profileTool.execute({ operation: 'cleanup', retentionDays: 30 }, context));
+if (cleanup.retentionDays !== 7) throw new Error('cleanup retention was not capped at 7 days');
+if (!cleanup.staleDefinition.includes('OpenCode session is gone')) throw new Error('cleanup stale definition does not mention OpenCode session presence');
 if (!cleanup.removed.some((entry) => entry.endsWith('ses_oldprofile'))) throw new Error('cleanup did not remove old state');
+if (cleanup.openCodeSessionPresence === 'available' && !cleanup.removed.some((entry) => entry.endsWith('ses_missing_from_opencode'))) throw new Error('cleanup did not remove state for missing OpenCode session');
 if (!fs.existsSync(profilePath)) throw new Error('cleanup removed active profile');
 
 console.log('profile tool behavior ok');

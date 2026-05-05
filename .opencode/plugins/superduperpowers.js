@@ -2,7 +2,7 @@
  * SuperDuperPowers plugin for OpenCode.ai
  *
  * Injects SuperDuperPowers bootstrap context via user-message transform.
- * Auto-registers skills and reviewer agents, and exposes workflow tools.
+ * Auto-registers skills and workflow agents, and exposes workflow tools.
  */
 
 import path from 'path';

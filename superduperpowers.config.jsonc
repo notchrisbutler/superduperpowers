@@ -51,7 +51,10 @@
   },
 
   "cleanup": {
-    // Stale session state can be removed by /sdp-cleanup.
+    // /sdp-cleanup removes SDP state when the matching OpenCode session is
+    // gone. If OpenCode session presence cannot be checked, stale means this
+    // state directory has not been updated or reactivated in N days. Values
+    // above 7 are capped to 7.
     "retentionDays": 7
   }
 }

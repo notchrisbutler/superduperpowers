@@ -1,6 +1,6 @@
 # SuperDuperPowers
 
-**Harness-agnostic skills and reviewer agents for deliberate coding workflows**
+**Harness-agnostic skills and workflow agents for deliberate coding workflows**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-2026.5.2-purple.svg)](https://github.com/notchrisbutler/superduperpowers/releases)
@@ -55,7 +55,7 @@ After the first launch, run `/sdp-status` to confirm the plugin loaded and `/sdp
 - Project-local generated specs and plans under `{DOCS_ROOT}/superduperpowers/`, local-only by default and configurable through live settings
 - Brainstorming, planning, TDD, debugging, verification, and branch-finishing skills
 - Grouped execution with flat, dependency-ordered task lists that stay readable in agent harnesses
-- Named reviewer agents: `spec-reviewer`, `code-reviewer`, `lite-spec-reviewer`, and `lite-code-reviewer`
+- Named workflow agents for review, planning, implementation, TDD, debugging, and safe parallelization
 - Local-first finishing flow that prepares PR commands without pushing unless explicitly requested
 - Included OpenCode plugin entrypoint through `.opencode/plugins/superduperpowers.js`
 - Calendar release versioning in the form `YYYY.M.D`, with `YYYY.M.D-N` for additional same-day releases
@@ -67,7 +67,8 @@ After the first launch, run `/sdp-status` to confirm the plugin loaded and `/sdp
 | Guide | Description |
 |-------|-------------|
 | [OpenCode Install](.opencode/INSTALL.md) | Included OpenCode plugin setup and routing verification prompts |
-| [Wiki](docs/wiki/index.md) | Full system documentation, user guide, and maintainer notes |
+| [Workflow Map](docs/workflow-map.md) | Current SDP routes, skill categories, agent roles, and registration constraints |
+| [Wiki](docs/wiki/index.md) | Documentation index |
 | [Testing](docs/testing.md) | Included OpenCode config tests and integration checks |
 | [Publishing](docs/publishing.md) | Manual npm Trusted Publishing release flow |
 | [GitHub Releases](https://github.com/notchrisbutler/superduperpowers/releases) | Release notes and active release history |
@@ -119,7 +120,7 @@ SuperDuperPowers is available under the MIT License. See [LICENSE](LICENSE) for 
 
 - [Jesse Vincent](https://github.com/obra) and [obra/superpowers](https://github.com/obra/superpowers) - the MIT-licensed baseline platform this project builds on
 - The Superpowers contributors whose work made the baseline platform possible
-- The coding-agent harness ecosystems that make portable skills and reviewer agents practical
+- The coding-agent harness ecosystems that make portable skills and workflow agents practical
 
 ---
 

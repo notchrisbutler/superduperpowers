@@ -1,6 +1,7 @@
 ---
 name: executing-plans
 description: Use when you have a written implementation plan to execute in a separate session with review checkpoints
+category: action
 ---
 
 # Executing Plans
@@ -13,7 +14,7 @@ If the active harness does not support subagents or worker dispatch, use `execut
 
 **Announce at start:** "I'm using the executing-plans skill to implement this plan."
 
-**Note:** Tell the user that SuperDuperPowers works much better with access to subagents. The quality of its work will be significantly higher when the active harness supports subagent dispatch. If subagents are available, use superpowers:subagent-driven-development instead of this skill.
+**Note:** Use `subagent-driven-development` when the user chose same-session subagents and the harness supports them. Use this skill for inline execution, separate-session execution, or harnesses without workable subagent dispatch.
 
 Before execution, read live settings and the workflow profile. Run branch preflight. Prefer feature branches when live settings or the profile say to prefer them, and use the current branch only when the user or profile explicitly approves it. Honor `testingIntensity` exactly as the plan describes.
 
@@ -49,6 +50,8 @@ Do not create nested todos. Do not use `Group N` in harness todos. Do not expand
 At each parent task boundary, run validation and only the review required by the plan, live settings, or risk. Reserve full code review for high-risk task scopes, escalations from lite code review, and the final full task-set review.
 
 When workflow commits are enabled, commit locally after each parent task todo only after task-scope validation and required reviews pass. On current feature branches this is the normal early-and-often cadence. In worktree or temporary task-branch execution, keep commits on the temporary branch and let finishing-a-development-branch handle integration back to the parent/source branch. Do not push unless the user explicitly requests it.
+
+For inline task execution, apply the same worker-role boundaries locally: use `test-driven-development` for TDD-required subtasks, use `systematic-debugging` before fixing unclear bugs, and use `dispatching-parallel-agents` only to plan safe delegation if the harness later gains subagents. Do not collapse review feedback handling into informal agreement; use `receiving-spec-review` and `receiving-code-review` when findings return.
 
 ### Step 3: Complete Development
 
@@ -97,4 +100,6 @@ After all tasks complete and verified:
 - **superpowers:using-feature-branches** - Default setup for non-worktree inline execution unless the profile records explicit current-branch approval
 - **superpowers:using-git-worktrees** - Use before starting when work should be isolated; skip when the user explicitly directs execution on the current branch
 - **superpowers:writing-plans** - Creates the plan this skill executes
+- **superpowers:receiving-spec-review** - Evaluate returned spec-review findings before fixing or escalating
+- **superpowers:receiving-code-review** - Evaluate returned code-review findings before fixing or escalating
 - **superpowers:finishing-a-development-branch** - Complete development after all tasks

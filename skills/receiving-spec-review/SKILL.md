@@ -1,6 +1,7 @@
 ---
 name: receiving-spec-review
 description: Use when receiving lite or full spec-review feedback before deciding whether to fix, escalate, or ask the user for clarification.
+category: review
 ---
 
 # Receiving Spec Review
@@ -8,6 +9,8 @@ description: Use when receiving lite or full spec-review feedback before decidin
 Spec review feedback is about requirement compliance, not style preference.
 
 **Core principle:** Missing requirements and unrequested scope are blocking until fixed, disproved, or clarified by the user.
+
+Use this skill whenever `lite-spec-reviewer`, `spec-reviewer`, or `plan-reviewer` returns findings during `writing-plans`, `subagent-driven-development`, or `executing-plans`. Do not treat review feedback as an instruction to blindly change scope; evaluate it against the actual spec, plan, and user request first.
 
 ## Response Pattern
 

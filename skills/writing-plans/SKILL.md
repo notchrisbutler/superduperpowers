@@ -1,6 +1,7 @@
 ---
 name: writing-plans
 description: Use when you have a spec or requirements for a multi-step task, before touching code
+category: guidance
 ---
 
 # Writing Plans
@@ -28,6 +29,14 @@ If testing intensity is missing before execution handoff, ask through the active
 **Save plans to:** `{DOCS_ROOT}/{SDP_DOCS_DIR}/plans/YYYY-MM-DD-<feature-name>.md`
 - (User preferences for plan location override this default)
 - Generated plans follow the live `generatedDocsPolicy`. The default is local-only. Do not commit or force-add the generated plan unless live settings, repo instructions, or the user explicitly require committing approved generated docs.
+
+## Agent Dispatch
+
+When named agents are available and the plan is substantial, dispatch `plan-writer` with the approved spec, compact workflow profile summary, repo conventions, docs path, generated-doc policy, testing intensity, and execution constraints. The `plan-writer` may write the plan document but must not implement code.
+
+After the plan is written, use `plan-reviewer` for broad or high-risk plans, plans with many files, plans that will dispatch multiple implementers, or any plan whose execution shape is uncertain. For small plans, inline self-review is enough unless the user or profile requires review.
+
+If `plan-reviewer` returns changes required, update the plan once, then request one focused re-review of the changed scope. If material issues remain, ask the user before execution.
 
 ## Scope Check
 
@@ -168,6 +177,8 @@ Every step must contain the actual content an engineer needs. These are **plan f
 ## Self-Review
 
 After writing the complete plan, look at the spec with fresh eyes and check the plan against it. This is a checklist you run yourself — not a subagent dispatch.
+
+If a `plan-reviewer` agent is used, this self-review still runs first. The reviewer is an independent readiness check, not a replacement for author responsibility.
 
 **1. Spec coverage:** Skim each section/requirement in the spec. Can you point to a task that implements it? List any gaps.
 

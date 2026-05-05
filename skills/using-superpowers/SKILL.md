@@ -1,6 +1,7 @@
 ---
 name: using-superpowers
 description: Use when routing an explicit or ambiguous SuperDuperPowers request between full flow, quick flow, and no SuperDuperPowers.
+category: routing
 ---
 
 <SUBAGENT-STOP>

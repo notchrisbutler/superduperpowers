@@ -1,6 +1,7 @@
 ---
 name: subagent-driven-development
 description: Use when executing implementation plans with independent tasks in the current session
+category: action
 ---
 
 # Subagent-Driven Development
@@ -47,7 +48,7 @@ digraph when_to_use {
 4. After strategy is known, run branch preflight and invoke the selected setup skill before any implementation subagent dispatch: `using-git-worktrees` for `worktree`, `using-feature-branches` for `feature-branch`, or stop if the strategy is `hold`.
 5. Record the resulting branch/worktree context in the workflow profile, including execution method, execution strategy, parent/source branch, selected durable branch, task branch, worktree path, and original workspace when relevant.
 6. Pass a compact profile summary into implementer and reviewer prompts.
-7. Extract task groups, tasks, dependencies, validation commands, and review policies.
+7. Extract task groups, tasks, dependencies, validation commands, review policies, and whether any task requires `tdd-implementer` instead of `implementer`.
 8. Replace any prior planning/brainstorming todos with one compact harness todo list.
 9. Execute each compact todo in dependency order.
 10. For each parent `Task N`, execute the plan-defined `Task N.M` subtasks and lite checkpoints.
@@ -112,6 +113,15 @@ Implementer subagents do not commit directly. They report changed files and veri
 - Full code review: dispatch `code-reviewer`.
 
 For platforms without named agents, use the matching prompt templates in this skill directory.
+
+## Worker Routing
+
+- Normal implementation task: dispatch `implementer` with the exact task text, expected files, validation commands, compact profile summary, and forbidden branch/git operations.
+- Tests-first task, regression fix, or plan-required TDD: dispatch `tdd-implementer` instead of `implementer`.
+- Complex bug task where root cause is not yet proven: dispatch `debugging-investigator` first. Only dispatch an implementation worker after it reports a supported root-cause hypothesis or the human approves proceeding.
+- Multiple apparently independent task streams: use `parallelization-advisor` before dispatching parallel workers unless the independence is already explicit in the plan.
+
+Implementation workers may edit assigned files but must not commit. The coordinator owns review, validation gates, and local commits.
 
 ## Model Selection
 
@@ -203,6 +213,9 @@ Finalize: invoke finishing-a-development-branch
 - **superpowers:using-git-worktrees** - Required setup for worktree execution before dispatch
 - **superpowers:requesting-spec-review** - Spec compliance review routing for lite and full spec reviews
 - **superpowers:requesting-code-review** - Code review guidance for full code reviews
+- **superpowers:receiving-spec-review** - Required when spec-review feedback returns findings
+- **superpowers:receiving-code-review** - Required when code-review feedback returns findings
+- **superpowers:dispatching-parallel-agents** - Use when task streams can safely run concurrently
 - **superpowers:finishing-a-development-branch** - Complete development after all tasks
 
 **Subagents should use:**

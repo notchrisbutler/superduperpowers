@@ -1,6 +1,7 @@
 ---
 name: dispatching-parallel-agents
 description: Use when facing 2+ independent tasks that can be worked on without shared state or sequential dependencies
+category: action
 ---
 
 # Dispatching Parallel Agents
@@ -43,6 +44,20 @@ digraph when_to_use {
 - Failures are related (fix one might fix others)
 - Need to understand full system state
 - Agents would interfere with each other
+
+## Workflow Integration
+
+This skill is a support action for `subagent-driven-development`, `executing-plans`, and `systematic-debugging`, not a standalone route. Use it when a plan, test failure set, or bug investigation has 2+ candidate work streams and the independence is not already obvious.
+
+When named agents are available, dispatch `parallelization-advisor` first for non-trivial splits. Give it the plan or failure list, expected files, known dependencies, and active profile summary. It returns safe work streams and the recommended worker role for each stream.
+
+After advisor output:
+
+- Dispatch `implementer` for ordinary bounded streams.
+- Dispatch `tdd-implementer` for tests-first or regression streams.
+- Dispatch `debugging-investigator` for streams that still need root-cause evidence.
+- Keep review agents separate from implementation workers.
+- Do not run parallel implementation when file ownership or validation state overlaps.
 
 ## The Pattern
 

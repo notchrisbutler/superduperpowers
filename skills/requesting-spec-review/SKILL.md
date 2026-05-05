@@ -1,6 +1,7 @@
 ---
 name: requesting-spec-review
 description: Use when completed work needs a lightweight or full review against a spec, plan, task scope, or acceptance criteria.
+category: review
 ---
 
 # Requesting Spec Review
@@ -17,7 +18,8 @@ Choose the cheapest reviewer that matches the risk:
 |---|---|
 | Small, mechanical, or low-risk checkpoint | `lite-spec-reviewer` |
 | Requirements ambiguous or files touched are unexpected | `spec-reviewer` |
-| Normal parent task scope | `spec-reviewer` |
+| Normal parent task scope with clear requirements and expected files | `lite-spec-reviewer` when useful |
+| Normal parent task scope requiring explicit compliance review by the plan/profile | `spec-reviewer` |
 | High-risk task | `spec-reviewer` |
 | Final implementation or pre-merge review | `spec-reviewer` |
 
@@ -31,6 +33,8 @@ If unsure, use `spec-reviewer`.
 2. Identify the reviewed change range: base SHA, head SHA, file list, or working-tree diff.
 3. Use the active harness's subagent or worker-dispatch mechanism with the selected reviewer. If named reviewer agents are unavailable, use the fallback prompt content and run the review as an inline or generic-worker review.
 4. If lite review says `Escalate`, request a full `spec-reviewer` review before proceeding.
+
+Use this skill from `subagent-driven-development` and `executing-plans` at task boundaries only when the plan, live settings, or risk calls for spec review. Final implementation review always uses `spec-reviewer`.
 
 ## Prompt Inputs
 

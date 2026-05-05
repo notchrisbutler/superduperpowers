@@ -58,6 +58,33 @@ if ! grep -q "Do not repeatedly re-run the same reviewer" "$using_skill"; then
   exit 1
 fi
 
+for skill_file in "$SUPERPOWERS_DIR"/skills/*/SKILL.md; do
+  if ! grep -q "^category: " "$skill_file"; then
+    echo "  [FAIL] skill lacks category metadata: $skill_file"
+    exit 1
+  fi
+done
+
+for agent in brainstorming-facilitator plan-writer plan-reviewer implementer tdd-implementer debugging-investigator parallelization-advisor; do
+  if [ ! -f "$SUPERPOWERS_DIR/agents/$agent.md" ]; then
+    echo "  [FAIL] missing workflow agent: $agent"
+    exit 1
+  fi
+done
+
+if ! grep -q "dispatch \`implementer\`" "$SUPERPOWERS_DIR/skills/subagent-driven-development/SKILL.md"; then
+  echo "  [FAIL] subagent-driven-development does not route implementer agent"
+  exit 1
+fi
+if ! grep -q "dispatch \`plan-writer\`" "$SUPERPOWERS_DIR/skills/writing-plans/SKILL.md"; then
+  echo "  [FAIL] writing-plans does not route plan-writer agent"
+  exit 1
+fi
+if ! grep -q "dispatch \`debugging-investigator\`" "$SUPERPOWERS_DIR/skills/systematic-debugging/SKILL.md"; then
+  echo "  [FAIL] systematic-debugging does not route debugging-investigator agent"
+  exit 1
+fi
+
 bootstrap_words=$(REPO_ROOT="$REPO_ROOT" node --input-type=module <<'NODE'
 import path from 'path';
 import { pathToFileURL } from 'url';

@@ -27,7 +27,7 @@ After OpenCode starts, run:
 /sdp-status
 ```
 
-Expected: the agent runs `sdp_doctor`, reports the SuperDuperPowers tools, commands, bundled skills, and reviewer agents, and warns if project-local setup is still missing.
+Expected: the agent runs `sdp_doctor`, reports the SuperDuperPowers tools, commands, bundled skills, and workflow agents, and warns if project-local setup is still missing.
 
 Then run:
 
@@ -69,7 +69,7 @@ Use an absolute path to the repository checkout. Restart OpenCode after changing
 The OpenCode plugin entrypoint is `.opencode/plugins/superduperpowers.js`.
 
 - It adds the packaged `skills/` directory to OpenCode skill discovery.
-- It registers reviewer subagents from `agents/` as named OpenCode subagents: `code-reviewer`, `spec-reviewer`, `lite-code-reviewer`, and `lite-spec-reviewer`.
+- It registers named OpenCode subagents from `agents/`: reviewer agents, design/planning agents, implementation agents, and investigation/coordination agents.
 - It injects a compact SuperDuperPowers routing bootstrap into the first user message once per session so routing guidance is available without duplicating it on later turns.
 - Custom tools: `sdp_settings`, `sdp_init`, `sdp_profile`, `sdp_setup_hygiene`, `sdp_branch_context`, and `sdp_doctor`.
 - User-level runtime state and default worktrees under `{OPENCODE_CONFIG_DIR}/superduperpowers/`.
@@ -98,6 +98,8 @@ The plugin registers OpenCode TUI slash commands through `config.command`; no co
 - `/sdp-init` - create `.opencode/superduperpowers.jsonc` if project-local defaults are missing.
 - `/sdp-cleanup` - inspect stale runtime state and clean only after confirmation unless cleanup was explicitly requested.
 
+`/sdp-cleanup` follows OpenCode session presence first: if the matching OpenCode session is gone, the same-ID SuperDuperPowers state can be removed. If OpenCode session presence cannot be checked, stale means the SDP state directory has not been updated or reactivated in the configured retention window. The default and maximum retention window is 7 days.
+
 ## Runtime Drift Repair
 
 The plugin may automatically repair corrupted SuperDuperPowers-owned session state under `{OPENCODE_CONFIG_DIR}/superduperpowers/state/{sessionID}/`. Corrupt state is moved to `{OPENCODE_CONFIG_DIR}/superduperpowers/quarantine/` before replacement.
@@ -119,13 +121,13 @@ Execute this approved plan with subagents using user-level worktrees.
 
 Expected: the `skill` tool can load skills from this package, the `using-superpowers` bootstrap is present once, and the agent follows the requested brainstorming workflow.
 
-Reviewer subagents prompt:
+SuperDuperPowers subagents prompt:
 
 ```text
-List the available subagent types relevant to SuperDuperPowers review workflows.
+List the available subagent types relevant to SuperDuperPowers workflows.
 ```
 
-Expected: `code-reviewer`, `spec-reviewer`, `lite-code-reviewer`, and `lite-spec-reviewer` are available as named subagents.
+Expected: reviewer agents (`code-reviewer`, `spec-reviewer`, `lite-code-reviewer`, `lite-spec-reviewer`), planning agents (`brainstorming-facilitator`, `plan-writer`, `plan-reviewer`), implementation agents (`implementer`, `tdd-implementer`), and investigation/coordination agents (`debugging-investigator`, `parallelization-advisor`) are available as named subagents.
 
 Quick-flow prompt:
 
