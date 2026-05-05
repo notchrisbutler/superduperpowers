@@ -55,7 +55,7 @@ tests/opencode/
 - Run commands from the SuperDuperPowers repository root.
 - Use a development checkout when changing plugin code, skills, agents, or docs.
 - Install OpenCode locally before running `tests/opencode/run-tests.sh --integration`.
-- Keep test fixtures local and temporary; do not require global package installation.
+- Keep test fixtures local and temporary; do not require global installation.
 
 ## What To Verify
 
@@ -88,7 +88,7 @@ Verify these behaviors:
 
 ## Writing Or Updating Tests
 
-- Keep tests in `tests/opencode/` unless a future OpenCode package test requires a separate fixture.
+- Keep tests in `tests/opencode/` unless a future OpenCode release-install test requires a separate fixture.
 - Prefer checks that mirror documented install strings and plugin resolution behavior when those behaviors can be validated without requiring a global user setup.
 - Add integration coverage for behavior that only appears inside an OpenCode session.
 - Keep default tests fast and free of external runtime requirements.
@@ -96,7 +96,7 @@ Verify these behaviors:
 
 ## Troubleshooting
 
-If skills are not discovered, verify the plugin is installed from the expected GitHub package source or `git+file` checkout path and restart OpenCode.
+If skills are not discovered, verify the plugin is installed from the expected GitHub release source or `git+file` checkout path and restart OpenCode.
 
 If workflow subagents are missing, check `.opencode/plugins/superduperpowers.js` and confirm it registers the packaged definitions from `agents/`.
 

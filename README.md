@@ -14,18 +14,18 @@ This project is built from Jesse Vincent's [obra/superpowers](https://github.com
 
 ## Included Harness Config
 
-SuperDuperPowers is alpha software. The workflow core is intended to stay harness and model agnostic. The first included harness config is for OpenCode, installed as a package-style plugin from GitHub until npm publication is active.
+SuperDuperPowers is alpha software. The workflow core is intended to stay harness and model agnostic. The first included harness config is for OpenCode, installed from GitHub Releases through the `latest` release tag.
 
 Add the plugin to your OpenCode config, typically `opencode.json`:
 
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git#main"]
+  "plugin": ["superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git#latest"]
 }
 ```
 
-The future npm package name is `@notchrisbutler/superduperpowers`, but npm installation is not the supported product path until publication is active.
+For reproducible installs, pin a specific GitHub release tag such as `2026.5.5` instead of `latest`.
 
 For local checkout development, use a `git+file` source instead:
 
@@ -70,7 +70,7 @@ After the first launch, run `/sdp-status` to confirm the plugin loaded and `/sdp
 | [Workflow Map](docs/workflow-map.md) | Current SDP routes, skill categories, agent roles, and registration constraints |
 | [Wiki](docs/wiki/index.md) | Documentation index |
 | [Testing](docs/testing.md) | Included OpenCode config tests and integration checks |
-| [Publishing](docs/publishing.md) | Manual npm Trusted Publishing release flow |
+| [Publishing](docs/publishing.md) | GitHub Releases and `latest` tag release flow |
 | [GitHub Releases](https://github.com/notchrisbutler/superduperpowers/releases) | Release notes and active release history |
 | [Acknowledgements](ACKNOWLEDGEMENTS.md) | Baseline platform attribution |
 
