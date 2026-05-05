@@ -79,6 +79,7 @@ if (!mod.SuperpowersPlugin) throw new Error('missing SuperpowersPlugin export');
 const hooks = await mod.SuperpowersPlugin({});
 if (typeof hooks.config !== 'function') throw new Error('missing config hook');
 if (!hooks.tool?.sdp_settings) throw new Error('missing sdp_settings tool');
+if (!hooks.tool?.sdp_init) throw new Error('missing sdp_init tool');
 if (!hooks.tool?.sdp_profile) throw new Error('missing sdp_profile tool');
 if (!hooks.tool?.sdp_setup_hygiene) throw new Error('missing sdp_setup_hygiene tool');
 if (!hooks.tool?.sdp_branch_context) throw new Error('missing sdp_branch_context tool');
@@ -130,7 +131,7 @@ for (const name of ['code-reviewer', 'spec-reviewer', 'lite-code-reviewer', 'lit
   if (agent.permission?.todowrite !== 'deny') throw new Error(`${name} can mutate todos`);
 }
 
-const expectedCommands = ['sdp', 'superduperpowers', 'superpowers', 'brainstorm', 'quick-flow', 'write-plan', 'execute-plan', 'sdp-status', 'sdp-profile', 'sdp-cleanup'];
+const expectedCommands = ['sdp', 'superduperpowers', 'superpowers', 'brainstorm', 'quick-flow', 'write-plan', 'execute-plan', 'sdp-status', 'sdp-profile', 'sdp-init', 'sdp-cleanup'];
 for (const name of expectedCommands) {
   const command = config.command?.[name];
   if (!command) throw new Error(`missing command ${name}`);
@@ -213,6 +214,7 @@ if (count !== 1) throw new Error(`expected one bootstrap injection, got ${count}
 if (!text.includes('superduperpowers')) throw new Error('bootstrap is missing superduperpowers alias language');
 if (!text.includes('sdp_profile')) throw new Error('bootstrap is missing workflow profile tool mapping');
 if (!text.includes('sdp_settings')) throw new Error('bootstrap is missing live settings tool mapping');
+if (!text.includes('sdp_init')) throw new Error('bootstrap is missing project init tool mapping');
 if (!text.includes('SuperDuperPowers live settings')) throw new Error('bootstrap is missing live settings summary');
 console.log('bootstrap injected once');
 NODE

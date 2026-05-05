@@ -154,7 +154,7 @@ const defaultSettings = () => ({
       useQuestionTool: true,
       requireSpecApproval: true,
       requirePlanApproval: true,
-      reviewEachChunk: true,
+      reviewEachChunk: false,
       finalSpecReview: true,
       finalCodeReview: true
     },
@@ -468,14 +468,14 @@ const validateProfileInput = (value, { allowFull = false, comparisonProfile = nu
   return { ok: errors.length === 0, errors };
 };
 
-export const profileSummaryText = (profile) => `SuperDuperPowers profile: route=${profile.route || 'unset'}, docs=${profile.sdpDocsRoot}, runtime=${profile.runtimeRoot}, executionMethod=${profile.executionMethod || 'unset'}, executionStrategy=${profile.executionStrategy || 'unset'}, testingIntensity=${profile.testingIntensity}, branchPolicy=${profile.branchPolicy}, workflowCommitPolicy=${profile.workflowCommitPolicy}, generatedDocsPolicy=${profile.generatedDocsPolicy}.`;
+export const profileSummaryText = (profile) => `SuperDuperPowers profile: route=${profile.route || 'unset'}, docs=${profile.sdpDocsRoot}, execution=${profile.executionStrategy || profile.executionMethod || 'unset'}, testingIntensity=${profile.testingIntensity}, branch=${profile.branchPolicy}, commits=${profile.workflowCommitPolicy}, generatedDocs=${profile.generatedDocsPolicy}.`;
 
 export const settingsSummaryText = (effectiveSettings) => {
   const settings = effectiveSettings?.settings || defaultSettings();
   const workflow = settings.workflow || {};
   const paths = settings.paths || {};
   const loaded = (effectiveSettings?.sources || []).filter((source) => source.status === 'loaded').map((source) => source.path);
-  return `SuperDuperPowers live settings: docsRoot=${workflow.defaultDocsRoot}, docsDir=${paths.docsDirName}, generatedDocsPolicy=${workflow.generatedDocsPolicy}, workflowCommitPolicy=${workflow.workflowCommitPolicy}, branchPolicy=${workflow.branchPolicy}, preferFeatureBranches=${workflow.preferFeatureBranches}, testingIntensity=${workflow.testingIntensity}, maxQuickQuestions=${workflow.quickFlow?.maxClarifyingQuestions}. Reload with sdp_settings because project/user JSONC changes are read live. Loaded settings: ${loaded.length > 0 ? loaded.join(', ') : 'built-in defaults only'}.`;
+  return `SuperDuperPowers live settings: docsRoot=${workflow.defaultDocsRoot}, docsDir=${paths.docsDirName}, commits=${workflow.workflowCommitPolicy}, branch=${workflow.branchPolicy}, tests=${workflow.testingIntensity}, fullReviewEachChunk=${workflow.fullFlow?.reviewEachChunk}. Use sdp_settings for details; loaded=${loaded.length}.`;
 };
 
 const listKnownOpenCodeSessions = () => {
@@ -861,6 +861,96 @@ const createSettingsTool = (configDir, packageInfo) => tool({
   }
 });
 
+const projectConfigPathFor = (directory) => path.join(path.resolve(directory || process.cwd()), '.opencode', 'superduperpowers.jsonc');
+
+const readProjectConfigTemplate = (packageInfo) => {
+  const sourcePath = packageInfo.defaultSettingsPath || path.join(packageInfo.packageRoot || process.cwd(), 'superduperpowers.config.jsonc');
+  const content = readTextSafe(sourcePath);
+  if (content) return { sourcePath, content };
+  return {
+    sourcePath,
+    content: `{
+  "$schema": "https://notchrisbutler.github.io/superduperpowers/settings.schema.json",
+  "schemaVersion": 1,
+  "workflow": {
+    "defaultRoute": null,
+    "defaultDocsRoot": "docs",
+    "generatedDocsPolicy": "local-only",
+    "workflowCommitPolicy": "implementation-commits-only",
+    "branchPolicy": "prefer-feature-branch",
+    "testingIntensity": "major-behavior",
+    "fullFlow": {
+      "reviewEachChunk": false
+    }
+  }
+}
+`
+  };
+};
+
+const inspectProjectConfigTarget = (directory, packageInfo) => {
+  const projectRoot = path.resolve(directory || process.cwd());
+  const opencodeDir = path.join(projectRoot, '.opencode');
+  const configPath = projectConfigPathFor(projectRoot);
+  const template = readProjectConfigTemplate(packageInfo);
+  const errors = [];
+  try {
+    const projectStat = fs.lstatSync(projectRoot);
+    if (projectStat.isSymbolicLink()) errors.push('project root must not be a symlink for sdp_init writes');
+    if (!projectStat.isDirectory()) errors.push('project root must be a directory');
+  } catch (error) {
+    errors.push(`invalid project root: ${error.message}`);
+  }
+  try {
+    const stat = fs.lstatSync(opencodeDir);
+    if (stat.isSymbolicLink()) errors.push('.opencode must not be a symlink');
+    if (!stat.isDirectory()) errors.push('.opencode must be a directory');
+  } catch (error) {
+    if (error.code !== 'ENOENT') errors.push(`invalid .opencode directory: ${error.message}`);
+  }
+  try {
+    const stat = fs.lstatSync(configPath);
+    if (stat.isSymbolicLink()) errors.push('.opencode/superduperpowers.jsonc must not be a symlink');
+    if (!stat.isFile()) errors.push('.opencode/superduperpowers.jsonc must be a file');
+  } catch (error) {
+    if (error.code !== 'ENOENT') errors.push(`invalid project config path: ${error.message}`);
+  }
+  const exists = fileExists(configPath);
+  return { projectRoot, opencodeDir, configPath, exists, sourcePath: template.sourcePath, template: template.content, errors };
+};
+
+const createInitTool = (packageInfo) => tool({
+  description: 'Check or create the project-local SuperDuperPowers config at .opencode/superduperpowers.jsonc.',
+  args: {
+    operation: tool.schema.enum(['check', 'apply', 'template'])
+  },
+  async execute(args, context) {
+    const directory = context.directory || context.worktree || process.cwd();
+    const target = inspectProjectConfigTarget(directory, packageInfo);
+    if (args.operation === 'template') {
+      return JSON.stringify({ ok: true, path: target.configPath, sourcePath: target.sourcePath, content: target.template }, null, 2);
+    }
+    if (args.operation === 'check') {
+      return JSON.stringify({
+        ok: target.errors.length === 0,
+        exists: target.exists,
+        path: target.configPath,
+        sourcePath: target.sourcePath,
+        action: target.exists ? 'none' : 'run /sdp-init to create project-local defaults',
+        errors: target.errors
+      }, null, 2);
+    }
+    if (args.operation === 'apply') {
+      if (target.errors.length > 0) return JSON.stringify({ ok: false, path: target.configPath, errors: target.errors }, null, 2);
+      if (target.exists) return JSON.stringify({ ok: true, created: false, path: target.configPath, reason: 'already-exists' }, null, 2);
+      fs.mkdirSync(target.opencodeDir, { recursive: true });
+      fs.writeFileSync(target.configPath, ensureTrailingNewline(target.template), { flag: 'wx' });
+      return JSON.stringify({ ok: true, created: true, path: target.configPath, sourcePath: target.sourcePath }, null, 2);
+    }
+    return JSON.stringify({ ok: false, reason: `unsupported operation ${args.operation}` }, null, 2);
+  }
+});
+
 const createProfileTool = (configDir, packageInfo) => tool({
   description: 'Manage the active SuperDuperPowers workflow profile for this OpenCode session.',
   args: {
@@ -961,7 +1051,7 @@ const createProfileTool = (configDir, packageInfo) => tool({
     if (operation === 'summary') {
       const profile = readExisting() || baseProfile;
       if (profile?.corrupted) return JSON.stringify({ ok: false, reason: 'corrupt-profile', errors: profile.errors }, null, 2);
-      return JSON.stringify({ ok: true, summary: profileSummaryText(profile), profile }, null, 2);
+      return JSON.stringify({ ok: true, summary: profileSummaryText(profile) }, null, 2);
     }
 
     if (operation === 'validate') {
@@ -1137,8 +1227,17 @@ const createDoctorTool = (configDir, packageInfo, getRegistrationReport) => tool
       doctorCheck(checks, 'command-overrides', 'warning', `user-defined commands preserved: ${preservedCommands.join(', ')}`, { preservedCommands });
     }
 
-    const tools = ['sdp_settings', 'sdp_profile', 'sdp_setup_hygiene', 'sdp_branch_context', 'sdp_doctor'];
+    const tools = ['sdp_settings', 'sdp_init', 'sdp_profile', 'sdp_setup_hygiene', 'sdp_branch_context', 'sdp_doctor'];
     doctorCheck(checks, 'tools', 'ok', `expected tools exposed: ${tools.join(', ')}`, { tools });
+
+    const initTarget = inspectProjectConfigTarget(directory, packageInfo);
+    doctorCheck(
+      checks,
+      'project-config',
+      initTarget.errors.length > 0 ? 'error' : (initTarget.exists ? 'ok' : 'warning'),
+      initTarget.errors.length > 0 ? initTarget.errors.join('; ') : (initTarget.exists ? 'project-local SuperDuperPowers config exists' : 'project-local .opencode/superduperpowers.jsonc not found; run /sdp-init to create one'),
+      { path: initTarget.configPath, exists: initTarget.exists, errors: initTarget.errors }
+    );
 
     const runtimeParentErrors = validateRuntimeParentPaths(paths);
     doctorCheck(checks, 'runtime-parents', runtimeParentErrors.length === 0 ? 'ok' : 'error', runtimeParentErrors.length === 0 ? 'runtime parent paths are safe' : runtimeParentErrors.join('; '), { errors: runtimeParentErrors });
@@ -1211,6 +1310,7 @@ const createDoctorTool = (configDir, packageInfo, getRegistrationReport) => tool
 
 export const createSdpTools = ({ configDir, packageInfo = {}, getRegistrationReport = () => null }) => ({
   sdp_settings: createSettingsTool(configDir, packageInfo),
+  sdp_init: createInitTool(packageInfo),
   sdp_profile: createProfileTool(configDir, packageInfo),
   sdp_setup_hygiene: createSetupHygieneTool(configDir, packageInfo),
   sdp_branch_context: createBranchContextTool(),

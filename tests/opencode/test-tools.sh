@@ -78,8 +78,8 @@ output=$(run_with_optional_timeout opencode run "Use the skill tool to load brai
     exit 1
 }
 
-# Check for expected content from brainstorming skill
-if output_matches "Brainstorming Ideas Into Designs"; then
+# Check for expected content or current OpenCode skill-load acknowledgement.
+if output_matches "Brainstorming Ideas Into Designs\|Skill \"brainstorming\""; then
     echo "  [PASS] native skill tool loaded brainstorming skill"
 else
     echo "  [FAIL] native skill tool did not load brainstorming correctly"

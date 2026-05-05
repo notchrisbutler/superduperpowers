@@ -21,7 +21,7 @@ Use this skill for explicit SuperDuperPowers brainstorming requests and for work
 
 When this skill is selected, create a task for each of these items and complete them in order:
 
-1. **Read live settings and workflow profile** — use `sdp_settings` and `sdp_profile` when available to capture route, docs policy, runtime defaults, branch policy, generated-doc commit policy, workflow commit policy, question policy, and testing intensity
+1. **Read compact workflow context** — use `sdp_settings` and `sdp_profile` only when needed to capture unknown route, docs policy, runtime defaults, branch policy, generated-doc commit policy, workflow commit policy, question policy, or testing intensity
 2. **Explore project context** — check files, docs, recent commits
 3. **Ask clarifying questions** — use the active harness's question tool when available, one topic at a time, until ambiguity is low enough to write a useful spec
 4. **Propose 2-3 approaches** — with trade-offs and your recommendation

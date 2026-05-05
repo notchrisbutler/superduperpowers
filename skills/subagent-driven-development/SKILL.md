@@ -51,7 +51,7 @@ digraph when_to_use {
 8. Replace any prior planning/brainstorming todos with one compact harness todo list.
 9. Execute each compact todo in dependency order.
 10. For each parent `Task N`, execute the plan-defined `Task N.M` subtasks and lite checkpoints.
-11. Run full task-scope spec review and lite task-scope code review at parent task boundaries.
+11. Run task-scope review at parent task boundaries only when the plan, live settings, or risk calls for it; otherwise rely on validation plus the final full reviews.
 12. Commit the verified parent task scope locally when workflow commits are enabled.
 13. Run final full implementation review and validation across all tasks.
 14. Commit verified remaining changes locally when workflow commits are enabled.
@@ -88,13 +88,15 @@ Use the cheapest review that matches the risk:
 | Work type | Review |
 |---|---|
 | Mechanical or simple task | One lite review checkpoint, using `lite-spec-reviewer` and/or `lite-code-reviewer` only when useful |
-| Normal task scope | Full spec review + lite code review after task validation |
+| Normal task scope | Validation + lite code review when useful; full spec review only when plan-required or settings require per-chunk review |
 | High-risk task | Full spec review + full code review before moving on |
 | Final implementation | Full task-set spec review + full task-set code review + validation |
 
 High-risk means security, auth, data loss, migrations, broad refactors, cross-cutting behavior, unresolved design judgment, or unexpected file changes.
 
-If a lite review finds a concern, escalate that task scope to full spec and/or full code review before moving on.
+If a lite review finds a material concern, escalate that task scope to full spec and/or full code review before moving on.
+
+Review loop budget: after a reviewer reports issues, group the findings, fix them once, and request one focused re-review of the changed scope. If material issues remain, escalate once to the stronger reviewer or ask the human; do not repeat the same reviewer prompt with unchanged context.
 
 ## Commit Cadence
 
@@ -164,12 +166,8 @@ Within Task 1: Lite review checkpoint from the plan
 [Dispatch lite-spec-reviewer and/or lite-code-reviewer if useful]
 Lite checkpoint: Pass
 
-Within Task 1: Full spec review
-[Dispatch spec-reviewer across all Task 1 changes]
-Result: Approved
-
-Within Task 1: Lite code review
-[Dispatch lite-code-reviewer across all Task 1 changes]
+Within Task 1: Optional task-scope review when plan/risk/settings require it
+[Dispatch lite-code-reviewer or spec-reviewer against the Task 1 diff]
 Result: Approved
 
 Review: final full task-set spec review, code review, and validation
@@ -194,8 +192,8 @@ Finalize: invoke finishing-a-development-branch
 
 **If reviewer finds issues:**
 - Implementer or fix subagent fixes them
-- Reviewer reviews again
-- Repeat until approved or escalate to the human
+- Reviewer gets one focused re-review of the changed scope
+- If material issues remain, escalate once to the stronger reviewer or the human
 
 ## Integration
 

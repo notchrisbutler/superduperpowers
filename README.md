@@ -14,25 +14,18 @@ This project is built from Jesse Vincent's [obra/superpowers](https://github.com
 
 ## Included Harness Config
 
-SuperDuperPowers is alpha software. The workflow core is intended to stay harness and model agnostic. The first included harness config is for OpenCode, installed as a package-style plugin from npm.
+SuperDuperPowers is alpha software. The workflow core is intended to stay harness and model agnostic. The first included harness config is for OpenCode, installed as a package-style plugin from GitHub until npm publication is active.
 
 Add the plugin to your OpenCode config, typically `opencode.json`:
 
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["@notchrisbutler/superduperpowers"]
+  "plugin": ["superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git#main"]
 }
 ```
 
-If npm resolution is unavailable, use the GitHub repository directly as a backup:
-
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "plugin": ["superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git"]
-}
-```
+The future npm package name is `@notchrisbutler/superduperpowers`, but npm installation is not the supported product path until publication is active.
 
 For local checkout development, use a `git+file` source instead:
 
@@ -45,15 +38,17 @@ For local checkout development, use a `git+file` source instead:
 
 See [OpenCode Install](.opencode/INSTALL.md) for the included setup and verification prompts.
 
+After the first launch, run `/sdp-status` to confirm the plugin loaded and `/sdp-init` to create `.opencode/superduperpowers.jsonc` for project-local defaults.
+
 ---
 
 ## Features
 
 - Opt-in SuperDuperPowers routing with full flow, quick flow, and no-SuperDuperPowers modes
-- Live JSON/JSONC settings through `superduperpowers.config.jsonc`, project overrides, and `sdp_settings`
-- Workflow profile tools for route, docs, execution, branch, and testing-intensity decisions
+- Live JSON/JSONC settings through `superduperpowers.config.jsonc`, project overrides, and compact `sdp_settings` summaries
+- Workflow profile tools for route, docs, execution, branch, and testing-intensity decisions; compact summaries are used by default, full JSON is available on demand
 - User-level OpenCode runtime state and default worktrees under `{OPENCODE_CONFIG_DIR}/superduperpowers/`
-- OpenCode TUI commands: `/sdp`, `/superduperpowers`, `/superpowers`, `/brainstorm`, `/quick-flow`, `/write-plan`, `/execute-plan`, `/sdp-status`, `/sdp-profile`, and `/sdp-cleanup`
+- OpenCode TUI commands: `/sdp`, `/superduperpowers`, `/superpowers`, `/brainstorm`, `/quick-flow`, `/write-plan`, `/execute-plan`, `/sdp-status`, `/sdp-profile`, `/sdp-init`, and `/sdp-cleanup`
 - Read-only OpenCode diagnostics through `sdp_doctor` and `/sdp-status`
 - Safe automatic repair for SuperDuperPowers-owned runtime-state drift under `{OPENCODE_CONFIG_DIR}/superduperpowers/state/`; corrupt state is quarantined and repair does not edit user config, project files, generated docs, plugin shims, or git state
 - Legacy `superpowers.js` shim and duplicate-load warnings are reported through `sdp_doctor` and `/sdp-status`
@@ -72,6 +67,7 @@ See [OpenCode Install](.opencode/INSTALL.md) for the included setup and verifica
 | Guide | Description |
 |-------|-------------|
 | [OpenCode Install](.opencode/INSTALL.md) | Included OpenCode plugin setup and routing verification prompts |
+| [Wiki](docs/wiki/index.md) | Full system documentation, user guide, and maintainer notes |
 | [Testing](docs/testing.md) | Included OpenCode config tests and integration checks |
 | [Publishing](docs/publishing.md) | Manual npm Trusted Publishing release flow |
 | [GitHub Releases](https://github.com/notchrisbutler/superduperpowers/releases) | Release notes and active release history |
@@ -95,7 +91,7 @@ Generated SuperDuperPowers specs and plans are local-only by default unless live
 
 ## Live Settings
 
-The packaged defaults live in `superduperpowers.config.jsonc`. OpenCode sessions can also read project overrides from `superduperpowers.jsonc`, `superduperpowers.config.jsonc`, or `.opencode/superduperpowers.jsonc`, and user overrides from `{OPENCODE_CONFIG_DIR}/superduperpowers/settings.jsonc`. Agents should call `sdp_settings` at workflow gates so changes made after a session starts are picked up before routing, spec writing, plan writing, execution, review, and finalization.
+The packaged defaults live in `superduperpowers.config.jsonc`. OpenCode sessions can also read project overrides from `superduperpowers.jsonc`, `superduperpowers.config.jsonc`, or `.opencode/superduperpowers.jsonc`, and user overrides from `{OPENCODE_CONFIG_DIR}/superduperpowers/settings.jsonc`. Agents should call `sdp_settings` only when a workflow decision depends on live settings or settings may have changed.
 
 `skills/using-superpowers/SKILL.md` is the source of truth for routing details.
 

@@ -1,44 +1,57 @@
 {
   "$schema": "https://notchrisbutler.github.io/superduperpowers/settings.schema.json",
   "schemaVersion": 1,
+
   "workflow": {
+    // null keeps SuperDuperPowers opt-in. Other values:
+    // "full-brainstorming", "quick-implementation", "none".
     "defaultRoute": null,
+
+    // Generated specs/plans go under <defaultDocsRoot>/superduperpowers/.
+    // Set forceDefaultDocsRoot in an override only if auto-detecting docs/
+    // versus documents/ is undesirable for that project.
     "defaultDocsRoot": "docs",
-    "forceDefaultDocsRoot": false,
+
+    // Generated docs are local by default. Other value:
+    // "commit-after-approval".
     "generatedDocsPolicy": "local-only",
+
+    // Implementation commits may be made by full workflows. Other values:
+    // "disabled", "spec-plan-and-implementation-commits".
     "workflowCommitPolicy": "implementation-commits-only",
+
+    // Branch safety default. Use current branch only with explicit approval.
+    // Common override: "current-branch-after-approval".
     "branchPolicy": "prefer-feature-branch",
-    "preferFeatureBranches": true,
-    "defaultExecutionMethod": null,
-    "defaultExecutionStrategy": null,
+
+    // Test scope values:
+    // "full-regression", "major-behavior", "existing-tests-only".
     "testingIntensity": "major-behavior",
-    "questionPolicy": "deep-questions-before-spec-avoid-during-execution",
+
     "fullFlow": {
-      "useQuestionTool": true,
-      "requireSpecApproval": true,
-      "requirePlanApproval": true,
-      "reviewEachChunk": true,
-      "finalSpecReview": true,
-      "finalCodeReview": true
-    },
-    "quickFlow": {
-      "maxClarifyingQuestions": 5,
-      "writeDocs": false,
-      "requireTdd": false,
-      "reviewIntensity": "lite"
+      // false keeps normal task execution lean; high-risk tasks and final
+      // implementation still get the appropriate reviews.
+      "reviewEachChunk": false
     }
   },
+
   "paths": {
+    // Runtime state stays in the OpenCode config dir, not in projects.
     "runtimeDir": "superduperpowers",
+
+    // Generated workflow docs live under <docs root>/<docsDirName>/.
     "docsDirName": "superduperpowers",
     "specsDirName": "specs",
     "plansDirName": "plans",
+
+    // User-level worktrees and repair quarantine are owned by this plugin.
     "worktreesDirName": "worktrees",
     "stateDirName": "state",
     "quarantineDirName": "quarantine"
   },
+
   "cleanup": {
-    "mode": "session-aware",
+    // Stale session state can be removed by /sdp-cleanup.
     "retentionDays": 30
   }
 }

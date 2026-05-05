@@ -93,13 +93,13 @@ You: [Escalate to code-reviewer or remove the unrelated file change before proce
 
 **Subagent-Driven Development:**
 - Lite checkpoint after simple tasks
-- Lite code review after each normal parent task scope
+- Lite code review at normal parent task scope when plan, settings, or risk call for it
 - Full code review for high-risk task scopes, escalations, and final task-set review
 - Catch issues before they compound
 - Fix before moving to next parent task scope
 
 **Executing Plans:**
-- Review after each parent task scope
+- Review after parent task scopes only when plan, settings, or risk call for it
 - Get feedback, apply, continue
 
 **Ad-Hoc Development:**
