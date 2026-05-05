@@ -8,6 +8,8 @@
     "url": "https://github.com/notchrisbutler/superduperpowers"
   },
   "scripts": {
+    "context:budget": "node scripts/context-budget.mjs",
+    "context:check": "node scripts/context-budget.mjs --check",
     "version:next": "scripts/bump-version.sh --next",
     "version:check": "scripts/bump-version.sh --check",
     "version:audit": "scripts/bump-version.sh --audit"
@@ -23,6 +25,7 @@
     "skills/",
     "assets/",
     "docs/",
+    "scripts/context-budget.mjs",
     "superduperpowers.config.jsonc",
     ".opencode/plugins/superduperpowers.js",
     ".opencode/plugins/superduperpowers/",

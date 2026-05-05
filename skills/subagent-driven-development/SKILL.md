@@ -40,6 +40,18 @@ digraph when_to_use {
 - Dispatch-scoped implementation todos, lite checkpoints after simple tasks, full task-scope spec review plus lite task-scope code review at task boundaries
 - Faster iteration without human-in-loop between every small task
 
+## When Not To Dispatch
+
+Use subagents for independence, not ritual. Stay in the coordinator session or use `executing-plans` when:
+
+- The change is small, tightly coupled, and easier to finish with one local context.
+- The worker would need most of the coordinator's explored context to avoid guessing.
+- The task is a quick-flow edit, wording change, config tweak, or localized review.
+- The plan has sequential steps that all touch the same files and cannot be validated independently.
+- Dispatch overhead would exceed the likely implementation time.
+
+If you stay inline, preserve the same bounded `Task N.M` todo boundaries and review/validation gates.
+
 ## The Process
 
 1. Read the plan once.

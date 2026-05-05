@@ -14,6 +14,15 @@ tests/opencode/run-tests.sh
 
 The default suite runs checks that do not require an installed OpenCode binary. It verifies plugin structure, profile tools, branch/setup tools, and static workflow policy assumptions that should work in a development checkout.
 
+To inspect prompt/context footprint without running the whole suite:
+
+```bash
+npm run context:budget
+npm run context:check
+```
+
+`context:check` fails only when the bootstrap exceeds its word budget. Large skill bodies are reported as warnings so workflow source files can remain comprehensive when that is intentional.
+
 Run integration tests when OpenCode is available locally:
 
 ```bash
@@ -46,6 +55,7 @@ tests/opencode/
 ├── test-setup-hygiene.sh      # Generated-doc ignore hygiene checks
 ├── test-branch-context.sh     # Read-only branch safety checks
 ├── test-workflow-policy.sh    # Static workflow text policy checks
+├── test-agent-skill-drift.sh  # Agent/skill adapter drift and context-budget checks
 ├── test-tools.sh              # Integration test for OpenCode skill tools
 └── test-duplicate-skills.sh   # Integration duplicate skill behavior
 ```
@@ -72,6 +82,8 @@ tests/opencode/run-tests.sh --integration
 ```
 
 Runtime behavior includes skill discovery, the `using-superpowers` bootstrap, reviewer agent registration, custom workflow tools, tool priority handling, and plugin loading inside OpenCode.
+
+When changing `agents/`, fallback prompts, or skill routing language, confirm `test-agent-skill-drift.sh` stays green. It verifies that skills remain canonical, named agents stay thin adapter roles, fallback prompts name their canonical agent, writable/read-only expectations stay aligned, and the context-budget check still passes.
 
 ## Manual Verification Prompts
 

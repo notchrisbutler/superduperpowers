@@ -2,6 +2,8 @@
 
 Use this template when dispatching a spec document reviewer subagent.
 
+Fallback alignment: this prompt is for harnesses that cannot dispatch the canonical named `spec-reviewer` agent from `agents/`. Preserve the corresponding independent spec-compliance behavior and output priorities when adapting this prompt.
+
 **Purpose:** Verify the spec is complete, consistent, and ready for implementation planning.
 
 **Dispatch after:** Spec document is written to {DOCS_ROOT}/superduperpowers/specs/

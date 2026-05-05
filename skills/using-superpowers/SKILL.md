@@ -14,6 +14,10 @@ SuperDuperPowers is opt-in by default. `superpowers`, `Superpowers`, `SuperPower
 
 User instructions always win over this workflow. If the user asks for quick work, no process, no TDD, or no docs, honor that unless safety or correctness requires a brief escalation.
 
+## Architecture Boundary
+
+Skills are the canonical, harness-neutral workflow source. Named agents are thin adapter roles for harnesses that support subagents, especially the included OpenCode config. Use named agents for role isolation, permissions, parallelism, and independent review; use generic fallback prompts only when named agents are unavailable. Do not turn named agents into workflow owners: the main agent owns todos, route decisions, branch flow, commits, review gates, validation gates, and next-step decisions.
+
 ## Route
 
 Use full workflow when the user explicitly invokes SuperDuperPowers, names a SuperDuperPowers skill/workflow, asks for brainstorming, planning, execution workflow, TDD, systematic debugging, root-cause investigation, or gives work that is clearly broad, ambiguous, high-risk, multi-system, or decomposition-heavy.
@@ -59,6 +63,8 @@ For quick flow:
 7. Report changes and validation.
 
 Quick flow does not require TDD, generated specs, implementation plans, subagents, branch-finalization workflows, or exhaustive review unless the task escalates.
+
+Use subagents for independence, not ritual. Prefer inline work for small, tightly coupled, or low-risk tasks where a fresh worker would spend more context rediscovering the problem than executing it.
 
 ## Review Loop Limits
 

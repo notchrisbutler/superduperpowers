@@ -46,6 +46,11 @@ digraph when_to_use {
 - Failures are related (fix one might fix others)
 - Need to understand full system state
 - Agents would interfere with each other
+- Each worker would need the same large context dump to be effective
+- The tasks are small enough that dispatch overhead is larger than the work
+- The work shares files, generated artifacts, migrations, external state, or validation commands in ways that make integration risky
+
+When in doubt, keep investigation in the main session until the independent domains and file ownership boundaries are clear.
 
 ## Workflow Integration
 

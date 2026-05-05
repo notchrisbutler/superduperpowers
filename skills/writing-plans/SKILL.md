@@ -34,6 +34,8 @@ If testing intensity is missing before execution handoff, ask through the active
 
 When named agents are available and the plan is substantial, dispatch `plan-writer` with the approved spec, compact workflow profile summary, repo conventions, docs path, generated-doc policy, testing intensity, and execution constraints. The `plan-writer` may write the plan document but must not implement code.
 
+Named agents are adapter roles, not workflow sources. Keep plan rules in this skill and use `plan-writer` only to produce or revise the bounded plan artifact. If named agents are unavailable, use the fallback prompt template and preserve this skill's task granularity, review policy, and execution handoff requirements.
+
 After the plan is written, use `plan-reviewer` for broad or high-risk plans, plans with many files, plans that will dispatch multiple workers, or any plan whose execution shape is uncertain. For small plans, inline self-review is enough unless the user or profile requires review.
 
 If `plan-reviewer` returns changes required, update the plan once, then request one focused re-review of the changed scope. If material issues remain, ask the user before execution.

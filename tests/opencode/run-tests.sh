@@ -44,6 +44,7 @@ while [[ $# -gt 0 ]]; do
             echo ""
             echo "Tests:"
             echo "  test-plugin-loading.sh  Verify package/plugin structure"
+            echo "  test-agent-skill-drift.sh Verify agent/skill architecture drift checks"
             echo "  test-tools.sh           Test native skill tool access (integration)"
             echo "  test-duplicate-skills.sh Test duplicate native skill behavior (integration)"
             exit 0
@@ -65,6 +66,7 @@ tests=(
     "test-setup-hygiene.sh"
     "test-branch-context.sh"
     "test-workflow-policy.sh"
+    "test-agent-skill-drift.sh"
 )
 
 # Integration tests (require OpenCode)

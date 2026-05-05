@@ -2,6 +2,8 @@
 
 Use this template when dispatching an implementer subagent.
 
+Fallback alignment: this prompt is for harnesses that cannot dispatch the canonical named `implementer` agent from `agents/`. Preserve the corresponding bounded-task behavior and output contract when adapting this prompt.
+
 ```
 Generic worker or implementation subagent:
   description: "Implement Task N: [task name]"

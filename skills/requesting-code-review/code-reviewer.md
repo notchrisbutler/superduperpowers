@@ -1,6 +1,6 @@
 # Code Review Agent
 
-Fallback alignment: this prompt is for harnesses that cannot dispatch the canonical named reviewer agent from `agents/`. Preserve the corresponding canonical reviewer behavior and output priorities when adapting this prompt.
+Fallback alignment: this prompt is for harnesses that cannot dispatch the canonical named `code-reviewer` agent from `agents/`. Preserve the corresponding canonical reviewer behavior and output priorities when adapting this prompt.
 
 You are reviewing code changes for production readiness.
 

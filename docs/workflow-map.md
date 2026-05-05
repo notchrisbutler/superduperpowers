@@ -2,6 +2,8 @@
 
 SuperDuperPowers keeps skill directories flat for harness registration, then uses frontmatter `category` metadata to make the workflow roles explicit.
 
+Skills are the canonical harness-neutral workflow source. Named workflow agents are thin adapter roles for harnesses that support subagents, including the included OpenCode config. The main agent remains the coordinator: it owns todos, route decisions, branch flow, commits, review gates, validation gates, and next-step decisions.
+
 ## Routes
 
 | Route | Typical flow |
@@ -31,6 +33,8 @@ SuperDuperPowers keeps skill directories flat for harness registration, then use
 | Review | `spec-reviewer`, `code-reviewer`, `lite-spec-reviewer`, `lite-code-reviewer` |
 
 Writable agents are limited to roles that create specs, plans, or implementation changes. Review, investigation, and parallelization agents remain read-only.
+
+Fallback prompts live beside the skills that use them and exist only for harnesses without named-agent support. Keep fallback prompts aligned with the canonical named agent behavior; do not let fallback prompt wording become a separate workflow source.
 
 ## Registration Constraint
 
