@@ -10,6 +10,20 @@ const SDP_RUNTIME_DIR = 'superduperpowers';
 const SDP_DEFAULT_RETENTION_DAYS = 30;
 const SDP_DOC_ROOT_CANDIDATES = ['docs', 'documents', 'documentation', '.docs', '.documents', '.documentation'];
 const SDP_DOCS_DIR = 'superduperpowers';
+const SDP_SETTINGS_FILE_CANDIDATES = [
+  'superduperpowers.config.jsonc',
+  'superduperpowers.config.json',
+  'superduperpowers.jsonc',
+  'superduperpowers.json',
+  '.opencode/superduperpowers.jsonc',
+  '.opencode/superduperpowers.json'
+];
+const SDP_USER_SETTINGS_FILE_CANDIDATES = [
+  'superduperpowers/settings.jsonc',
+  'superduperpowers/settings.json',
+  'superduperpowers/config.jsonc',
+  'superduperpowers/config.json'
+];
 const SDP_PROFILE_KEYS = new Set([
   'schemaVersion',
   'createdAt',
@@ -65,6 +79,8 @@ const SDP_ALIASES = [
 ];
 const allowedRouteValues = ['full-brainstorming', 'quick-implementation', 'none'];
 const allowedTestingIntensityValues = ['full-regression', 'major-behavior', 'existing-tests-only'];
+const allowedGeneratedDocsPolicies = ['local-only', 'commit-after-approval'];
+const allowedWorkflowCommitPolicies = ['disabled', 'implementation-commits-only', 'spec-plan-and-implementation-commits'];
 const nullableDecisionKeys = new Set(['route', 'executionMethod', 'executionStrategy']);
 const stringProfileInputKeys = new Set([
   'createdAt',
@@ -94,12 +110,152 @@ const stringProfileInputKeys = new Set([
 const toPosixPath = (value) => value.split(path.sep).join('/');
 const nowIso = () => new Date().toISOString();
 
+const stripJsonComments = (input) => input
+  .replace(/^\uFEFF/, '')
+  .replace(/\/\*[\s\S]*?\*\//g, '')
+  .replace(/(^|[^:])\/\/.*$/gm, '$1')
+  .replace(/,\s*([}\]])/g, '$1');
+
+const deepMerge = (base, override) => {
+  if (!override || typeof override !== 'object' || Array.isArray(override)) return base;
+  const next = { ...base };
+  for (const [key, value] of Object.entries(override)) {
+    if (value && typeof value === 'object' && !Array.isArray(value) && base[key] && typeof base[key] === 'object' && !Array.isArray(base[key])) {
+      next[key] = deepMerge(base[key], value);
+    } else {
+      next[key] = value;
+    }
+  }
+  return next;
+};
+
 const isPathInside = (parent, child) => {
   const relative = path.relative(parent, child);
   return relative === '' || (!relative.startsWith('..') && !path.isAbsolute(relative));
 };
 
 const isSafePathSegment = (value) => typeof value === 'string' && /^[A-Za-z0-9_-]+$/.test(value);
+
+const defaultSettings = () => ({
+  schemaVersion: SDP_SCHEMA_VERSION,
+  workflow: {
+    defaultRoute: null,
+    defaultDocsRoot: 'docs',
+    forceDefaultDocsRoot: false,
+    generatedDocsPolicy: 'local-only',
+    workflowCommitPolicy: 'implementation-commits-only',
+    branchPolicy: 'prefer-feature-branch',
+    preferFeatureBranches: true,
+    defaultExecutionMethod: null,
+    defaultExecutionStrategy: null,
+    testingIntensity: 'major-behavior',
+    questionPolicy: 'deep-questions-before-spec-avoid-during-execution',
+    fullFlow: {
+      useQuestionTool: true,
+      requireSpecApproval: true,
+      requirePlanApproval: true,
+      reviewEachChunk: true,
+      finalSpecReview: true,
+      finalCodeReview: true
+    },
+    quickFlow: {
+      maxClarifyingQuestions: 5,
+      writeDocs: false,
+      requireTdd: false,
+      reviewIntensity: 'lite'
+    }
+  },
+  paths: {
+    runtimeDir: SDP_RUNTIME_DIR,
+    docsDirName: SDP_DOCS_DIR,
+    specsDirName: 'specs',
+    plansDirName: 'plans',
+    worktreesDirName: 'worktrees',
+    stateDirName: 'state',
+    quarantineDirName: 'quarantine'
+  },
+  cleanup: {
+    mode: 'session-aware',
+    retentionDays: SDP_DEFAULT_RETENTION_DAYS
+  }
+});
+
+const readJsoncFile = (filePath) => {
+  try {
+    const text = fs.readFileSync(filePath, 'utf8');
+    return { value: JSON.parse(stripJsonComments(text)), errors: [] };
+  } catch (error) {
+    return { value: null, errors: [`invalid settings JSONC in ${filePath}: ${error.message}`] };
+  }
+};
+
+const settingsSourcesFor = ({ configDir, packageInfo = {}, directory }) => {
+  const sources = [];
+  const packageRoot = packageInfo.packageRoot || path.resolve(path.dirname(fileURLSafe(packageInfo.pluginFile || '')), '../..');
+  const defaultSettingsPath = packageInfo.defaultSettingsPath || path.join(packageRoot, 'superduperpowers.config.jsonc');
+  if (defaultSettingsPath) sources.push({ type: 'package-default', path: defaultSettingsPath });
+  const projectRoot = path.resolve(directory || process.cwd());
+  for (const candidate of SDP_SETTINGS_FILE_CANDIDATES) sources.push({ type: 'project', path: path.join(projectRoot, candidate) });
+  for (const candidate of SDP_USER_SETTINGS_FILE_CANDIDATES) sources.push({ type: 'user', path: path.join(configDir, candidate) });
+  return sources;
+};
+
+const fileURLSafe = (value) => value ? value : process.cwd();
+
+const validateSettings = (settings) => {
+  const errors = [];
+  if (!settings || typeof settings !== 'object' || Array.isArray(settings)) return { ok: false, errors: ['settings must be an object'] };
+  if (settings.schemaVersion !== SDP_SCHEMA_VERSION) errors.push('settings.schemaVersion must be 1');
+  const workflow = settings.workflow || {};
+  const paths = settings.paths || {};
+  const cleanup = settings.cleanup || {};
+  if (workflow.defaultRoute !== null && workflow.defaultRoute !== undefined && !allowedRouteValues.includes(workflow.defaultRoute)) errors.push('workflow.defaultRoute is invalid');
+  if (!isSafeProjectRelativePath(workflow.defaultDocsRoot)) errors.push('workflow.defaultDocsRoot must be a project-relative path');
+  if (typeof workflow.forceDefaultDocsRoot !== 'boolean') errors.push('workflow.forceDefaultDocsRoot must be boolean');
+  if (!allowedGeneratedDocsPolicies.includes(workflow.generatedDocsPolicy)) errors.push('workflow.generatedDocsPolicy is invalid');
+  if (!allowedWorkflowCommitPolicies.includes(workflow.workflowCommitPolicy)) errors.push('workflow.workflowCommitPolicy is invalid');
+  if (typeof workflow.preferFeatureBranches !== 'boolean') errors.push('workflow.preferFeatureBranches must be boolean');
+  if (workflow.defaultExecutionMethod !== null && workflow.defaultExecutionMethod !== undefined && typeof workflow.defaultExecutionMethod !== 'string') errors.push('workflow.defaultExecutionMethod must be string or null');
+  if (workflow.defaultExecutionStrategy !== null && workflow.defaultExecutionStrategy !== undefined && typeof workflow.defaultExecutionStrategy !== 'string') errors.push('workflow.defaultExecutionStrategy must be string or null');
+  if (!allowedTestingIntensityValues.includes(workflow.testingIntensity)) errors.push('workflow.testingIntensity is invalid');
+  if (typeof workflow.questionPolicy !== 'string' || !workflow.questionPolicy) errors.push('workflow.questionPolicy must be a non-empty string');
+  for (const key of ['runtimeDir', 'docsDirName', 'specsDirName', 'plansDirName', 'worktreesDirName', 'stateDirName', 'quarantineDirName']) {
+    if (!isSafePathSegment(paths[key])) errors.push(`paths.${key} must be a safe path segment`);
+  }
+  if (typeof cleanup.retentionDays !== 'number' || !Number.isInteger(cleanup.retentionDays) || cleanup.retentionDays < 1) errors.push('cleanup.retentionDays must be a positive integer');
+  if (hasSecretLikeKey(settings)) errors.push('settings contains secret-like key');
+  return { ok: errors.length === 0, errors };
+};
+
+export const loadEffectiveSettings = ({ configDir, packageInfo = {}, directory } = {}) => {
+  let settings = defaultSettings();
+  const loaded = [];
+  const errors = [];
+  const seen = new Set();
+  for (const source of settingsSourcesFor({ configDir, packageInfo, directory })) {
+    const sourcePath = path.resolve(source.path);
+    if (seen.has(sourcePath)) continue;
+    seen.add(sourcePath);
+    if (!fileExists(sourcePath)) continue;
+    const parsed = readJsoncFile(sourcePath);
+    if (parsed.errors.length > 0) {
+      errors.push(...parsed.errors);
+      loaded.push({ ...source, path: sourcePath, status: 'error' });
+      continue;
+    }
+    settings = deepMerge(settings, parsed.value);
+    loaded.push({ ...source, path: sourcePath, status: 'loaded' });
+  }
+  const validation = validateSettings(settings);
+  errors.push(...validation.errors);
+  return {
+    ok: errors.length === 0,
+    settings,
+    sources: loaded,
+    searched: settingsSourcesFor({ configDir, packageInfo, directory }).map((source) => ({ ...source, path: path.resolve(source.path) })),
+    errors
+  };
+};
 
 export const validateRuntimePathContainment = (paths) => {
   const errors = [];
@@ -181,29 +337,45 @@ const projectKeyFor = (directory) => {
   return `${base}-${hash}`;
 };
 
-export const getRuntimePaths = (configDir, sessionID, directory) => {
-  const runtimeRoot = path.join(configDir, SDP_RUNTIME_DIR);
-  const stateRoot = path.join(runtimeRoot, 'state');
+export const getRuntimePaths = (configDir, sessionID, directory, settingsInput = null) => {
+  const paths = settingsInput?.settings?.paths || settingsInput?.paths || {};
+  const runtimeDir = paths.runtimeDir || SDP_RUNTIME_DIR;
+  const stateDirName = paths.stateDirName || 'state';
+  const worktreesDirName = paths.worktreesDirName || 'worktrees';
+  const quarantineDirName = paths.quarantineDirName || 'quarantine';
+  const runtimeRoot = path.join(configDir, runtimeDir);
+  const stateRoot = path.join(runtimeRoot, stateDirName);
   const stateDir = sessionID ? path.join(stateRoot, sessionID) : null;
   const projectKey = projectKeyFor(directory);
-  const worktreeRoot = path.join(runtimeRoot, 'worktrees', projectKey);
-  const quarantineRoot = path.join(runtimeRoot, 'quarantine');
+  const worktreeRoot = path.join(runtimeRoot, worktreesDirName, projectKey);
+  const quarantineRoot = path.join(runtimeRoot, quarantineDirName);
   return { runtimeRoot, stateRoot, stateDir, worktreeRoot, quarantineRoot, projectKey, sessionID };
 };
 
-const selectDocsRoot = (directory, override) => {
+const selectDocsRoot = (directory, override, settingsInput = null) => {
   if (override) return override.replace(/\/$/, '');
+  const configuredDefault = settingsInput?.settings?.workflow?.defaultDocsRoot || settingsInput?.workflow?.defaultDocsRoot;
+  const forceDefault = settingsInput?.settings?.workflow?.forceDefaultDocsRoot || settingsInput?.workflow?.forceDefaultDocsRoot;
+  if (configuredDefault && forceDefault) return configuredDefault.replace(/\/$/, '');
   for (const candidate of SDP_DOC_ROOT_CANDIDATES) {
     if (fs.existsSync(path.join(directory, candidate)) && fs.statSync(path.join(directory, candidate)).isDirectory()) return candidate;
   }
+  if (configuredDefault) return configuredDefault.replace(/\/$/, '');
   return 'docs';
 };
 
-const buildDefaultProfile = ({ configDir, context, profile = {} }) => {
+const buildDefaultProfile = ({ configDir, context, profile = {}, settingsInput = null }) => {
   const directory = context.directory || context.worktree || process.cwd();
-  const docsRoot = selectDocsRoot(directory, profile.docsRoot);
-  const paths = getRuntimePaths(configDir, context.sessionID, directory);
+  const effectiveSettings = settingsInput || { settings: defaultSettings(), ok: true, errors: [], sources: [] };
+  const settings = effectiveSettings.settings || defaultSettings();
+  const docsRoot = selectDocsRoot(directory, profile.docsRoot, settings);
+  const paths = getRuntimePaths(configDir, context.sessionID, directory, settings);
   const timestamp = nowIso();
+  const docsDirName = settings.paths?.docsDirName || SDP_DOCS_DIR;
+  const specsDirName = settings.paths?.specsDirName || 'specs';
+  const plansDirName = settings.paths?.plansDirName || 'plans';
+  const workflow = settings.workflow || {};
+  const cleanup = settings.cleanup || {};
   return {
     schemaVersion: SDP_SCHEMA_VERSION,
     createdAt: profile.createdAt || timestamp,
@@ -214,30 +386,31 @@ const buildDefaultProfile = ({ configDir, context, profile = {} }) => {
     programmaticName: 'superduperpowers',
     skillNamespace: 'superpowers',
     invocationAliases: SDP_ALIASES,
-    route: profile.route || null,
+    route: profile.route || workflow.defaultRoute || null,
     docsRoot,
-    sdpDocsRoot: `${docsRoot}/superduperpowers`,
-    specsDir: `${docsRoot}/superduperpowers/specs`,
-    plansDir: `${docsRoot}/superduperpowers/plans`,
+    sdpDocsRoot: `${docsRoot}/${docsDirName}`,
+    specsDir: `${docsRoot}/${docsDirName}/${specsDirName}`,
+    plansDir: `${docsRoot}/${docsDirName}/${plansDirName}`,
     runtimeRoot: paths.runtimeRoot,
     stateRoot: paths.stateRoot,
     stateDir: paths.stateDir,
     worktreeRoot: paths.worktreeRoot,
-    generatedDocsPolicy: profile.generatedDocsPolicy || 'local-only',
-    workflowCommitPolicy: profile.workflowCommitPolicy || 'implementation-commits-only',
-    executionMethod: profile.executionMethod || null,
-    executionStrategy: profile.executionStrategy || null,
-    branchPolicy: profile.branchPolicy || 'no-default-branch-work-without-explicit-consent',
-    testingIntensity: profile.testingIntensity || 'major-behavior',
-    questionPolicy: profile.questionPolicy || 'ask-before-execution-avoid-during-execution',
-    cleanupPolicy: profile.cleanupPolicy || { mode: 'session-aware', retentionDays: SDP_DEFAULT_RETENTION_DAYS },
+    generatedDocsPolicy: profile.generatedDocsPolicy || workflow.generatedDocsPolicy || 'local-only',
+    workflowCommitPolicy: profile.workflowCommitPolicy || workflow.workflowCommitPolicy || 'implementation-commits-only',
+    executionMethod: profile.executionMethod || workflow.defaultExecutionMethod || null,
+    executionStrategy: profile.executionStrategy || workflow.defaultExecutionStrategy || null,
+    branchPolicy: profile.branchPolicy || workflow.branchPolicy || 'prefer-feature-branch',
+    testingIntensity: profile.testingIntensity || workflow.testingIntensity || 'major-behavior',
+    questionPolicy: profile.questionPolicy || workflow.questionPolicy || 'deep-questions-before-spec-avoid-during-execution',
+    cleanupPolicy: profile.cleanupPolicy || { mode: cleanup.mode || 'session-aware', retentionDays: cleanup.retentionDays || SDP_DEFAULT_RETENTION_DAYS },
     project: {
       root: directory,
       projectKey: paths.projectKey
     },
     harness: {
       name: 'opencode',
-      configDir
+      configDir,
+      settingsSources: effectiveSettings.sources || []
     }
   };
 };
@@ -261,7 +434,8 @@ const validateProfile = (profile, { allowIncomplete = false } = {}) => {
   if (!profile.productName || profile.productName !== 'SuperDuperPowers') errors.push('productName must be SuperDuperPowers');
   if (!(allowIncomplete && profile.route === null) && !allowedRouteValues.includes(profile.route)) errors.push('invalid route');
   if (!allowedTestingIntensityValues.includes(profile.testingIntensity)) errors.push('invalid testingIntensity');
-  if (!['local-only'].includes(profile.generatedDocsPolicy)) errors.push('invalid generatedDocsPolicy');
+  if (!allowedGeneratedDocsPolicies.includes(profile.generatedDocsPolicy)) errors.push('invalid generatedDocsPolicy');
+  if (!allowedWorkflowCommitPolicies.includes(profile.workflowCommitPolicy)) errors.push('invalid workflowCommitPolicy');
   if (hasSecretLikeKey(profile)) errors.push('profile contains secret-like key');
   return { ok: errors.length === 0, errors };
 };
@@ -280,7 +454,8 @@ const validateProfileInput = (value, { allowFull = false, comparisonProfile = nu
     if (key === 'route' && value[key] !== undefined && !allowedRouteValues.includes(value[key])) errors.push('invalid route');
     if (key === 'docsRoot' && value[key] !== undefined && !isSafeProjectRelativePath(value[key])) errors.push('invalid docsRoot');
     if (key === 'testingIntensity' && value[key] !== undefined && !allowedTestingIntensityValues.includes(value[key])) errors.push('invalid testingIntensity');
-    if (key === 'generatedDocsPolicy' && value[key] !== undefined && value[key] !== 'local-only') errors.push('invalid generatedDocsPolicy');
+    if (key === 'generatedDocsPolicy' && value[key] !== undefined && !allowedGeneratedDocsPolicies.includes(value[key])) errors.push('invalid generatedDocsPolicy');
+    if (key === 'workflowCommitPolicy' && value[key] !== undefined && !allowedWorkflowCommitPolicies.includes(value[key])) errors.push('invalid workflowCommitPolicy');
     if (key === 'cleanupPolicy' && (typeof value[key] !== 'object' || value[key] === null || Array.isArray(value[key]))) errors.push('cleanupPolicy must be an object');
     if (allowFull && key === 'schemaVersion' && value[key] !== SDP_SCHEMA_VERSION) errors.push('schemaVersion must be 1');
     if (allowFull && key === 'invocationAliases' && !Array.isArray(value[key])) errors.push('invocationAliases must be an array');
@@ -293,7 +468,15 @@ const validateProfileInput = (value, { allowFull = false, comparisonProfile = nu
   return { ok: errors.length === 0, errors };
 };
 
-export const profileSummaryText = (profile) => `SuperDuperPowers profile: route=${profile.route || 'unset'}, docs=${profile.sdpDocsRoot}, runtime=${profile.runtimeRoot}, executionMethod=${profile.executionMethod || 'unset'}, executionStrategy=${profile.executionStrategy || 'unset'}, testingIntensity=${profile.testingIntensity}, branchPolicy=${profile.branchPolicy}.`;
+export const profileSummaryText = (profile) => `SuperDuperPowers profile: route=${profile.route || 'unset'}, docs=${profile.sdpDocsRoot}, runtime=${profile.runtimeRoot}, executionMethod=${profile.executionMethod || 'unset'}, executionStrategy=${profile.executionStrategy || 'unset'}, testingIntensity=${profile.testingIntensity}, branchPolicy=${profile.branchPolicy}, workflowCommitPolicy=${profile.workflowCommitPolicy}, generatedDocsPolicy=${profile.generatedDocsPolicy}.`;
+
+export const settingsSummaryText = (effectiveSettings) => {
+  const settings = effectiveSettings?.settings || defaultSettings();
+  const workflow = settings.workflow || {};
+  const paths = settings.paths || {};
+  const loaded = (effectiveSettings?.sources || []).filter((source) => source.status === 'loaded').map((source) => source.path);
+  return `SuperDuperPowers live settings: docsRoot=${workflow.defaultDocsRoot}, docsDir=${paths.docsDirName}, generatedDocsPolicy=${workflow.generatedDocsPolicy}, workflowCommitPolicy=${workflow.workflowCommitPolicy}, branchPolicy=${workflow.branchPolicy}, preferFeatureBranches=${workflow.preferFeatureBranches}, testingIntensity=${workflow.testingIntensity}, maxQuickQuestions=${workflow.quickFlow?.maxClarifyingQuestions}. Reload with sdp_settings because project/user JSONC changes are read live. Loaded settings: ${loaded.length > 0 ? loaded.join(', ') : 'built-in defaults only'}.`;
+};
 
 const listKnownOpenCodeSessions = () => {
   try {
@@ -410,7 +593,8 @@ const validateRelatedStateFiles = (stateDir) => {
 
 const inspectRuntimeDrift = (configDir, context) => {
   const directory = context.directory || context.worktree || process.cwd();
-  const baseProfile = buildDefaultProfile({ configDir, context: { ...context, directory }, profile: {} });
+  const settingsInput = loadEffectiveSettings({ configDir, directory });
+  const baseProfile = buildDefaultProfile({ configDir, context: { ...context, directory }, profile: {}, settingsInput });
   const stateDir = baseProfile.stateDir;
   const parentPathErrors = validateRuntimeParentPaths(baseProfile);
   if (parentPathErrors.length > 0) return { drifted: true, reason: 'invalid-runtime-path', baseProfile, errors: parentPathErrors };
@@ -439,7 +623,7 @@ const inspectRuntimeDrift = (configDir, context) => {
   errors.push(...profileFile.errors, ...artifactsFile.errors);
   const profile = profileFile.exists && profileFile.errors.length === 0 ? readJsonFile(profilePath) : { value: null, errors: profileFile.exists ? [] : ['missing profile.json'] };
   const expectedProfile = profile.value && isSafeProjectRelativePath(profile.value.docsRoot)
-    ? buildDefaultProfile({ configDir, context: { ...context, directory }, profile: { docsRoot: profile.value.docsRoot } })
+    ? buildDefaultProfile({ configDir, context: { ...context, directory }, profile: { docsRoot: profile.value.docsRoot }, settingsInput })
     : baseProfile;
   errors.push(...profile.errors);
   if (profile.errors.length === 0 && (!profile.value || typeof profile.value !== 'object' || Array.isArray(profile.value))) {
@@ -598,9 +782,11 @@ const appendMissingLines = (filePath, lines) => {
   return changed;
 };
 
-const docsEntriesFor = (directory, docsRootArg) => {
-  const docsRoot = selectDocsRoot(directory, docsRootArg);
-  const docsPath = toPosixPath(path.posix.join(docsRoot, SDP_DOCS_DIR));
+const docsEntriesFor = (directory, docsRootArg, settingsInput = null) => {
+  const settings = settingsInput?.settings || settingsInput || defaultSettings();
+  const docsRoot = selectDocsRoot(directory, docsRootArg, settings);
+  const docsDirName = settings.paths?.docsDirName || SDP_DOCS_DIR;
+  const docsPath = toPosixPath(path.posix.join(docsRoot, docsDirName));
   return {
     docsRoot,
     entries: {
@@ -659,7 +845,23 @@ const recommendBranchAction = (git) => {
   return 'continue';
 };
 
-const createProfileTool = (configDir) => tool({
+const createSettingsTool = (configDir, packageInfo) => tool({
+  description: 'Read the live SuperDuperPowers JSON/JSONC settings for this OpenCode session without modifying files.',
+  args: {
+    operation: tool.schema.enum(['get', 'summary', 'validate', 'sources'])
+  },
+  async execute(args, context) {
+    const directory = context.directory || context.worktree || process.cwd();
+    const effective = loadEffectiveSettings({ configDir, packageInfo, directory });
+    if (args.operation === 'summary') return JSON.stringify({ ok: effective.ok, summary: settingsSummaryText(effective), errors: effective.errors }, null, 2);
+    if (args.operation === 'validate') return JSON.stringify({ ok: effective.ok, errors: effective.errors, sources: effective.sources }, null, 2);
+    if (args.operation === 'sources') return JSON.stringify({ ok: effective.ok, sources: effective.sources, searched: effective.searched, errors: effective.errors }, null, 2);
+    if (args.operation === 'get') return JSON.stringify(effective, null, 2);
+    return JSON.stringify({ ok: false, reason: `unsupported operation ${args.operation}` }, null, 2);
+  }
+});
+
+const createProfileTool = (configDir, packageInfo) => tool({
   description: 'Manage the active SuperDuperPowers workflow profile for this OpenCode session.',
   args: {
     operation: tool.schema.enum(['get', 'set', 'merge', 'summary', 'validate', 'repair', 'clear', 'cleanup']),
@@ -673,7 +875,10 @@ const createProfileTool = (configDir) => tool({
     const profileInputOperation = ['set', 'repair'].includes(operation);
     const preValidation = profileInputOperation ? validateProfileInput(incomingProfile, { allowFull: true }) : { ok: true, errors: [] };
     if (!preValidation.ok) return JSON.stringify({ ok: false, errors: preValidation.errors }, null, 2);
-    const baseProfile = buildDefaultProfile({ configDir, context, profile: profileInputOperation ? incomingProfile : {} });
+    const directory = context.directory || context.worktree || process.cwd();
+    const settingsInput = loadEffectiveSettings({ configDir, packageInfo, directory });
+    if (!settingsInput.ok) return JSON.stringify({ ok: false, reason: 'invalid-settings', errors: settingsInput.errors, settings: settingsInput.settings, sources: settingsInput.sources }, null, 2);
+    const baseProfile = buildDefaultProfile({ configDir, context: { ...context, directory }, profile: profileInputOperation ? incomingProfile : {}, settingsInput });
     const stateDir = baseProfile.stateDir;
     const containmentErrors = validateRuntimePathContainment(baseProfile);
     if (containmentErrors.length > 0) return JSON.stringify({ ok: false, errors: containmentErrors }, null, 2);
@@ -717,7 +922,7 @@ const createProfileTool = (configDir) => tool({
     }
 
     if (operation === 'set') {
-      const profile = buildDefaultProfile({ configDir, context, profile: incomingProfile });
+      const profile = buildDefaultProfile({ configDir, context: { ...context, directory }, profile: incomingProfile, settingsInput });
       const inputValidation = validateProfileInput(args.profile || {}, { allowFull: true, comparisonProfile: profile });
       if (!inputValidation.ok) return JSON.stringify({ ok: false, errors: inputValidation.errors }, null, 2);
       const validation = validateProfile(profile);
@@ -735,12 +940,15 @@ const createProfileTool = (configDir) => tool({
       if (existing?.corrupted) return JSON.stringify({ ok: false, reason: 'corrupt-profile', errors: existing.errors }, null, 2);
       const updates = args.updates || {};
       const docsRoot = typeof updates.docsRoot === 'string' ? updates.docsRoot.replace(/\/$/, '') : null;
+      const docsDirName = settingsInput.settings.paths?.docsDirName || SDP_DOCS_DIR;
+      const specsDirName = settingsInput.settings.paths?.specsDirName || 'specs';
+      const plansDirName = settingsInput.settings.paths?.plansDirName || 'plans';
       const profile = {
         ...existing,
         ...updates,
-        sdpDocsRoot: docsRoot ? `${docsRoot}/superduperpowers` : existing.sdpDocsRoot,
-        specsDir: docsRoot ? `${docsRoot}/superduperpowers/specs` : existing.specsDir,
-        plansDir: docsRoot ? `${docsRoot}/superduperpowers/plans` : existing.plansDir,
+        sdpDocsRoot: docsRoot ? `${docsRoot}/${docsDirName}` : existing.sdpDocsRoot,
+        specsDir: docsRoot ? `${docsRoot}/${docsDirName}/${specsDirName}` : existing.specsDir,
+        plansDir: docsRoot ? `${docsRoot}/${docsDirName}/${plansDirName}` : existing.plansDir,
         updatedAt: nowIso()
       };
       const validation = validateProfile(profile);
@@ -814,7 +1022,7 @@ const createProfileTool = (configDir) => tool({
   }
 });
 
-const createSetupHygieneTool = () => tool({
+const createSetupHygieneTool = (configDir, packageInfo) => tool({
   description: 'Check or apply project-local SuperDuperPowers generated-doc ignore hygiene.',
   args: {
     operation: tool.schema.enum(['check', 'apply', 'explain']),
@@ -822,7 +1030,9 @@ const createSetupHygieneTool = () => tool({
   },
   async execute(args, context) {
     const directory = context.directory || context.worktree || process.cwd();
-    const { docsRoot, entries } = docsEntriesFor(directory, args.docsRoot);
+    const settingsInput = loadEffectiveSettings({ configDir, packageInfo, directory });
+    if (!settingsInput.ok) return JSON.stringify({ ok: false, reason: 'invalid-settings', errors: settingsInput.errors }, null, 2);
+    const { docsRoot, entries } = docsEntriesFor(directory, args.docsRoot, settingsInput);
     const gitignorePath = path.join(directory, '.gitignore');
     const ignorePath = path.join(directory, '.ignore');
 
@@ -878,7 +1088,8 @@ const createDoctorTool = (configDir, packageInfo, getRegistrationReport) => tool
   async execute(args, context) {
     const checks = [];
     const directory = context.directory || context.worktree || process.cwd();
-    const paths = getRuntimePaths(configDir, context.sessionID, directory);
+    const settingsInput = loadEffectiveSettings({ configDir, packageInfo, directory });
+    const paths = getRuntimePaths(configDir, context.sessionID, directory, settingsInput.settings);
     const registration = getRegistrationReport() || null;
     const packageRoot = packageInfo.packageRoot || null;
     const skillsDir = packageInfo.skillsDir || null;
@@ -887,6 +1098,7 @@ const createDoctorTool = (configDir, packageInfo, getRegistrationReport) => tool
     doctorCheck(checks, 'operation', args.operation === 'check' ? 'ok' : 'error', `operation=${args.operation}`);
     doctorCheck(checks, 'package-root', packageRoot && dirExists(packageRoot) ? 'ok' : 'error', packageRoot ? `package root ${packageRoot}` : 'package root unavailable', { packageRoot });
     doctorCheck(checks, 'skills-dir', skillsDir && dirExists(skillsDir) ? 'ok' : 'error', skillsDir ? `skills dir ${skillsDir}` : 'skills dir unavailable', { skillsDir });
+    doctorCheck(checks, 'settings', settingsInput.ok ? 'ok' : 'error', settingsInput.ok ? 'live settings validate' : settingsInput.errors.join('; '), { sources: settingsInput.sources, errors: settingsInput.errors, settings: settingsInput.settings });
 
     const skillsPathStatus = registration?.skillsPath?.status || null;
     doctorCheck(
@@ -925,7 +1137,7 @@ const createDoctorTool = (configDir, packageInfo, getRegistrationReport) => tool
       doctorCheck(checks, 'command-overrides', 'warning', `user-defined commands preserved: ${preservedCommands.join(', ')}`, { preservedCommands });
     }
 
-    const tools = ['sdp_profile', 'sdp_setup_hygiene', 'sdp_branch_context', 'sdp_doctor'];
+    const tools = ['sdp_settings', 'sdp_profile', 'sdp_setup_hygiene', 'sdp_branch_context', 'sdp_doctor'];
     doctorCheck(checks, 'tools', 'ok', `expected tools exposed: ${tools.join(', ')}`, { tools });
 
     const runtimeParentErrors = validateRuntimeParentPaths(paths);
@@ -974,7 +1186,7 @@ const createDoctorTool = (configDir, packageInfo, getRegistrationReport) => tool
     const duplicateRisk = /superpowers\.js/.test(configText) || (/superduperpowers/.test(configText) && fileExists(legacyShim));
     doctorCheck(checks, 'duplicate-plugin-risk', duplicateRisk ? 'warning' : 'ok', duplicateRisk ? 'possible mixed legacy/package plugin load detected' : 'no mixed legacy/package plugin risk detected from known files', { checkedConfigDir: configDir });
 
-    const hygiene = docsEntriesFor(directory, null);
+    const hygiene = docsEntriesFor(directory, null, settingsInput);
     const gitignore = readTextSafe(path.join(directory, '.gitignore')).split(/\r?\n/);
     const ignore = readTextSafe(path.join(directory, '.ignore')).split(/\r?\n/);
     const missingHygiene = {
@@ -998,8 +1210,9 @@ const createDoctorTool = (configDir, packageInfo, getRegistrationReport) => tool
 });
 
 export const createSdpTools = ({ configDir, packageInfo = {}, getRegistrationReport = () => null }) => ({
-  sdp_profile: createProfileTool(configDir),
-  sdp_setup_hygiene: createSetupHygieneTool(),
+  sdp_settings: createSettingsTool(configDir, packageInfo),
+  sdp_profile: createProfileTool(configDir, packageInfo),
+  sdp_setup_hygiene: createSetupHygieneTool(configDir, packageInfo),
   sdp_branch_context: createBranchContextTool(),
   sdp_doctor: createDoctorTool(configDir, packageInfo, getRegistrationReport)
 });

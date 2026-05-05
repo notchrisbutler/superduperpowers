@@ -48,10 +48,16 @@ The OpenCode plugin entrypoint is `.opencode/plugins/superduperpowers.js`.
 - It adds the packaged `skills/` directory to OpenCode skill discovery.
 - It registers reviewer subagents from `agents/` as named OpenCode subagents: `code-reviewer`, `spec-reviewer`, `lite-code-reviewer`, and `lite-spec-reviewer`.
 - It injects the `using-superpowers` bootstrap into the first user message once per session so routing guidance is available without duplicating it on later turns.
-- Custom tools: `sdp_profile`, `sdp_setup_hygiene`, `sdp_branch_context`, and `sdp_doctor`.
+- Custom tools: `sdp_settings`, `sdp_profile`, `sdp_setup_hygiene`, `sdp_branch_context`, and `sdp_doctor`.
 - User-level runtime state and default worktrees under `{OPENCODE_CONFIG_DIR}/superduperpowers/`.
 
 Bundled agents do not need to be copied into a project. The plugin registers the packaged agent definitions directly when it loads.
+
+## Live Settings
+
+The packaged defaults live in `superduperpowers.config.jsonc`. Override them per project with `superduperpowers.jsonc`, `superduperpowers.config.jsonc`, or `.opencode/superduperpowers.jsonc`, and per user with `{OPENCODE_CONFIG_DIR}/superduperpowers/settings.jsonc`.
+
+Agents read these settings through `sdp_settings`; they are intentionally live, so changes made after a session starts can be picked up at the next routing, spec, plan, execution, review, or finalization gate.
 
 ## Registered Commands
 

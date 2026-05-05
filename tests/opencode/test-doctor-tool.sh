@@ -26,7 +26,7 @@ if (!profile.ok) throw new Error('profile setup failed');
 
 const doctor = JSON.parse(await hooks.tool.sdp_doctor.execute({ operation: 'check' }, context));
 if (!doctor.ok) throw new Error(`doctor reported unhealthy install: ${JSON.stringify(doctor, null, 2)}`);
-for (const id of ['package-root', 'skills-dir', 'skills-registration', 'required-skills', 'reviewer-agents', 'agent-registration', 'commands', 'tools', 'profile']) {
+for (const id of ['package-root', 'skills-dir', 'settings', 'skills-registration', 'required-skills', 'reviewer-agents', 'agent-registration', 'commands', 'tools', 'profile']) {
   const check = doctor.checks.find((entry) => entry.id === id);
   if (!check) throw new Error(`missing doctor check ${id}`);
   if (check.status !== 'ok') throw new Error(`doctor check ${id} was ${check.status}: ${check.message}`);

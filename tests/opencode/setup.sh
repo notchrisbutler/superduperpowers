@@ -30,6 +30,7 @@ mkdir -p "$SUPERPOWERS_DIR"
 cp -r "$REPO_ROOT/skills" "$SUPERPOWERS_DIR/"
 cp -r "$REPO_ROOT/agents" "$SUPERPOWERS_DIR/"
 cp "$REPO_ROOT/package.json" "$SUPERPOWERS_DIR/package.json"
+cp "$REPO_ROOT/superduperpowers.config.jsonc" "$SUPERPOWERS_DIR/superduperpowers.config.jsonc"
 if [ -d "$REPO_ROOT/.opencode/node_modules" ]; then
     mkdir -p "$SUPERPOWERS_DIR/.opencode"
     cp -R "$REPO_ROOT/.opencode/node_modules" "$SUPERPOWERS_DIR/.opencode/"

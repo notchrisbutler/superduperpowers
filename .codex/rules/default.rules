@@ -1,0 +1,124 @@
+prefix_rule(
+    pattern = ["git", "push"],
+    decision = "prompt",
+    justification = "Pushing changes should require explicit approval.",
+    match = [
+        "git push",
+        "git push origin main",
+        "git push --force-with-lease",
+    ],
+)
+
+prefix_rule(
+    pattern = ["git", "reset", "--hard"],
+    decision = "prompt",
+    justification = "Hard reset can destroy local work.",
+    match = [
+        "git reset --hard",
+        "git reset --hard HEAD",
+        "git reset --hard origin/main",
+    ],
+)
+
+prefix_rule(
+    pattern = ["git", "clean", "-fd"],
+    decision = "prompt",
+    justification = "git clean -fd deletes untracked files/directories.",
+    match = [
+        "git clean -fd",
+    ],
+)
+
+prefix_rule(
+    pattern = ["git", "clean", "-fdx"],
+    decision = "prompt",
+    justification = "git clean -fdx deletes untracked and ignored files.",
+    match = [
+        "git clean -fdx",
+    ],
+)
+
+prefix_rule(
+    pattern = ["rm", "-rf"],
+    decision = "prompt",
+    justification = "Recursive force delete requires approval.",
+    match = [
+        "rm -rf node_modules",
+        "rm -rf dist",
+    ],
+)
+
+prefix_rule(
+    pattern = ["rm", "-f"],
+    decision = "prompt",
+    justification = "Force delete requires approval.",
+    match = [
+        "rm -f package-lock.json",
+        "rm -f tmp.txt",
+    ],
+)
+
+prefix_rule(
+    pattern = ["sudo"],
+    decision = "prompt",
+    justification = "Privilege escalation requires approval.",
+    match = [
+        "sudo npm install -g pnpm",
+        "sudo chmod -R 755 .",
+    ],
+)
+
+prefix_rule(
+    pattern = ["chmod", "-R"],
+    decision = "prompt",
+    justification = "Recursive permission changes require approval.",
+    match = [
+        "chmod -R 755 .",
+    ],
+)
+
+prefix_rule(
+    pattern = ["chown", "-R"],
+    decision = "prompt",
+    justification = "Recursive ownership changes require approval.",
+    match = [
+        "chown -R chris:staff .",
+    ],
+)
+
+prefix_rule(
+    pattern = ["dd"],
+    decision = "prompt",
+    justification = "dd can overwrite disks or large files.",
+    match = [
+        "dd if=/dev/zero of=file.img bs=1m count=10",
+    ],
+)
+
+prefix_rule(
+    pattern = ["mkfs"],
+    decision = "forbidden",
+    justification = "Filesystem formatting is blocked.",
+    match = [
+        "mkfs /dev/disk1",
+    ],
+)
+
+prefix_rule(
+    pattern = ["shutdown"],
+    decision = "forbidden",
+    justification = "System shutdown is blocked.",
+    match = [
+        "shutdown now",
+        "shutdown -h now",
+    ],
+)
+
+prefix_rule(
+    pattern = ["reboot"],
+    decision = "forbidden",
+    justification = "System reboot is blocked.",
+    match = [
+        "reboot",
+    ],
+)

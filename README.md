@@ -50,13 +50,14 @@ See [OpenCode Install](.opencode/INSTALL.md) for the included setup and verifica
 ## Features
 
 - Opt-in SuperDuperPowers routing with full flow, quick flow, and no-SuperDuperPowers modes
+- Live JSON/JSONC settings through `superduperpowers.config.jsonc`, project overrides, and `sdp_settings`
 - Workflow profile tools for route, docs, execution, branch, and testing-intensity decisions
 - User-level OpenCode runtime state and default worktrees under `{OPENCODE_CONFIG_DIR}/superduperpowers/`
 - OpenCode TUI commands: `/sdp`, `/superduperpowers`, `/superpowers`, `/brainstorm`, `/quick-flow`, `/write-plan`, `/execute-plan`, `/sdp-status`, `/sdp-profile`, and `/sdp-cleanup`
 - Read-only OpenCode diagnostics through `sdp_doctor` and `/sdp-status`
 - Safe automatic repair for SuperDuperPowers-owned runtime-state drift under `{OPENCODE_CONFIG_DIR}/superduperpowers/state/`; corrupt state is quarantined and repair does not edit user config, project files, generated docs, plugin shims, or git state
 - Legacy `superpowers.js` shim and duplicate-load warnings are reported through `sdp_doctor` and `/sdp-status`
-- Project-local generated specs and plans under `{DOCS_ROOT}/superduperpowers/`, local-only by default
+- Project-local generated specs and plans under `{DOCS_ROOT}/superduperpowers/`, local-only by default and configurable through live settings
 - Brainstorming, planning, TDD, debugging, verification, and branch-finishing skills
 - Grouped execution with flat, dependency-ordered task lists that stay readable in agent harnesses
 - Named reviewer agents: `spec-reviewer`, `code-reviewer`, `lite-spec-reviewer`, and `lite-code-reviewer`
@@ -90,7 +91,11 @@ SuperDuperPowers is opt-in by default for normal coding turns.
 
 Available full-flow workflows include brainstorming, planning, execution, TDD, debugging, verification, spec review, code review, and development-branch completion.
 
-Generated SuperDuperPowers specs and plans are local-only by default. Implementation workflows can still use local commits for verified implementation task scopes and final verified implementation changes. Pushes and PR creation require explicit user instruction.
+Generated SuperDuperPowers specs and plans are local-only by default unless live settings or explicit user/repo instructions enable committing approved generated docs. Implementation workflows can still use local commits for verified implementation task scopes and final verified implementation changes. Pushes and PR creation require explicit user instruction.
+
+## Live Settings
+
+The packaged defaults live in `superduperpowers.config.jsonc`. OpenCode sessions can also read project overrides from `superduperpowers.jsonc`, `superduperpowers.config.jsonc`, or `.opencode/superduperpowers.jsonc`, and user overrides from `{OPENCODE_CONFIG_DIR}/superduperpowers/settings.jsonc`. Agents should call `sdp_settings` at workflow gates so changes made after a session starts are picked up before routing, spec writing, plan writing, execution, review, and finalization.
 
 `skills/using-superpowers/SKILL.md` is the source of truth for routing details.
 

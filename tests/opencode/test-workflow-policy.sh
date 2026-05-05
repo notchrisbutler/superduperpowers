@@ -36,6 +36,10 @@ if ! grep -q "superduperpowers" "$using_skill"; then
   echo "  [FAIL] using-superpowers lacks superduperpowers alias"
   exit 1
 fi
+if ! grep -q "wait for user approval or adjustment before editing files" "$using_skill"; then
+  echo "  [FAIL] quick flow lacks approval gate before edits"
+  exit 1
+fi
 
 plans_skill="$SUPERPOWERS_DIR/skills/writing-plans/SKILL.md"
 if ! grep -q "question" "$plans_skill" || ! grep -q "execution strategy" "$plans_skill"; then

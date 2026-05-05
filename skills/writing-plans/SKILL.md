@@ -15,7 +15,7 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 
 **Context:** Prefer a dedicated worktree when the user wants isolated execution. If the user explicitly directs work to happen on the current branch, write the plan for current-branch execution and do not assume worktree setup or cleanup.
 
-Read the active workflow profile when available. Inherit docs paths, generated-doc policy, branch policy, workflow commit policy, and testing intensity. If no profile tool exists, carry these decisions explicitly in the plan header and execution handoff.
+Read live settings and the active workflow profile when available. Inherit docs paths, generated-doc policy, branch policy, workflow commit policy, question policy, and testing intensity from the current JSON/JSONC settings unless the profile or user explicitly overrides them. If no settings/profile tool exists, carry these decisions explicitly in the plan header and execution handoff.
 
 Use `testingIntensity` to scale test requirements. `major-behavior` is the default: plan tests for important behavior and integration points, but avoid exhaustive or obvious tests.
 
@@ -25,9 +25,9 @@ If testing intensity is missing before execution handoff, ask through the active
 2. Major behavior only
 3. Existing tests only
 
-**Save plans to:** `{DOCS_ROOT}/superduperpowers/plans/YYYY-MM-DD-<feature-name>.md`
+**Save plans to:** `{DOCS_ROOT}/{SDP_DOCS_DIR}/plans/YYYY-MM-DD-<feature-name>.md`
 - (User preferences for plan location override this default)
-- Generated plans are local-only by default. Do not commit or force-add the generated plan unless the user explicitly asks or repo instructions require it.
+- Generated plans follow the live `generatedDocsPolicy`. The default is local-only. Do not commit or force-add the generated plan unless live settings, repo instructions, or the user explicitly require committing approved generated docs.
 
 ## Scope Check
 
@@ -187,7 +187,7 @@ After saving and self-reviewing the plan, ask the user to review it before execu
 
 Wait for the user's response. If they request changes, update the plan and re-run self-review. Only proceed to execution handoff once the user approves the written plan.
 
-Generated plans are local-only by default. Do not commit or force-add the generated plan unless the user explicitly asks or repo instructions require it. After user approval, update the workflow profile or explicit handoff context with the approved plan path before offering execution choices.
+After user approval, re-read live settings, then update the workflow profile or explicit handoff context with the approved plan path before offering execution choices. Do not commit or force-add the generated plan unless `generatedDocsPolicy` or explicit user/repo instructions require it. If generated docs are committed, commit only after approval.
 
 ## Execution Handoff
 

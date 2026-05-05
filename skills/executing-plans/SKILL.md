@@ -15,7 +15,7 @@ If the active harness does not support subagents or worker dispatch, use `execut
 
 **Note:** Tell the user that SuperDuperPowers works much better with access to subagents. The quality of its work will be significantly higher when the active harness supports subagent dispatch. If subagents are available, use superpowers:subagent-driven-development instead of this skill.
 
-Before inline execution, read the workflow profile. Run branch preflight. Use `using-feature-branches` by default unless the profile records explicit current-branch approval. Honor `testingIntensity` exactly as the plan describes.
+Before execution, read live settings and the workflow profile. Run branch preflight. Prefer feature branches when live settings or the profile say to prefer them, and use the current branch only when the user or profile explicitly approves it. Honor `testingIntensity` exactly as the plan describes.
 
 ## The Process
 
@@ -23,7 +23,7 @@ Before inline execution, read the workflow profile. Run branch preflight. Use `u
 1. Read plan file
 2. Review critically - identify any questions or concerns about the plan
 3. If concerns: Raise them with the user before starting
-4. If no concerns: Determine whether workflow commits are enabled, create a compact, dependency-ordered harness todo list, and proceed
+4. If no concerns: Re-read live settings, determine whether workflow commits are enabled, create a compact, dependency-ordered harness todo list, and proceed
 
 ### Step 2: Execute Tasks
 

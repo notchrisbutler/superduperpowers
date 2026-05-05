@@ -1,0 +1,14 @@
+approval_policy = "on-request"
+sandbox_mode = "workspace-write"
+
+# Web search: "cached" is default-ish/saner; "live" is closest to OpenCode websearch/webfetch = allow.
+web_search = "live"
+
+# Optional hardening: avoid login-shell behavior unless explicitly needed.
+allow_login_shell = false
+
+[sandbox_workspace_write]
+network_access = true
+
+[features]
+goals = true

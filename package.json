@@ -22,6 +22,7 @@
     "agents/",
     "skills/",
     "assets/",
+    "superduperpowers.config.jsonc",
     ".opencode/plugins/superduperpowers.js",
     ".opencode/plugins/superduperpowers/",
     ".opencode/INSTALL.md",

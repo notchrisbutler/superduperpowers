@@ -19,7 +19,9 @@ For ordinary quick reviews, small code changes, wording edits, config tweaks, an
 If the right route is unclear, ask the user to choose full flow, quick flow, or no SuperDuperPowers for the session unless they invoke it later.
 </EXTREMELY-IMPORTANT>
 
-When a workflow profile tool is available, initialize or read the profile at the first meaningful route decision. Record route, naming policy, generated-doc policy, runtime path defaults, branch policy, question policy, and `testingIntensity: major-behavior` unless the user explicitly chooses another intensity.
+When live settings tooling is available, read `sdp_settings` at the first meaningful route decision and again before spec writing, plan writing, execution handoff, and finalization. Treat the JSON/JSONC settings as the source of configurable defaults for docs paths, branch preference, generated-doc commits, workflow commits, question policy, and testing intensity.
+
+When a workflow profile tool is available, initialize or read the profile at the first meaningful route decision. Record route, naming policy, generated-doc policy, runtime path defaults, branch policy, question policy, and testing intensity from live settings unless the user explicitly chooses another value.
 
 If SuperDuperPowers is invoked and the user did not explicitly choose full, quick, or no workflow, ask a structured route question through the active harness's question tool:
 
@@ -33,7 +35,7 @@ For full workflow or quick implementation routes, record testing intensity. If t
 2. Major behavior only
 3. Existing tests only
 
-Default to `major-behavior` only when the user does not choose or the active harness cannot ask.
+Default to the live settings value only when the user does not choose or the active harness cannot ask.
 
 ## Instruction Priority
 
@@ -122,7 +124,7 @@ When a harness todo list exists, keep it current: mark exactly one item `in_prog
 | Names `brainstorming`, `writing-plans`, `executing-plans`, `test-driven-development`, `systematic-debugging`, or another SuperDuperPowers skill | Full workflow | Invoke that skill, then follow its instructions exactly. |
 | Asks for SuperDuperPowers-driven design, planning, implementation workflow, root-cause investigation, or TDD cycle | Full workflow | Use the matching process skill first. |
 | Broad feature, deep ambiguous requirements, multi-system change, high-risk behavior, or likely decomposition work | Full workflow | Use `brainstorming` or `systematic-debugging` first, whichever fits the request. |
-| Small review, small code change, wording edit, config tweak, or bounded task where lightweight process helps | Quick flow | Do lightweight context gathering, smallest correct change, targeted validation, and brief report. |
+| Small review, small code change, wording edit, config tweak, or bounded task where lightweight process helps | Quick flow | Do lightweight context gathering, propose the quick approach for approval, make the smallest correct change after approval, run targeted validation, and briefly report. |
 | Trivial request or explicit request to avoid SuperDuperPowers | No SuperDuperPowers | Use normal agent behavior for this session unless SuperDuperPowers is invoked later. |
 | Unclear whether SuperDuperPowers should be used | Pending user choice | Ask the three-option route question before loading heavy workflow skills. |
 
@@ -137,12 +139,13 @@ For multi-step quick-flow work, keep a short flat harness todo list and update e
 1. Check enough local context to avoid guessing.
 2. Ask up to five context questions if needed to understand the request.
 3. Prefer the active harness's structured user-question tool when available. Include an `Other` option for optional user input when the tool supports it.
-4. Make the smallest correct change.
-5. Run targeted validation when practical.
-6. Do a surface-level self-review for obvious regressions, missed call sites, and formatting issues.
-7. Report what changed and what validation was performed.
+4. Propose the intended approach in chat only, scaled to the task, and wait for user approval or adjustment before editing files.
+5. After approval, make the smallest correct change.
+6. Run targeted validation when practical.
+7. Do a surface-level self-review for obvious regressions, missed call sites, and formatting issues.
+8. Report what changed and what validation was performed.
 
-Quick flow does not require TDD, design docs, implementation plans, subagents, branch-completion workflows, or exhaustive code review unless the task escalates.
+Quick flow does not require TDD, design docs, implementation plans, subagents, branch-completion workflows, or exhaustive code review unless the task escalates. It does require explicit user approval of the proposed quick approach before file edits.
 
 ## No SuperDuperPowers
 

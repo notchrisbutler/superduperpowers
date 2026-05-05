@@ -31,9 +31,9 @@ Use this skill when:
 - A previous fix failed or multiple fixes have already been tried.
 - The failure is high-risk, production-facing, or likely to hide a deeper cause.
 
-Do not auto-trigger this skill for every small bug report or obvious localized fix. Quick bug fixes can use quick flow when the cause is clear and the scope is small, or no Superpowers when the user asks for ordinary agent behavior.
+Do not auto-trigger this skill for every small bug report or obvious localized fix. Quick bug fixes can use quick flow when the cause is clear and the scope is small, or No SuperDuperPowers when the user asks for ordinary agent behavior.
 
-If the issue might need root-cause work but the user asked for quick flow or no Superpowers, ask whether to switch to systematic debugging rather than silently invoking this skill.
+If the issue might need root-cause work but the user asked for quick flow or No SuperDuperPowers, ask whether to switch to systematic debugging rather than silently invoking this skill.
 
 ## The Four Phases
 

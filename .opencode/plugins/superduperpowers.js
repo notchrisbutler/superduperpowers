@@ -9,7 +9,7 @@ import path from 'path';
 import fs from 'fs';
 import os from 'os';
 import { fileURLToPath } from 'url';
-import { autoRepairRuntimeState, createSdpTools, getRuntimePaths, profileSummaryText, readProfileJsonSafe, validateRuntimePathContainment } from './superduperpowers/sdp-tools.js';
+import { autoRepairRuntimeState, createSdpTools, getRuntimePaths, loadEffectiveSettings, profileSummaryText, readProfileJsonSafe, settingsSummaryText, validateRuntimePathContainment } from './superduperpowers/sdp-tools.js';
 import { getBootstrapContent, registerBundledConfig } from './superduperpowers/sdp-registration.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -40,7 +40,8 @@ export const SuperpowersPlugin = async ({ client, directory, worktree } = {}) =>
     packageRoot: path.resolve(__dirname, '../..'),
     pluginFile: fileURLToPath(import.meta.url),
     skillsDir: superpowersSkillsDir,
-    agentsDir: superpowersAgentsDir
+    agentsDir: superpowersAgentsDir,
+    defaultSettingsPath: path.resolve(__dirname, '../../superduperpowers.config.jsonc')
   };
 
   return {
@@ -73,7 +74,9 @@ export const SuperpowersPlugin = async ({ client, directory, worktree } = {}) =>
       // Only inject once
       if (firstUser.parts.some(p => p.type === 'text' && p.text.includes('EXTREMELY_IMPORTANT'))) return;
       const ref = firstUser.parts[0];
-      firstUser.parts.unshift({ ...ref, type: 'text', text: bootstrap });
+      const activeDirectory = directory || worktree || process.cwd();
+      const settings = loadEffectiveSettings({ configDir, packageInfo, directory: activeDirectory });
+      firstUser.parts.unshift({ ...ref, type: 'text', text: `${bootstrap}\n\n${settingsSummaryText(settings)}` });
     },
 
     'chat.message': async (input) => {

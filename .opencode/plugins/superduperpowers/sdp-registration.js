@@ -124,6 +124,7 @@ When skills reference tools you don't have, substitute OpenCode equivalents:
 - \`Skill\` tool -> OpenCode's native \`skill\` tool
 - \`Read\`, \`Write\`, \`Edit\`, \`Bash\` -> Your native tools
 - SuperDuperPowers workflow profile/state -> Use \`sdp_profile\` when available; otherwise carry decisions explicitly in prompts and generated docs
+- SuperDuperPowers live settings -> Use \`sdp_settings\` when available at routing, spec, plan, execution, review, and finalization gates
 - SuperDuperPowers generated-doc hygiene -> Use \`sdp_setup_hygiene\` when available before writing project-local generated specs/plans
 - SuperDuperPowers branch preflight -> Use \`sdp_branch_context\` when available before execution starts
 - SuperDuperPowers diagnostics -> Use \`sdp_doctor\` when checking install or runtime health

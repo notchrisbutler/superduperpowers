@@ -1,0 +1,44 @@
+{
+  "$schema": "https://notchrisbutler.github.io/superduperpowers/settings.schema.json",
+  "schemaVersion": 1,
+  "workflow": {
+    "defaultRoute": null,
+    "defaultDocsRoot": "docs",
+    "forceDefaultDocsRoot": false,
+    "generatedDocsPolicy": "local-only",
+    "workflowCommitPolicy": "implementation-commits-only",
+    "branchPolicy": "prefer-feature-branch",
+    "preferFeatureBranches": true,
+    "defaultExecutionMethod": null,
+    "defaultExecutionStrategy": null,
+    "testingIntensity": "major-behavior",
+    "questionPolicy": "deep-questions-before-spec-avoid-during-execution",
+    "fullFlow": {
+      "useQuestionTool": true,
+      "requireSpecApproval": true,
+      "requirePlanApproval": true,
+      "reviewEachChunk": true,
+      "finalSpecReview": true,
+      "finalCodeReview": true
+    },
+    "quickFlow": {
+      "maxClarifyingQuestions": 5,
+      "writeDocs": false,
+      "requireTdd": false,
+      "reviewIntensity": "lite"
+    }
+  },
+  "paths": {
+    "runtimeDir": "superduperpowers",
+    "docsDirName": "superduperpowers",
+    "specsDirName": "specs",
+    "plansDirName": "plans",
+    "worktreesDirName": "worktrees",
+    "stateDirName": "state",
+    "quarantineDirName": "quarantine"
+  },
+  "cleanup": {
+    "mode": "session-aware",
+    "retentionDays": 30
+  }
+}
