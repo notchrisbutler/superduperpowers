@@ -52,6 +52,6 @@
 
   "cleanup": {
     // Stale session state can be removed by /sdp-cleanup.
-    "retentionDays": 30
+    "retentionDays": 7
   }
 }
