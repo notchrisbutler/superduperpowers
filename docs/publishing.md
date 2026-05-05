@@ -1,33 +1,23 @@
 # Publishing
 
-SuperDuperPowers publishes as the scoped public npm package `@notchrisbutler/superduperpowers`.
+SuperDuperPowers publishes through GitHub Releases. OpenCode installs should use the moving `latest` Git tag for the current recommended release, or a concrete calendar-version tag for reproducible installs.
 
-Publishing never runs on pushes to `main`, tags, or GitHub Releases. It runs only when manually dispatched.
+There is no npm publication flow for this project.
 
-## npm Setup
+## Release Tags
 
-1. Create or sign in to the npm account that owns the `@notchrisbutler` scope.
-2. Enable 2FA on the npm account.
-3. Configure npm Trusted Publishing for the real package workflow:
+Calendar release tags use:
 
 ```text
-Provider: GitHub Actions
-Repository: notchrisbutler/superduperpowers
-Workflow filename: publish.yml
-Environment: npm
+YYYY.M.D
+YYYY.M.D-N
 ```
 
-The package is public, so publishes use `npm publish --access public --provenance`.
-
-## GitHub Setup
-
-Create a GitHub Actions environment named `npm` in the repository settings. Add required reviewers if you want an approval gate before publish jobs can run.
-
-No `NPM_TOKEN` secret is needed when Trusted Publishing is configured.
+The `latest` tag should point at the same commit as the current recommended stable release.
 
 ## Local Version Bump
 
-Before publishing, bump the version locally and push the result to `main`:
+Before creating a release, bump the version locally and push the result to `main`:
 
 ```bash
 scripts/bump-version.sh --next
@@ -39,9 +29,7 @@ git commit -m "Release ${VERSION}"
 git push origin main
 ```
 
-For the current first package release, use the committed `package.json` version; run the check and audit commands before creating the release. Do not use leading zeroes such as `YYYY.04.DD`; npm semver requires `YYYY.M.D`.
-
-The first release on a date uses `YYYY.M.D`. Additional releases on the same date use semver-compatible suffixes such as `YYYY.M.D-1`, `YYYY.M.D-2`, and so on. npm does not accept four numeric version segments such as `YYYY.M.D.1`.
+The first release on a date uses `YYYY.M.D`. Additional releases on the same date use suffixes such as `YYYY.M.D-1`, `YYYY.M.D-2`, and so on. Do not use leading zeroes such as `YYYY.04.DD`.
 
 You can also pass an explicit version:
 
@@ -50,21 +38,9 @@ scripts/bump-version.sh 2026.5.1
 scripts/bump-version.sh 2026.5.1-1
 ```
 
-## Dry Run
+## Create The GitHub Release
 
-Run the `Publish package` workflow manually with:
-
-```text
-mode: dry-run
-version: YYYY.M.D or YYYY.M.D-N
-dist_tag: latest
-```
-
-Dry-run mode validates package metadata and runs `npm publish --dry-run` with the selected npm dist-tag. It does not publish.
-
-## Publish To npm
-
-Create the GitHub Release separately if you want one:
+Create the GitHub Release:
 
 ```text
 Tag: YYYY.M.D or YYYY.M.D-N
@@ -72,20 +48,35 @@ Release title: YYYY.M.D or YYYY.M.D-N
 Target: main
 ```
 
-Then run the `Publish package` workflow manually. Choose npm dist-tag `prerelease` for a pre-release and `latest` for a stable/latest release.
+Use `docs/superduperpowers/other/release-notes.md` as the release body when preparing the release.
 
-```text
-mode: publish
-version: YYYY.M.D or YYYY.M.D-N
-dist_tag: prerelease
+## Move The latest Tag
+
+After the GitHub Release is ready, move the `latest` tag to the same commit and push it:
+
+```bash
+git tag -f latest VERSION
+git push origin latest --force
 ```
 
-Manual publish mode:
+Replace `VERSION` with the calendar release tag, such as `2026.5.5`.
 
-1. Checks out `main` at the workflow run ref.
-2. Validates the input version and npm dist-tag.
-3. Verifies `package.json.version` matches the input version.
-4. Runs `npm publish --dry-run` with the selected npm dist-tag.
-5. Publishes to npm with provenance and the selected dist-tag only if the dry run passed.
+## Install Strings
 
-Use a new calendar version each time. npm will reject attempts to republish an already-published version.
+Recommended moving install:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git#latest"]
+}
+```
+
+Pinned install:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git#2026.5.5"]
+}
+```

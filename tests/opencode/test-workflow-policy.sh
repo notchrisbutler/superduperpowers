@@ -27,12 +27,20 @@ if grep -R "commit the approved spec\|commit the approved plan\|force-add it\|fo
   exit 1
 fi
 
-if ! grep -q "superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git#main" "$REPO_ROOT/README.md" "$REPO_ROOT/.opencode/INSTALL.md"; then
-  echo "  [FAIL] GitHub #main drop-in install path is not documented"
+if ! grep -q "superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git#latest" "$REPO_ROOT/README.md" "$REPO_ROOT/.opencode/INSTALL.md"; then
+  echo "  [FAIL] GitHub latest release install path is not documented"
+  exit 1
+fi
+if grep -q "superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git#main" "$REPO_ROOT/README.md" "$REPO_ROOT/.opencode/INSTALL.md"; then
+  echo "  [FAIL] GitHub #main install path is still documented"
   exit 1
 fi
 if grep -Fq '"plugin": ["@notchrisbutler/superduperpowers"]' "$REPO_ROOT/README.md" "$REPO_ROOT/.opencode/INSTALL.md"; then
   echo "  [FAIL] npm package path is documented as the active OpenCode install path"
+  exit 1
+fi
+if grep -qi "npm publication\|future npm\|npm install" "$REPO_ROOT/README.md" "$REPO_ROOT/.opencode/INSTALL.md"; then
+  echo "  [FAIL] npm publication/install language is still documented in setup guides"
   exit 1
 fi
 
