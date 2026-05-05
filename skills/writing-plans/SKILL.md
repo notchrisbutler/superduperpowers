@@ -8,7 +8,7 @@ category: guidance
 
 ## Overview
 
-Write comprehensive implementation plans assuming the engineer has zero context for our codebase or local conventions. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as grouped, dependency-ordered task scopes with detailed subtasks. DRY. YAGNI. Use the workflow profile's testing intensity to scale test requirements. Include local commit steps at verified implementation task-scope boundaries when workflow commits are enabled.
+Write comprehensive implementation plans assuming the engineer has zero context for our codebase or local conventions. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as dependency-ordered parent task scopes with dispatchable subtasks. DRY. YAGNI. Use the workflow profile's testing intensity to scale test requirements. Include local commit steps at verified implementation task-scope boundaries when workflow commits are enabled.
 
 Assume they are a skilled developer, but know almost nothing about our toolset or problem domain. Assume they don't know good test design very well.
 
@@ -34,7 +34,7 @@ If testing intensity is missing before execution handoff, ask through the active
 
 When named agents are available and the plan is substantial, dispatch `plan-writer` with the approved spec, compact workflow profile summary, repo conventions, docs path, generated-doc policy, testing intensity, and execution constraints. The `plan-writer` may write the plan document but must not implement code.
 
-After the plan is written, use `plan-reviewer` for broad or high-risk plans, plans with many files, plans that will dispatch multiple implementers, or any plan whose execution shape is uncertain. For small plans, inline self-review is enough unless the user or profile requires review.
+After the plan is written, use `plan-reviewer` for broad or high-risk plans, plans with many files, plans that will dispatch multiple workers, or any plan whose execution shape is uncertain. For small plans, inline self-review is enough unless the user or profile requires review.
 
 If `plan-reviewer` returns changes required, update the plan once, then request one focused re-review of the changed scope. If material issues remain, ask the user before execution.
 
@@ -53,34 +53,40 @@ Before defining tasks, map out which files will be created or modified and what 
 
 This structure informs the task decomposition. Each task should produce self-contained changes that make sense independently.
 
-## Grouped Task Granularity
+## Dispatchable Task Granularity
 
-Plan in parent task scopes that share one useful validation boundary. Keep detailed execution steps in the plan, but keep harness todo lists compact by showing only the parent task scopes and final orchestration steps.
+Plan in parent task scopes that share one useful validation boundary, but make the executable subtasks small enough for separate worker dispatch. The main agent will own the todo list and hand each dispatchable implementation unit to the appropriate agent.
 
 **Each task should be small enough to execute safely, but not so small that it forces a cold-start review loop for mechanical work:**
 - Good task scope: `Task 1: Login Flow` with test, implementation, and validation subtasks
-- Good task: `Task 1.1: Write failing login validation tests`
+- Good dispatch task: `Task 1.1: Write failing login validation tests` routed to `tdd-implementer`
+- Good dispatch task: `Task 1.2: Implement login form behavior` routed to `implementer`
 - Good lite checkpoint: `Task 1.1: Lite review checkpoint` using lite spec/code reviewers as needed
 - Good task-scope review: `Task 1: Full spec review` and `Task 1: Lite code review`
-- Good harness todo: `Task 1: Login Flow - execute Task 1.1-1.N, review, validate, commit if enabled`
+- Good harness todo: `Task 1.2: Implement login form behavior - dispatch implementer`
+- Good harness todo: `Task 1 Review - validate Task 1, run required reviewers, commit if enabled`
 - Bad harness todo default: separate visible todos for every `Task N.M`, lite checkpoint, and review command
+- Bad harness todo default: one broad `Task 1` todo that hands all of Login Flow to a single implementer
 - Bad review default: full spec review and full code review after every tiny task
 
 Use task-level full review only for high-risk, ambiguous, or cross-cutting work.
 
 ## Harness Todo Shape
 
-Plan documents may contain detailed `Task N.M` subtasks. Harness todo lists should stay readable and flat by folding those details into one visible todo per parent task scope:
+Plan documents should contain detailed `Task N.M` subtasks that are suitable for bounded worker dispatch. Harness todo lists should stay readable and flat by showing coordinator-owned dispatch and gate decisions:
 
 ```markdown
 - Task 0: Execution setup - read plan, classify task scopes, prepare context
-- Task 1: <parent task goal> - execute Task 1.1-1.N, review, validate, commit if enabled
-- Task 2: <parent task goal> - execute Task 2.1-2.N, review, validate, commit if enabled
+- Task 1.1: <bounded implementation unit> - dispatch <worker role>
+- Task 1.2: <bounded implementation unit> - dispatch <worker role>
+- Task 1 Review: validate Task 1, run required reviewers, commit if enabled
+- Task 2.1: <bounded implementation unit> - dispatch <worker role>
+- Task 2 Review: validate Task 2, run required reviewers, commit if enabled
 - Review: final full-scope spec review, code review, and validation
 - Finalize: finish branch according to current execution mode
 ```
 
-Each visible `Task N` todo includes all plan-defined subtasks, lite checkpoints, task-scope reviews, validation commands, and task-scope commit steps for that parent scope. Only split a `Task N.M` into its own harness todo when it is a real dependency boundary, high-risk checkpoint, or blocker-resolution step that must be tracked separately.
+Each visible implementation todo should map to one worker assignment, unless several adjacent mechanical steps touch the same files and have one obvious validation command. Parent `Task N Review` todos collect task-scope validation, required reviewers, and coordinator-owned commits. Do not expand every checkbox or mechanical command into a harness todo; expand at worker dispatch, review, validation, dependency, and blocker-resolution boundaries.
 
 `Finalize` means:
 - In a worktree or temporary task branch, integrate back into the parent/source feature branch and clean up according to `finishing-a-development-branch`.
@@ -94,7 +100,7 @@ Each visible `Task N` todo includes all plan-defined subtasks, lite checkpoints,
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan in dependency-ordered parent task scopes. Steps use checkbox (`- [ ]`) syntax for plan tracking; harness todos should stay compact with one visible todo per parent `Task N` scope plus `Review` and `Finalize`.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan. The main agent is the coordinator: it owns todos, dispatches each bounded `Task N.M` implementation unit to the appropriate worker, runs reviews/validation, and decides the next step from worker reports. Steps use checkbox (`- [ ]`) syntax for plan tracking; harness todos should stay flat and dispatch-scoped, with parent `Task N Review` gates plus final `Review` and `Finalize`.
 
 **Goal:** [One sentence describing what this builds]
 
@@ -146,7 +152,7 @@ Expected: PASS
 
 - [ ] **Step 5: Report changed files**
 
-Report the files changed in this task and whether tests passed. The coordinator commits at the parent task boundary when workflow commits are enabled.
+Report the files changed in this task and whether tests passed. Do not continue into later tasks. The coordinator commits at the parent task boundary when workflow commits are enabled.
 
 #### Task N Review
 
@@ -171,8 +177,8 @@ Every step must contain the actual content an engineer needs. These are **plan f
 - Complete code in every step — if a step changes code, show the code
 - Exact commands with expected output
 - DRY, YAGNI, testing-intensity-aware validation, and local commits at verified implementation task-scope boundaries when workflow commits are enabled
-- Conceptual groups and `Task N.M` subtasks belong in plan docs; harness todos should be compact, flat, and ordered by parent task dependency
-- Include an explicit review policy per group
+- Parent task scopes and `Task N.M` subtasks belong in plan docs; harness todos should be flat, dispatch-scoped, and ordered by dependency
+- Include an explicit review policy per parent task scope
 
 ## Self-Review
 
@@ -186,7 +192,7 @@ If a `plan-reviewer` agent is used, this self-review still runs first. The revie
 
 **3. Type consistency:** Do the types, method signatures, and property names you used in later tasks match what you defined in earlier tasks? A function called `clearLayers()` in Task 3 but `clearFullLayers()` in Task 7 is a bug.
 
-**4. Execution shape:** Does the plan support compact, dependency-ordered harness todos with labels like `Task 0: Execution setup`, `Task 1: <goal> - execute Task 1.1-1.N, review, validate, commit if enabled`, `Review: final full-scope spec review, code review, and validation`, and `Finalize: finish branch according to current execution mode`? If the plan requires visible todos for every subtask, lite checkpoint, or tiny review, fix it.
+**4. Execution shape:** Does the plan support flat, dependency-ordered harness todos with labels like `Task 0: Execution setup`, `Task 1.1: <bounded implementation unit> - dispatch <worker role>`, `Task 1 Review: validate Task 1, run required reviewers, commit if enabled`, `Review: final full-scope spec review, code review, and validation`, and `Finalize: finish branch according to current execution mode`? If the plan collapses a parent task into one broad implementer assignment or requires visible todos for every tiny command, fix it.
 
 If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
 

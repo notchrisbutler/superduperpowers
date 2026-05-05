@@ -6,11 +6,15 @@ Use this template when dispatching an implementer subagent.
 Generic worker or implementation subagent:
   description: "Implement Task N: [task name]"
   prompt: |
-    You are implementing Task N: [task name]
+    You are implementing one bounded dispatched task: [Task N.M or task name]
 
     ## Task Description
 
-    [FULL TEXT of task from plan - paste it here, don't make subagent read file]
+    [FULL TEXT of this dispatched task from the plan - paste it here, don't make subagent read file]
+
+    ## Scope Boundary
+
+    You own only this dispatched task. Do not continue into later plan tasks, choose the next task, mutate todos, spawn other implementation agents, or run task-scope/final review gates. Report back to the coordinator when this assignment is done or blocked.
 
     ## Context
 
@@ -35,12 +39,12 @@ Generic worker or implementation subagent:
     ## Your Job
 
     Once you're clear on requirements:
-    1. Implement exactly what the task specifies
+    1. Implement exactly what this dispatched task specifies
     2. Write tests (following TDD if task says to)
     3. Verify implementation works
     4. Report changed files and verification results. Do not commit; the coordinator owns task-scope commits when workflow commits are enabled.
     5. Self-review (see below)
-    6. Report back
+    6. Report back to the coordinator
 
     Work from: [directory]
 

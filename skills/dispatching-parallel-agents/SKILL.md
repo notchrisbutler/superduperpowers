@@ -14,6 +14,8 @@ When you have multiple unrelated failures (different test files, different subsy
 
 **Core principle:** Dispatch one agent per independent problem domain. Let them work concurrently.
 
+The main agent remains the orchestrator. It owns the visible todo list, dispatch decisions, integration, review routing, validation, and commits. Parallel workers own only their assigned stream and report back; they do not mutate todos, choose later work, or coordinate other workers.
+
 ## When to Use
 
 ```dot
@@ -58,6 +60,7 @@ After advisor output:
 - Dispatch `debugging-investigator` for streams that still need root-cause evidence.
 - Keep review agents separate from implementation workers.
 - Do not run parallel implementation when file ownership or validation state overlaps.
+- Create or update one coordinator-owned todo per worker stream and one integration/review todo for the parent task boundary.
 
 ## The Pattern
 
@@ -76,6 +79,7 @@ Each agent gets:
 - **Specific scope:** One test file or subsystem
 - **Clear goal:** Make these tests pass
 - **Constraints:** Don't change other code
+- **No orchestration:** Don't update todos, dispatch other agents, or pick follow-up tasks
 - **Expected output:** Summary of what you found and fixed
 
 ### 3. Dispatch in Parallel

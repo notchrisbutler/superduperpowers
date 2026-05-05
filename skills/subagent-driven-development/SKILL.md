@@ -6,13 +6,13 @@ category: action
 
 # Subagent-Driven Development
 
-Execute implementation plans with subagents while keeping harness todos compact, using proportional review at meaningful task boundaries, and committing locally at verified task-scope boundaries when workflow commits are enabled.
+Execute implementation plans with subagents while keeping the main session as the orchestrator, using coordinator-owned dispatch todos, proportional review at meaningful task boundaries, and local commits after verified task scopes when workflow commits are enabled.
 
-If the active harness does not support subagents or worker dispatch, use `executing-plans` in the main session and preserve the same compact parent-scope todo shape.
+If the active harness does not support subagents or worker dispatch, use `executing-plans` in the main session and preserve the same flat coordinator-owned todo boundaries.
 
 **Why subagents:** You delegate work to specialized agents with isolated context. By precisely crafting their instructions and context, you keep them focused while preserving your own context for coordination.
 
-**Core principle:** Compact parent-scope todos + proportional review = readable orchestration without cold-start review loops on tiny tasks.
+**Core principle:** The main agent owns the todo list and orchestration. Each implementation todo maps to one bounded worker dispatch or a deliberately local coordinator action; workers perform assigned tasks and report back, but they do not plan the rest of the workflow, mutate todos, run review gates, or absorb a whole parent task when it contains multiple dispatchable units.
 
 ## When to Use
 
@@ -37,7 +37,7 @@ digraph when_to_use {
 **vs. Executing Plans:**
 - Same session coordination
 - Fresh subagents where they add value
-- Lite checkpoints after simple tasks, full task-scope spec review plus lite task-scope code review at task boundaries
+- Dispatch-scoped implementation todos, lite checkpoints after simple tasks, full task-scope spec review plus lite task-scope code review at task boundaries
 - Faster iteration without human-in-loop between every small task
 
 ## The Process
@@ -48,11 +48,11 @@ digraph when_to_use {
 4. After strategy is known, run branch preflight and invoke the selected setup skill before any implementation subagent dispatch: `using-git-worktrees` for `worktree`, `using-feature-branches` for `feature-branch`, or stop if the strategy is `hold`.
 5. Record the resulting branch/worktree context in the workflow profile, including execution method, execution strategy, parent/source branch, selected durable branch, task branch, worktree path, and original workspace when relevant.
 6. Pass a compact profile summary into implementer and reviewer prompts.
-7. Extract task groups, tasks, dependencies, validation commands, review policies, and whether any task requires `tdd-implementer` instead of `implementer`.
-8. Replace any prior planning/brainstorming todos with one compact harness todo list.
-9. Execute each compact todo in dependency order.
-10. For each parent `Task N`, execute the plan-defined `Task N.M` subtasks and lite checkpoints.
-11. Run task-scope review at parent task boundaries only when the plan, live settings, or risk calls for it; otherwise rely on validation plus the final full reviews.
+7. Extract task groups, tasks, dispatchable `Task N.M` units, dependencies, validation commands, review policies, and whether each implementation unit requires `implementer`, `tdd-implementer`, `debugging-investigator`, a reviewer, or coordinator-local work.
+8. Replace any prior planning/brainstorming todos with one flat, coordinator-owned harness todo list.
+9. Execute each todo in dependency order, dispatching the named worker/reviewer for that todo when it is not coordinator-local.
+10. For each parent `Task N`, complete its dispatchable `Task N.M` implementation todos, lite checkpoints, task-scope validation, and required reviews.
+11. Run task-scope review at parent task boundaries only when the plan, live settings, or risk calls for it; otherwise rely on dispatch validation plus the final full reviews.
 12. Commit the verified parent task scope locally when workflow commits are enabled.
 13. Run final full implementation review and validation across all tasks.
 14. Commit verified remaining changes locally when workflow commits are enabled.
@@ -62,25 +62,31 @@ Subagents honor the profile's testing intensity. For `major-behavior`, they test
 
 ## Todo Status Discipline
 
-Keep the compact harness todo list current throughout orchestration:
+Keep the coordinator-owned harness todo list current throughout orchestration:
 
-1. Mark exactly one compact todo `in_progress` immediately before starting or dispatching that work.
+1. Mark exactly one todo `in_progress` immediately before starting or dispatching that work.
 2. Mark it `completed` immediately after its implementation, review, or validation is done.
 3. Do not start the next todo, dispatch the next subagent, or report completion while the previous todo is still stale.
 
-## Compact Todo Shape
+## Coordinator Todo Shape
 
-Most harnesses do not support nested todos, and long visible todo lists become cluttered. Preserve detailed `Task N.M` subtasks in the plan, and use one visible harness todo per parent task scope:
+Most harnesses do not support nested todos, but the visible todo list must still show the coordinator's actual dispatch plan. Keep it flat and dependency ordered. Use one visible todo per bounded worker assignment, review gate, validation gate, or finalization step. Do not collapse a whole parent task into one implementation todo when it contains multiple `Task N.M` units that should go to separate workers.
 
 ```markdown
 - Task 0: Execution setup - read plan, classify task scopes, prepare context
-- Task 1: Login Flow - execute Task 1.1-1.N, review, validate, commit if enabled
-- Task 2: Password Reset - execute Task 2.1-2.N, review, validate, commit if enabled
+- Task 1.1: Login validation tests - dispatch tdd-implementer
+- Task 1.2: Login form behavior - dispatch implementer
+- Task 1 Review: validate Task 1, run required reviewers, commit if enabled
+- Task 2.1: Password reset token model - dispatch implementer
+- Task 2.2: Password reset email flow - dispatch implementer
+- Task 2 Review: validate Task 2, run required reviewers, commit if enabled
 - Review: final full-scope spec review, code review, and validation
 - Finalize: finish branch according to current execution mode
 ```
 
-Each visible `Task N` todo includes all plan-defined subtasks, lite checkpoints, task-scope reviews, validation commands, and task-scope commit steps for that parent scope. Do not create nested todo structures. Do not use `Group N` in harness todos. Do not expand every plan checkbox, `Task N.M`, lite checkpoint, or review command into a harness todo unless it is a real dependency boundary, high-risk checkpoint, or blocker-resolution step.
+Each visible implementation todo names the exact plan unit, expected worker role, and bounded ownership scope. Parent `Task N Review` todos collect the task-scope validation, required reviewers, and coordinator-owned commit step after the child implementation todos report back. Do not create nested todo structures. Do not use `Group N` in harness todos. Do not expand every plan checkbox or mechanical command into a harness todo; expand the work at the level where the coordinator will make a dispatch, review, validation, dependency, or blocker-resolution decision.
+
+If several adjacent plan steps are truly mechanical, affect the same files, and have one obvious validation command, the coordinator may combine them into one implementation dispatch todo. The prompt must still list the included steps explicitly and forbid the worker from continuing into later plan work.
 
 ## Review Policy
 
@@ -121,7 +127,7 @@ For platforms without named agents, use the matching prompt templates in this sk
 - Complex bug task where root cause is not yet proven: dispatch `debugging-investigator` first. Only dispatch an implementation worker after it reports a supported root-cause hypothesis or the human approves proceeding.
 - Multiple apparently independent task streams: use `parallelization-advisor` before dispatching parallel workers unless the independence is already explicit in the plan.
 
-Implementation workers may edit assigned files but must not commit. The coordinator owns review, validation gates, and local commits.
+Implementation workers may edit assigned files but must not commit, mutate todos, spawn their own implementation subagents, or decide the next plan task. The coordinator owns todo state, dependency ordering, worker selection, review, validation gates, and local commits.
 
 ## Model Selection
 
@@ -166,17 +172,17 @@ You: I'm using Subagent-Driven Development to execute this plan.
 
 [Read plan file once: {DOCS_ROOT}/superduperpowers/plans/feature-plan.md]
 [Extract groups and tasks with full text and context]
-[Create compact harness todos with setup, one visible todo per parent Task N scope, Review, and Finalize]
+[Create flat coordinator-owned todos with setup, one visible todo per bounded worker dispatch or review gate, Review, and Finalize]
 
-Task 1: Hook installation workflow
-[Dispatch implementation subagent with full task text + context]
+Task 1.1: Hook installation model
+[Dispatch implementer with Task 1.1 text + context]
 Implementer: DONE, tests passing, changed files reported.
 
-Within Task 1: Lite review checkpoint from the plan
-[Dispatch lite-spec-reviewer and/or lite-code-reviewer if useful]
-Lite checkpoint: Pass
+Task 1.2: Hook installation command flow
+[Dispatch implementer with Task 1.2 text + context]
+Implementer: DONE, tests passing, changed files reported.
 
-Within Task 1: Optional task-scope review when plan/risk/settings require it
+Task 1 Review: Optional task-scope review when plan/risk/settings require it
 [Dispatch lite-code-reviewer or spec-reviewer against the Task 1 diff]
 Result: Approved
 
@@ -189,11 +195,13 @@ Finalize: invoke finishing-a-development-branch
 **Never:**
 - Start implementation on main/master branch without explicit user consent
 - Treat current-branch execution as a worktree cleanup/merge flow
-- Create nested or overly expanded harness todo structures; use compact parent task scopes instead
+- Create nested or overly expanded harness todo structures; keep todos flat and dispatch-scoped
+- Collapse multiple dispatchable plan tasks into one broad implementer assignment
 - Skip the review required by the task review policy
 - Proceed with unfixed full-review issues
 - Dispatch multiple implementation subagents in parallel if they can conflict
 - Make subagents read the plan file; provide full text instead
+- Let subagents mutate todos, choose later tasks, or orchestrate other subagents
 - Skip scene-setting context
 - Ignore subagent questions
 - Let implementer self-review replace required task-scope or final review

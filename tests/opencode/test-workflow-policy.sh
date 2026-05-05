@@ -139,6 +139,19 @@ if ! grep -q "one focused re-review" "$SUPERPOWERS_DIR/skills/subagent-driven-de
   exit 1
 fi
 
+if ! grep -q "The main agent owns the todo list and orchestration" "$SUPERPOWERS_DIR/skills/subagent-driven-development/SKILL.md"; then
+  echo "  [FAIL] subagent-driven-development lacks coordinator-owned todo language"
+  exit 1
+fi
+if ! grep -q "Task 1.1: <bounded implementation unit> - dispatch <worker role>" "$SUPERPOWERS_DIR/skills/writing-plans/SKILL.md"; then
+  echo "  [FAIL] writing-plans lacks dispatch-scoped harness todo shape"
+  exit 1
+fi
+if grep -q "one visible todo per parent task\|execute Task 1.1-1.N\|one visible harness todo per parent" "$SUPERPOWERS_DIR/skills/subagent-driven-development/SKILL.md" "$SUPERPOWERS_DIR/skills/writing-plans/SKILL.md" "$SUPERPOWERS_DIR/skills/executing-plans/SKILL.md" "$SUPERPOWERS_DIR/agents/plan-writer.md"; then
+  echo "  [FAIL] found stale parent-task todo grouping guidance"
+  exit 1
+fi
+
 profile_summary=$(REPO_ROOT="$REPO_ROOT" node --input-type=module <<'NODE'
 import path from 'path';
 import { pathToFileURL } from 'url';

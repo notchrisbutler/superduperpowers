@@ -54,7 +54,7 @@ After the first launch, run `/sdp-status` to confirm the plugin loaded and `/sdp
 - Legacy `superpowers.js` shim and duplicate-load warnings are reported through `sdp_doctor` and `/sdp-status`
 - Project-local generated specs and plans under `{DOCS_ROOT}/superduperpowers/`, local-only by default and configurable through live settings
 - Brainstorming, planning, TDD, debugging, verification, and branch-finishing skills
-- Grouped execution with flat, dependency-ordered task lists that stay readable in agent harnesses
+- Coordinator-owned execution with flat, dependency-ordered dispatch todos that stay readable in agent harnesses
 - Named workflow agents for review, planning, implementation, TDD, debugging, and safe parallelization
 - Local-first finishing flow that prepares PR commands without pushing unless explicitly requested
 - Included OpenCode plugin entrypoint through `.opencode/plugins/superduperpowers.js`
