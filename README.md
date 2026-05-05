@@ -1,6 +1,6 @@
 # SuperDuperPowers
 
-**Harness-agnostic skills and workflow agents for deliberate coding workflows**
+**OpenCode-first skills and workflow agents for deliberate coding workflows**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Version](https://img.shields.io/badge/version-2026.5.5-purple.svg)](https://github.com/notchrisbutler/superduperpowers/releases)
@@ -14,7 +14,7 @@ This project is built from Jesse Vincent's [obra/superpowers](https://github.com
 
 ## Included Harness Config
 
-SuperDuperPowers is alpha software. The workflow core is intended to stay harness and model agnostic. The first included harness config is for OpenCode, installed from GitHub Releases through the `latest` release tag.
+SuperDuperPowers is beta software. The workflow core is intended to stay harness and model agnostic. The first included harness config is for OpenCode, installed from GitHub Releases through the `latest` release tag.
 
 Add the plugin to your OpenCode config, typically `opencode.json`:
 
