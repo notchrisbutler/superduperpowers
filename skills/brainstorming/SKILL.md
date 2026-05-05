@@ -1,6 +1,7 @@
 ---
 name: brainstorming
 description: "Use when the user explicitly asks for SuperDuperPowers brainstorming or when a request clearly needs design discovery, decomposition, or an approved spec before implementation."
+category: guidance
 ---
 
 # Brainstorming Ideas Into Designs
@@ -17,13 +18,25 @@ Once this skill is intentionally selected, do NOT invoke any implementation skil
 
 Use this skill for explicit SuperDuperPowers brainstorming requests and for work that clearly needs design discovery before implementation. Do not use this skill for quick flow, small reviews, wording edits, simple config tweaks, bounded code changes, or no-SuperDuperPowers work unless the user asks for brainstorming.
 
+## Agent Dispatch
+
+When the active harness supports named agents and the brainstorming work is large enough to benefit from isolated context, dispatch `brainstorming-facilitator` with:
+
+- Current user request and constraints
+- Compact workflow profile summary
+- Relevant project context and file paths already discovered
+- Required docs root and generated-doc policy
+- Explicit instruction that it may write the approved spec but must not implement code
+
+Keep direct user collaboration in the main session when the design is small, the user is actively answering questions, or subagent dispatch would obscure the approval gates. Whether done inline or by `brainstorming-facilitator`, the next workflow step after approval is always `writing-plans`.
+
 ## Checklist
 
 When this skill is selected, create a task for each of these items and complete them in order:
 
-1. **Read or establish workflow profile** — capture route, docs policy, runtime defaults, branch policy, and testing intensity when profile tooling is available
+1. **Read compact workflow context** — use `sdp_settings` and `sdp_profile` only when needed to capture unknown route, docs policy, runtime defaults, branch policy, generated-doc commit policy, workflow commit policy, question policy, or testing intensity
 2. **Explore project context** — check files, docs, recent commits
-3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
+3. **Ask clarifying questions** — use the active harness's question tool when available, one topic at a time, until ambiguity is low enough to write a useful spec
 4. **Propose 2-3 approaches** — with trade-offs and your recommendation
 5. **Present design** — in sections scaled to their complexity, get user approval after each section
 6. **Write design doc** — save to `{DOCS_ROOT}/superduperpowers/specs/YYYY-MM-DD-<topic>-design.md`
@@ -109,7 +122,7 @@ digraph brainstorming {
 - Write the validated design (spec) to `{DOCS_ROOT}/superduperpowers/specs/YYYY-MM-DD-<topic>-design.md`
   - (User preferences for spec location override this default)
 - Use elements-of-style:writing-clearly-and-concisely skill if available
-- Generated specs are local-only by default. Do not commit or force-add the generated spec unless the user explicitly asks or repo instructions require it.
+- Generated specs follow the live `generatedDocsPolicy`. The default is local-only. Do not commit or force-add the generated spec unless live settings, repo instructions, or the user explicitly require committing approved generated docs.
 
 **Spec Self-Review:**
 After writing the spec document, look at it with fresh eyes:
@@ -129,7 +142,7 @@ After the spec review loop passes, ask the user to review the written spec befor
 Wait for the user's response. If they request changes, make them and re-run the spec review loop. Only proceed once the user approves.
 
 **Generated-Doc Policy Gate:**
-After the user approves the written spec, update the workflow profile or explicit handoff context with the spec path. Do not commit or force-add the generated spec by default. If repo instructions or the user explicitly require generated docs to be committed, record that override in the profile before planning.
+After the user approves the written spec, re-read live settings, then update the workflow profile or explicit handoff context with the spec path. Do not commit or force-add the generated spec unless `generatedDocsPolicy` or explicit user/repo instructions require it. If generated docs are committed, commit only after approval.
 
 **Implementation:**
 

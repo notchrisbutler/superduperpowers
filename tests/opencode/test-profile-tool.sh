@@ -13,6 +13,8 @@ import path from 'path';
 
 const { SuperpowersPlugin } = await import(process.env.SUPERPOWERS_PLUGIN_FILE);
 const hooks = await SuperpowersPlugin({});
+const settingsTool = hooks.tool?.sdp_settings;
+if (!settingsTool) throw new Error('missing sdp_settings tool');
 const profileTool = hooks.tool?.sdp_profile;
 if (!profileTool) throw new Error('missing sdp_profile tool');
 
@@ -23,6 +25,10 @@ const context = {
   worktree: path.join(process.env.TEST_HOME, 'test-project')
 };
 
+const settingsResult = JSON.parse(await settingsTool.execute({ operation: 'get' }, context));
+if (!settingsResult.ok) throw new Error(`settings failed: ${JSON.stringify(settingsResult)}`);
+if (settingsResult.settings.workflow.defaultDocsRoot !== 'docs') throw new Error('default docs root missing from live settings');
+
 const setResult = JSON.parse(await profileTool.execute({ operation: 'set', profile: { route: 'full-brainstorming' } }, context));
 if (!setResult.ok) throw new Error(`set failed: ${JSON.stringify(setResult)}`);
 if (!setResult.profile?.stateDir?.includes('/superduperpowers/state/ses_testprofile123')) throw new Error('profile stateDir not under config runtime root');
@@ -32,6 +38,8 @@ if (!fs.existsSync(profilePath)) throw new Error(`profile not written to ${profi
 const persisted = JSON.parse(fs.readFileSync(profilePath, 'utf8'));
 if (persisted.schemaVersion !== 1) throw new Error('schemaVersion missing');
 if (persisted.testingIntensity !== 'major-behavior') throw new Error('default testingIntensity missing');
+if (persisted.branchPolicy !== 'prefer-feature-branch') throw new Error('default branch policy did not come from settings');
+if (persisted.workflowCommitPolicy !== 'implementation-commits-only') throw new Error('workflow commit policy missing');
 if (persisted.runtimeRoot !== path.join(process.env.OPENCODE_CONFIG_DIR, 'superduperpowers')) throw new Error('runtimeRoot mismatch');
 if (fs.existsSync(path.join(process.env.OPENCODE_CONFIG_DIR, 'superduperpowers', 'current.json'))) throw new Error('global current pointer created');
 
@@ -69,6 +77,29 @@ if (invalid.ok) throw new Error('secret-like profile key was accepted');
 const unknown = JSON.parse(await profileTool.execute({ operation: 'merge', updates: { customField: true } }, context));
 if (unknown.ok) throw new Error('unknown profile field was accepted');
 
+const projectSettingsPath = path.join(context.directory, 'superduperpowers.jsonc');
+fs.writeFileSync(projectSettingsPath, `{
+  // JSONC comments and trailing commas are allowed.
+  "schemaVersion": 1,
+  "workflow": {
+    "defaultDocsRoot": "notes",
+    "generatedDocsPolicy": "commit-after-approval",
+    "workflowCommitPolicy": "spec-plan-and-implementation-commits",
+    "branchPolicy": "current-branch-after-approval",
+    "testingIntensity": "existing-tests-only",
+  },
+}
+`);
+const liveSettings = JSON.parse(await settingsTool.execute({ operation: 'summary' }, context));
+if (!liveSettings.summary.includes('docsRoot=notes')) throw new Error('live settings did not read project override');
+const liveProfileContext = { ...context, sessionID: 'ses_live_settings', messageID: 'msg_live_settings' };
+const liveProfile = JSON.parse(await profileTool.execute({ operation: 'set', profile: { route: 'quick-implementation' } }, liveProfileContext));
+if (!liveProfile.ok) throw new Error(`live settings profile failed: ${JSON.stringify(liveProfile)}`);
+if (liveProfile.profile.docsRoot !== 'notes') throw new Error('profile did not inherit live docsRoot');
+if (liveProfile.profile.generatedDocsPolicy !== 'commit-after-approval') throw new Error('profile did not inherit generated doc policy');
+if (liveProfile.profile.workflowCommitPolicy !== 'spec-plan-and-implementation-commits') throw new Error('profile did not inherit workflow commit policy');
+if (liveProfile.profile.testingIntensity !== 'existing-tests-only') throw new Error('profile did not inherit testing intensity');
+
 fs.writeFileSync(profilePath, '{not json\n');
 const corruptValidation = JSON.parse(await profileTool.execute({ operation: 'validate' }, context));
 if (corruptValidation.ok) throw new Error('corrupt profile validated successfully');
@@ -82,8 +113,14 @@ fs.mkdirSync(oldDir, { recursive: true });
 fs.writeFileSync(path.join(oldDir, 'profile.json'), '{}\n');
 const old = new Date(Date.now() - 40 * 24 * 60 * 60 * 1000);
 fs.utimesSync(oldDir, old, old);
+const missingOpenCodeSessionDir = path.join(process.env.OPENCODE_CONFIG_DIR, 'superduperpowers', 'state', 'ses_missing_from_opencode');
+fs.mkdirSync(missingOpenCodeSessionDir, { recursive: true });
+fs.writeFileSync(path.join(missingOpenCodeSessionDir, 'profile.json'), '{}\n');
 const cleanup = JSON.parse(await profileTool.execute({ operation: 'cleanup', retentionDays: 30 }, context));
+if (cleanup.retentionDays !== 7) throw new Error('cleanup retention was not capped at 7 days');
+if (!cleanup.staleDefinition.includes('OpenCode session is gone')) throw new Error('cleanup stale definition does not mention OpenCode session presence');
 if (!cleanup.removed.some((entry) => entry.endsWith('ses_oldprofile'))) throw new Error('cleanup did not remove old state');
+if (cleanup.openCodeSessionPresence === 'available' && !cleanup.removed.some((entry) => entry.endsWith('ses_missing_from_opencode'))) throw new Error('cleanup did not remove state for missing OpenCode session');
 if (!fs.existsSync(profilePath)) throw new Error('cleanup removed active profile');
 
 console.log('profile tool behavior ok');

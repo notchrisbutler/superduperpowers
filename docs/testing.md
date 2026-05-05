@@ -59,7 +59,7 @@ tests/opencode/
 
 ## What To Verify
 
-After changing included OpenCode plugin code, package metadata, skills, or reviewer agents, run the default suite:
+After changing included OpenCode plugin code, package metadata, skills, or workflow agents, run the default suite:
 
 ```bash
 tests/opencode/run-tests.sh
@@ -98,6 +98,6 @@ Verify these behaviors:
 
 If skills are not discovered, verify the plugin is installed from the expected GitHub package source or `git+file` checkout path and restart OpenCode.
 
-If reviewer subagents are missing, check `.opencode/plugins/superduperpowers.js` and confirm it registers the packaged definitions from `agents/`.
+If workflow subagents are missing, check `.opencode/plugins/superduperpowers.js` and confirm it registers the packaged definitions from `agents/`.
 
 If integration tests fail before running assertions, confirm OpenCode is installed and available on `PATH`.

@@ -1,6 +1,7 @@
 ---
 name: subagent-driven-development
 description: Use when executing implementation plans with independent tasks in the current session
+category: action
 ---
 
 # Subagent-Driven Development
@@ -47,11 +48,11 @@ digraph when_to_use {
 4. After strategy is known, run branch preflight and invoke the selected setup skill before any implementation subagent dispatch: `using-git-worktrees` for `worktree`, `using-feature-branches` for `feature-branch`, or stop if the strategy is `hold`.
 5. Record the resulting branch/worktree context in the workflow profile, including execution method, execution strategy, parent/source branch, selected durable branch, task branch, worktree path, and original workspace when relevant.
 6. Pass a compact profile summary into implementer and reviewer prompts.
-7. Extract task groups, tasks, dependencies, validation commands, and review policies.
+7. Extract task groups, tasks, dependencies, validation commands, review policies, and whether any task requires `tdd-implementer` instead of `implementer`.
 8. Replace any prior planning/brainstorming todos with one compact harness todo list.
 9. Execute each compact todo in dependency order.
 10. For each parent `Task N`, execute the plan-defined `Task N.M` subtasks and lite checkpoints.
-11. Run full task-scope spec review and lite task-scope code review at parent task boundaries.
+11. Run task-scope review at parent task boundaries only when the plan, live settings, or risk calls for it; otherwise rely on validation plus the final full reviews.
 12. Commit the verified parent task scope locally when workflow commits are enabled.
 13. Run final full implementation review and validation across all tasks.
 14. Commit verified remaining changes locally when workflow commits are enabled.
@@ -88,13 +89,15 @@ Use the cheapest review that matches the risk:
 | Work type | Review |
 |---|---|
 | Mechanical or simple task | One lite review checkpoint, using `lite-spec-reviewer` and/or `lite-code-reviewer` only when useful |
-| Normal task scope | Full spec review + lite code review after task validation |
+| Normal task scope | Validation + lite code review when useful; full spec review only when plan-required or settings require per-chunk review |
 | High-risk task | Full spec review + full code review before moving on |
 | Final implementation | Full task-set spec review + full task-set code review + validation |
 
 High-risk means security, auth, data loss, migrations, broad refactors, cross-cutting behavior, unresolved design judgment, or unexpected file changes.
 
-If a lite review finds a concern, escalate that task scope to full spec and/or full code review before moving on.
+If a lite review finds a material concern, escalate that task scope to full spec and/or full code review before moving on.
+
+Review loop budget: after a reviewer reports issues, group the findings, fix them once, and request one focused re-review of the changed scope. If material issues remain, escalate once to the stronger reviewer or ask the human; do not repeat the same reviewer prompt with unchanged context.
 
 ## Commit Cadence
 
@@ -110,6 +113,15 @@ Implementer subagents do not commit directly. They report changed files and veri
 - Full code review: dispatch `code-reviewer`.
 
 For platforms without named agents, use the matching prompt templates in this skill directory.
+
+## Worker Routing
+
+- Normal implementation task: dispatch `implementer` with the exact task text, expected files, validation commands, compact profile summary, and forbidden branch/git operations.
+- Tests-first task, regression fix, or plan-required TDD: dispatch `tdd-implementer` instead of `implementer`.
+- Complex bug task where root cause is not yet proven: dispatch `debugging-investigator` first. Only dispatch an implementation worker after it reports a supported root-cause hypothesis or the human approves proceeding.
+- Multiple apparently independent task streams: use `parallelization-advisor` before dispatching parallel workers unless the independence is already explicit in the plan.
+
+Implementation workers may edit assigned files but must not commit. The coordinator owns review, validation gates, and local commits.
 
 ## Model Selection
 
@@ -164,12 +176,8 @@ Within Task 1: Lite review checkpoint from the plan
 [Dispatch lite-spec-reviewer and/or lite-code-reviewer if useful]
 Lite checkpoint: Pass
 
-Within Task 1: Full spec review
-[Dispatch spec-reviewer across all Task 1 changes]
-Result: Approved
-
-Within Task 1: Lite code review
-[Dispatch lite-code-reviewer across all Task 1 changes]
+Within Task 1: Optional task-scope review when plan/risk/settings require it
+[Dispatch lite-code-reviewer or spec-reviewer against the Task 1 diff]
 Result: Approved
 
 Review: final full task-set spec review, code review, and validation
@@ -194,8 +202,8 @@ Finalize: invoke finishing-a-development-branch
 
 **If reviewer finds issues:**
 - Implementer or fix subagent fixes them
-- Reviewer reviews again
-- Repeat until approved or escalate to the human
+- Reviewer gets one focused re-review of the changed scope
+- If material issues remain, escalate once to the stronger reviewer or the human
 
 ## Integration
 
@@ -205,6 +213,9 @@ Finalize: invoke finishing-a-development-branch
 - **superpowers:using-git-worktrees** - Required setup for worktree execution before dispatch
 - **superpowers:requesting-spec-review** - Spec compliance review routing for lite and full spec reviews
 - **superpowers:requesting-code-review** - Code review guidance for full code reviews
+- **superpowers:receiving-spec-review** - Required when spec-review feedback returns findings
+- **superpowers:receiving-code-review** - Required when code-review feedback returns findings
+- **superpowers:dispatching-parallel-agents** - Use when task streams can safely run concurrently
 - **superpowers:finishing-a-development-branch** - Complete development after all tasks
 
 **Subagents should use:**

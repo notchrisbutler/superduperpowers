@@ -21,17 +21,41 @@ const config = {};
 await hooks.config(config);
 
 const context = { sessionID: 'ses_doctor', messageID: 'msg_doctor', directory: project, worktree: project, agent: 'build' };
+const init = JSON.parse(await hooks.tool.sdp_init.execute({ operation: 'apply' }, context));
+if (!init.ok || !init.created) throw new Error(`init failed: ${JSON.stringify(init)}`);
 const profile = JSON.parse(await hooks.tool.sdp_profile.execute({ operation: 'set', profile: { route: 'full-brainstorming' } }, context));
 if (!profile.ok) throw new Error('profile setup failed');
 
 const doctor = JSON.parse(await hooks.tool.sdp_doctor.execute({ operation: 'check' }, context));
 if (!doctor.ok) throw new Error(`doctor reported unhealthy install: ${JSON.stringify(doctor, null, 2)}`);
-for (const id of ['package-root', 'skills-dir', 'skills-registration', 'required-skills', 'reviewer-agents', 'agent-registration', 'commands', 'tools', 'profile']) {
+for (const id of ['package-root', 'skills-dir', 'settings', 'skills-registration', 'required-skills', 'skill-categories', 'reviewer-agents', 'agent-registration', 'commands', 'tools', 'project-config', 'profile']) {
   const check = doctor.checks.find((entry) => entry.id === id);
   if (!check) throw new Error(`missing doctor check ${id}`);
   if (check.status !== 'ok') throw new Error(`doctor check ${id} was ${check.status}: ${check.message}`);
 }
 console.log('healthy doctor behavior ok');
+NODE
+
+node --input-type=module <<'NODE'
+import fs from 'fs';
+import path from 'path';
+
+const { SuperpowersPlugin } = await import(process.env.SUPERPOWERS_PLUGIN_FILE);
+const project = path.join(process.env.TEST_HOME, 'init-project');
+fs.mkdirSync(project, { recursive: true });
+const hooks = await SuperpowersPlugin({ directory: project, worktree: project });
+const context = { sessionID: 'ses_init', messageID: 'msg_init', directory: project, worktree: project, agent: 'build' };
+
+const checkBefore = JSON.parse(await hooks.tool.sdp_init.execute({ operation: 'check' }, context));
+if (!checkBefore.ok || checkBefore.exists) throw new Error(`unexpected init check before apply: ${JSON.stringify(checkBefore)}`);
+const apply = JSON.parse(await hooks.tool.sdp_init.execute({ operation: 'apply' }, context));
+if (!apply.ok || !apply.created) throw new Error(`init apply failed: ${JSON.stringify(apply)}`);
+if (!fs.existsSync(path.join(project, '.opencode', 'superduperpowers.jsonc'))) throw new Error('project config was not created');
+const secondApply = JSON.parse(await hooks.tool.sdp_init.execute({ operation: 'apply' }, context));
+if (!secondApply.ok || secondApply.created) throw new Error('init apply is not idempotent');
+const template = JSON.parse(await hooks.tool.sdp_init.execute({ operation: 'template' }, context));
+if (!template.content.includes('"workflow"')) throw new Error('init template missing workflow config');
+console.log('project init behavior ok');
 NODE
 
 node --input-type=module <<'NODE'

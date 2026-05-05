@@ -69,6 +69,10 @@ export const SDP_COMMANDS = Object.freeze({
     description: 'Summarize the active SuperDuperPowers workflow profile',
     template: 'Run sdp_profile with operation "summary" and summarize the active SuperDuperPowers workflow profile.'
   },
+  'sdp-init': {
+    description: 'Initialize project-local SuperDuperPowers config',
+    template: 'Run sdp_init with operation "apply" to create .opencode/superduperpowers.jsonc if missing, then summarize the result and next steps.'
+  },
   'sdp-cleanup': {
     description: 'Inspect stale SuperDuperPowers runtime state',
     template: 'Inspect stale SuperDuperPowers runtime state with sdp_profile cleanup only after confirming whether I want cleanup. If I explicitly asked to clean, run cleanup and report removed and kept paths.'
@@ -90,14 +94,16 @@ export const loadBundledAgents = (agentsDir) => {
     const description = frontmatter.description;
     const prompt = content.trim();
     if (!name || !description || !prompt) continue;
+    const editPermission = frontmatter.permission_edit || 'deny';
+    const todoPermission = frontmatter.permission_todowrite || 'deny';
 
     const agent = {
       description,
       mode: 'subagent',
       prompt,
       permission: {
-        edit: 'deny',
-        todowrite: 'deny'
+        edit: editPermission === 'allow' ? 'allow' : 'deny',
+        todowrite: todoPermission === 'allow' ? 'allow' : 'deny'
       }
     };
 
@@ -115,28 +121,16 @@ export const getBootstrapContent = (skillsDir) => {
   const skillPath = path.join(skillsDir, 'using-superpowers', 'SKILL.md');
   if (!fs.existsSync(skillPath)) return null;
 
-  const fullContent = fs.readFileSync(skillPath, 'utf8');
-  const { content } = extractAndStripFrontmatter(fullContent);
-  const toolMapping = `**Tool Mapping for OpenCode:**
-When skills reference tools you don't have, substitute OpenCode equivalents:
-- \`TodoWrite\` -> \`todowrite\`
-- \`Task\` tool with subagents -> Use OpenCode's \`task\` tool with the named \`subagent_type\` when available; use @mentions for manual user-invoked subagents
-- \`Skill\` tool -> OpenCode's native \`skill\` tool
-- \`Read\`, \`Write\`, \`Edit\`, \`Bash\` -> Your native tools
-- SuperDuperPowers workflow profile/state -> Use \`sdp_profile\` when available; otherwise carry decisions explicitly in prompts and generated docs
-- SuperDuperPowers generated-doc hygiene -> Use \`sdp_setup_hygiene\` when available before writing project-local generated specs/plans
-- SuperDuperPowers branch preflight -> Use \`sdp_branch_context\` when available before execution starts
-- SuperDuperPowers diagnostics -> Use \`sdp_doctor\` when checking install or runtime health
-- Invocation aliases include \`/sdp\`, \`superpowers\`, \`superduperpowers\`, \`/superpowers\`, \`/superduperpowers\`, and \`/brainstorm\`
-
-Use OpenCode's native \`skill\` tool to list and load skills.`;
+  const toolMapping = `OpenCode mapping: use native tools; \`TodoWrite\` means \`todowrite\`, \`Task\` means OpenCode task/subagent support, and \`Skill\` means OpenCode's skill tool. Runtime tools: \`sdp_settings\` for live defaults, \`sdp_init\` for project config setup, \`sdp_profile\` for workflow state, \`sdp_setup_hygiene\` before generated docs, \`sdp_branch_context\` before execution, and \`sdp_doctor\` for diagnostics.`;
 
   return `<EXTREMELY_IMPORTANT>
 You have SuperDuperPowers.
 
-**IMPORTANT: The using-superpowers skill content is included below. It is ALREADY LOADED - you are currently following it. Do NOT use the skill tool to load "using-superpowers" again - that would be redundant.**
+SuperDuperPowers is opt-in by default. Aliases include \`/sdp\`, \`superpowers\`, \`superduperpowers\`, \`/superpowers\`, \`/superduperpowers\`, and \`/brainstorm\`.
 
-${content}
+Use the full workflow only when the user explicitly invokes SuperDuperPowers, names a SuperDuperPowers skill, or the request is clearly deep, ambiguous, high-risk, investigation-heavy, or plan-heavy. For small reviews, small code changes, wording edits, config tweaks, and bounded tasks, use ordinary behavior or a lightweight quick flow.
+
+If SuperDuperPowers routing is unclear, ask the user to choose Full Brainstorming, Quick Implementation, or No SuperDuperPowers before loading heavy workflow skills. Load \`using-superpowers\` only when you need detailed routing rules.
 
 ${toolMapping}
 </EXTREMELY_IMPORTANT>`;

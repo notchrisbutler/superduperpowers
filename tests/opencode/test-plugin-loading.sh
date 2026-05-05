@@ -78,6 +78,8 @@ const mod = await import(path.join(process.env.SUPERPOWERS_DIR, pkg.main));
 if (!mod.SuperpowersPlugin) throw new Error('missing SuperpowersPlugin export');
 const hooks = await mod.SuperpowersPlugin({});
 if (typeof hooks.config !== 'function') throw new Error('missing config hook');
+if (!hooks.tool?.sdp_settings) throw new Error('missing sdp_settings tool');
+if (!hooks.tool?.sdp_init) throw new Error('missing sdp_init tool');
 if (!hooks.tool?.sdp_profile) throw new Error('missing sdp_profile tool');
 if (!hooks.tool?.sdp_setup_hygiene) throw new Error('missing sdp_setup_hygiene tool');
 if (!hooks.tool?.sdp_branch_context) throw new Error('missing sdp_branch_context tool');
@@ -89,18 +91,18 @@ NODE
 }
 echo "  [PASS] $package_output"
 
-# Test 5: Verify bundled reviewer agents are installed
-echo "Test 5: Checking bundled reviewer agents..."
-for agent in code-reviewer spec-reviewer lite-code-reviewer lite-spec-reviewer; do
+# Test 5: Verify bundled workflow agents are installed
+echo "Test 5: Checking bundled workflow agents..."
+for agent in code-reviewer spec-reviewer lite-code-reviewer lite-spec-reviewer brainstorming-facilitator plan-writer plan-reviewer implementer tdd-implementer debugging-investigator parallelization-advisor; do
     if [ ! -f "$SUPERPOWERS_DIR/agents/$agent.md" ]; then
         echo "  [FAIL] Missing bundled agent: $agent"
         exit 1
     fi
 done
-echo "  [PASS] Bundled reviewer agents exist"
+echo "  [PASS] Bundled workflow agents exist"
 
-# Test 6: Verify plugin registers named reviewer agents in OpenCode config
-echo "Test 6: Checking named reviewer agent registration..."
+# Test 6: Verify plugin registers named workflow agents in OpenCode config
+echo "Test 6: Checking named workflow agent registration..."
 agent_output=$(node --input-type=module <<'NODE'
 import fs from 'fs';
 import path from 'path';
@@ -119,17 +121,28 @@ const expectedSkillsPath = fs.realpathSync(process.env.SUPERPOWERS_SKILLS_DIR);
 const bundledSkillPathCount = skillPaths.filter((entry) => fs.realpathSync(entry) === expectedSkillsPath).length;
 if (bundledSkillPathCount !== 1) throw new Error(`expected one bundled skills path, got ${bundledSkillPathCount}`);
 
-for (const name of ['code-reviewer', 'spec-reviewer', 'lite-code-reviewer', 'lite-spec-reviewer']) {
+const readOnlyAgents = ['code-reviewer', 'spec-reviewer', 'lite-code-reviewer', 'lite-spec-reviewer', 'plan-reviewer', 'debugging-investigator', 'parallelization-advisor'];
+const writableAgents = ['brainstorming-facilitator', 'plan-writer', 'implementer', 'tdd-implementer'];
+
+for (const name of [...readOnlyAgents, ...writableAgents]) {
   const agent = config.agent?.[name];
   if (!agent) throw new Error(`missing ${name}`);
   if (agent.mode !== 'subagent') throw new Error(`${name} is not a subagent`);
   if (!agent.description) throw new Error(`${name} is missing description`);
   if (!agent.prompt) throw new Error(`${name} is missing prompt`);
+}
+for (const name of readOnlyAgents) {
+  const agent = config.agent[name];
   if (agent.permission?.edit !== 'deny') throw new Error(`${name} can edit files`);
   if (agent.permission?.todowrite !== 'deny') throw new Error(`${name} can mutate todos`);
 }
+for (const name of writableAgents) {
+  const agent = config.agent[name];
+  if (agent.permission?.edit !== 'allow') throw new Error(`${name} cannot edit files`);
+  if (agent.permission?.todowrite !== 'deny') throw new Error(`${name} can mutate todos`);
+}
 
-const expectedCommands = ['sdp', 'superduperpowers', 'superpowers', 'brainstorm', 'quick-flow', 'write-plan', 'execute-plan', 'sdp-status', 'sdp-profile', 'sdp-cleanup'];
+const expectedCommands = ['sdp', 'superduperpowers', 'superpowers', 'brainstorm', 'quick-flow', 'write-plan', 'execute-plan', 'sdp-status', 'sdp-profile', 'sdp-init', 'sdp-cleanup'];
 for (const name of expectedCommands) {
   const command = config.command?.[name];
   if (!command) throw new Error(`missing command ${name}`);
@@ -144,13 +157,13 @@ if (config.command['sdp-verify']) throw new Error('unexpected sdp-verify command
 console.log(Object.keys(config.agent).sort().join('\n'));
 NODE
 ) || {
-    echo "  [FAIL] Plugin did not register named reviewer agents"
+    echo "  [FAIL] Plugin did not register named workflow agents"
     exit 1
 }
 if grep -q "code-reviewer" <<< "$agent_output" && grep -q "spec-reviewer" <<< "$agent_output"; then
-    echo "  [PASS] Named reviewer agents registered"
+    echo "  [PASS] Named workflow agents registered"
 else
-    echo "  [FAIL] Expected reviewer agents not found in config"
+    echo "  [FAIL] Expected workflow agents not found in config"
     exit 1
 fi
 
@@ -211,6 +224,9 @@ const count = (text.match(/You have SuperDuperPowers\./g) || []).length;
 if (count !== 1) throw new Error(`expected one bootstrap injection, got ${count}`);
 if (!text.includes('superduperpowers')) throw new Error('bootstrap is missing superduperpowers alias language');
 if (!text.includes('sdp_profile')) throw new Error('bootstrap is missing workflow profile tool mapping');
+if (!text.includes('sdp_settings')) throw new Error('bootstrap is missing live settings tool mapping');
+if (!text.includes('sdp_init')) throw new Error('bootstrap is missing project init tool mapping');
+if (!text.includes('SuperDuperPowers live settings')) throw new Error('bootstrap is missing live settings summary');
 console.log('bootstrap injected once');
 NODE
 echo "  [PASS] Bootstrap transform injects once"

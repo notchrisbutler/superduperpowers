@@ -1,6 +1,7 @@
 ---
 name: systematic-debugging
 description: Use when the user asks for debugging/root-cause analysis, when an issue is complex or non-reproducible, when multiple components are involved, or when prior fixes failed.
+category: guidance
 ---
 
 # Systematic Debugging
@@ -31,9 +32,15 @@ Use this skill when:
 - A previous fix failed or multiple fixes have already been tried.
 - The failure is high-risk, production-facing, or likely to hide a deeper cause.
 
-Do not auto-trigger this skill for every small bug report or obvious localized fix. Quick bug fixes can use quick flow when the cause is clear and the scope is small, or no Superpowers when the user asks for ordinary agent behavior.
+Do not auto-trigger this skill for every small bug report or obvious localized fix. Quick bug fixes can use quick flow when the cause is clear and the scope is small, or No SuperDuperPowers when the user asks for ordinary agent behavior.
 
-If the issue might need root-cause work but the user asked for quick flow or no Superpowers, ask whether to switch to systematic debugging rather than silently invoking this skill.
+If the issue might need root-cause work but the user asked for quick flow or No SuperDuperPowers, ask whether to switch to systematic debugging rather than silently invoking this skill.
+
+## Agent Dispatch
+
+When named agents are available and the issue is complex, intermittent, multi-component, or already had failed fixes, dispatch `debugging-investigator` before any implementation worker. Give it the symptom, reproduction notes, logs/errors, relevant files, recent changes, and compact profile summary.
+
+If the investigation identifies independent failure domains, use `dispatching-parallel-agents` and `parallelization-advisor` before dispatching multiple investigators. Only dispatch `implementer` or `tdd-implementer` after root-cause evidence exists and the smallest fix task is clear.
 
 ## The Four Phases
 

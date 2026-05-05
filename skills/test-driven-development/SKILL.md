@@ -1,6 +1,7 @@
 ---
 name: test-driven-development
 description: Use when the user asks for TDD, when a SuperDuperPowers full workflow calls for TDD, or when a high-risk behavior change needs tests-first implementation.
+category: guidance
 ---
 
 # Test-Driven Development (TDD)
@@ -25,6 +26,12 @@ Use this skill when:
 Do not auto-trigger this skill for every quick flow, small feature, refactor, or config change. If the user asked for quick flow or no SuperDuperPowers, keep the work lightweight unless the task escalates.
 
 If the change looks risky but the user asked for speed, ask whether to switch to TDD rather than silently invoking this skill.
+
+## Agent Dispatch
+
+When named agents are available and a bounded task requires tests-first implementation, dispatch `tdd-implementer` with the exact behavior, expected files, existing test tooling, validation commands, and compact profile summary. Use `implementer` only for tasks where TDD is not required.
+
+The coordinator remains responsible for task-scope review, final validation, and commits. The `tdd-implementer` must report the red command and failure, the green command and pass result, changed files, and concerns.
 
 ## Testing Intensity
 

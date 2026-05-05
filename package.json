@@ -1,6 +1,6 @@
 {
   "name": "@notchrisbutler/superduperpowers",
-  "version": "2026.5.2",
+  "version": "2026.5.5",
   "type": "module",
   "main": ".opencode/plugins/superduperpowers.js",
   "repository": {
@@ -22,6 +22,8 @@
     "agents/",
     "skills/",
     "assets/",
+    "docs/",
+    "superduperpowers.config.jsonc",
     ".opencode/plugins/superduperpowers.js",
     ".opencode/plugins/superduperpowers/",
     ".opencode/INSTALL.md",

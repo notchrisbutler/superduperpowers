@@ -1,15 +1,15 @@
 # OpenCode Install
 
-SuperDuperPowers is alpha software. Its workflow sources are harness and model agnostic. OpenCode is the first included harness config, installed as a package-style plugin from npm. This is not a global npm CLI install path.
+SuperDuperPowers is beta software. Its workflow sources are harness and model agnostic. OpenCode is the first included harness config, installed as a package-style plugin from GitHub until npm publication is active. This is not a global npm CLI install path.
 
-## npm Package Install
+## GitHub Package Install
 
 Add the plugin to your OpenCode config, typically `opencode.json`:
 
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["@notchrisbutler/superduperpowers"]
+  "plugin": ["superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git#main"]
 }
 ```
 
@@ -17,16 +17,39 @@ Start a fresh OpenCode session after changing plugin config so the package is re
 
 If you previously tested a local shim named `superpowers.js` in your user OpenCode plugins directory, remove that stale shim before verifying this package. The included entrypoint is now `superduperpowers.js`; keeping both shims can make OpenCode load duplicate plugin copies.
 
-## GitHub Backup Install
+The future npm package name is `@notchrisbutler/superduperpowers`, but npm installation is not the supported product path until publication is active.
 
-If npm resolution is unavailable, use the GitHub repository directly:
+## First Run
 
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "plugin": ["superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git"]
-}
+After OpenCode starts, run:
+
+```text
+/sdp-status
 ```
+
+Expected: the agent runs `sdp_doctor`, reports the SuperDuperPowers tools, commands, bundled skills, and workflow agents, and warns if project-local setup is still missing.
+
+Then run:
+
+```text
+/sdp-init
+```
+
+Expected: the agent creates `.opencode/superduperpowers.jsonc` if it does not already exist. This is explicit rather than automatic so installing the plugin does not mutate projects without user intent.
+
+For a quick usage check, run:
+
+```text
+/quick-flow make a tiny README wording suggestion
+```
+
+Expected: the agent stays lightweight and does not enter full brainstorming, planning, or TDD unless the task escalates.
+
+## Updates And Cache Busting
+
+OpenCode documents package plugin loading through the `plugin` config option, and package dependencies are cached under `~/.cache/opencode/node_modules/`. For reproducible installs, prefer a release tag or commit SHA instead of `#main` once releases are published. For development or beta testing on `#main`, restart OpenCode after upstream changes.
+
+If OpenCode keeps loading an older package copy, remove the cached SuperDuperPowers package directory under `~/.cache/opencode/node_modules/` and restart OpenCode. If you use a local checkout, update that checkout and restart OpenCode.
 
 ## Local Checkout Install
 
@@ -46,12 +69,18 @@ Use an absolute path to the repository checkout. Restart OpenCode after changing
 The OpenCode plugin entrypoint is `.opencode/plugins/superduperpowers.js`.
 
 - It adds the packaged `skills/` directory to OpenCode skill discovery.
-- It registers reviewer subagents from `agents/` as named OpenCode subagents: `code-reviewer`, `spec-reviewer`, `lite-code-reviewer`, and `lite-spec-reviewer`.
-- It injects the `using-superpowers` bootstrap into the first user message once per session so routing guidance is available without duplicating it on later turns.
-- Custom tools: `sdp_profile`, `sdp_setup_hygiene`, `sdp_branch_context`, and `sdp_doctor`.
+- It registers named OpenCode subagents from `agents/`: reviewer agents, design/planning agents, implementation agents, and investigation/coordination agents.
+- It injects a compact SuperDuperPowers routing bootstrap into the first user message once per session so routing guidance is available without duplicating it on later turns.
+- Custom tools: `sdp_settings`, `sdp_init`, `sdp_profile`, `sdp_setup_hygiene`, `sdp_branch_context`, and `sdp_doctor`.
 - User-level runtime state and default worktrees under `{OPENCODE_CONFIG_DIR}/superduperpowers/`.
 
 Bundled agents do not need to be copied into a project. The plugin registers the packaged agent definitions directly when it loads.
+
+## Live Settings
+
+The packaged defaults live in `superduperpowers.config.jsonc`. Override them per project with `superduperpowers.jsonc`, `superduperpowers.config.jsonc`, or `.opencode/superduperpowers.jsonc`, and per user with `{OPENCODE_CONFIG_DIR}/superduperpowers/settings.jsonc`.
+
+Agents read these settings through `sdp_settings`; they are intentionally live, so changes made after a session starts can be picked up when a workflow decision depends on them.
 
 ## Registered Commands
 
@@ -66,7 +95,10 @@ The plugin registers OpenCode TUI slash commands through `config.command`; no co
 - `/execute-plan` - execute an approved plan after execution choices are recorded.
 - `/sdp-status` - run read-only diagnostics through `sdp_doctor`.
 - `/sdp-profile` - summarize the active workflow profile.
+- `/sdp-init` - create `.opencode/superduperpowers.jsonc` if project-local defaults are missing.
 - `/sdp-cleanup` - inspect stale runtime state and clean only after confirmation unless cleanup was explicitly requested.
+
+`/sdp-cleanup` follows OpenCode session presence first: if the matching OpenCode session is gone, the same-ID SuperDuperPowers state can be removed. If OpenCode session presence cannot be checked, stale means the SDP state directory has not been updated or reactivated in the configured retention window. The default and maximum retention window is 7 days.
 
 ## Runtime Drift Repair
 
@@ -89,13 +121,13 @@ Execute this approved plan with subagents using user-level worktrees.
 
 Expected: the `skill` tool can load skills from this package, the `using-superpowers` bootstrap is present once, and the agent follows the requested brainstorming workflow.
 
-Reviewer subagents prompt:
+SuperDuperPowers subagents prompt:
 
 ```text
-List the available subagent types relevant to SuperDuperPowers review workflows.
+List the available subagent types relevant to SuperDuperPowers workflows.
 ```
 
-Expected: `code-reviewer`, `spec-reviewer`, `lite-code-reviewer`, and `lite-spec-reviewer` are available as named subagents.
+Expected: reviewer agents (`code-reviewer`, `spec-reviewer`, `lite-code-reviewer`, `lite-spec-reviewer`), planning agents (`brainstorming-facilitator`, `plan-writer`, `plan-reviewer`), implementation agents (`implementer`, `tdd-implementer`), and investigation/coordination agents (`debugging-investigator`, `parallelization-advisor`) are available as named subagents.
 
 Quick-flow prompt:
 

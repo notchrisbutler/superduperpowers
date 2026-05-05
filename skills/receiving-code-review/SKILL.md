@@ -1,6 +1,7 @@
 ---
 name: receiving-code-review
 description: Use when receiving code review feedback, before implementing suggestions, especially if feedback seems unclear or technically questionable - requires technical rigor and verification, not performative agreement or blind implementation
+category: review
 ---
 
 # Code Review Reception
@@ -64,6 +65,12 @@ You understand 1,2,3,6. Unclear on 4,5.
 - If `lite-code-reviewer` says `Escalate`, request a full `code-reviewer` review before proceeding.
 - Treat `code-reviewer` Critical and Important findings as blocking unless you can technically disprove them.
 - Do not dispatch a reviewer from this skill unless escalation is required; this skill is for evaluating feedback already received.
+
+### From `implementer` or `tdd-implementer`
+
+- Treat worker concerns as review inputs, not as proof that work is complete.
+- If concerns affect correctness, scope, validation, or unexpected files, route to `requesting-spec-review` or `requesting-code-review` before proceeding.
+- Do not let a worker's self-assessment replace required task-scope or final reviewer agents.
 
 ### From the user
 - **Trusted** - implement after understanding
