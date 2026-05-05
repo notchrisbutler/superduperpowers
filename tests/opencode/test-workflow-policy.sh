@@ -27,12 +27,12 @@ if grep -R "commit the approved spec\|commit the approved plan\|force-add it\|fo
   exit 1
 fi
 
-if ! grep -q "superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git#latest" "$REPO_ROOT/README.md" "$REPO_ROOT/.opencode/INSTALL.md"; then
-  echo "  [FAIL] GitHub latest release install path is not documented"
+if ! grep -q "superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git" "$REPO_ROOT/README.md" "$REPO_ROOT/.opencode/INSTALL.md"; then
+  echo "  [FAIL] GitHub repository install path is not documented"
   exit 1
 fi
-if grep -q "superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git#main" "$REPO_ROOT/README.md" "$REPO_ROOT/.opencode/INSTALL.md"; then
-  echo "  [FAIL] GitHub #main install path is still documented"
+if grep -q "superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git#" "$REPO_ROOT/README.md" "$REPO_ROOT/.opencode/INSTALL.md"; then
+  echo "  [FAIL] GitHub install path still includes a branch or tag fragment"
   exit 1
 fi
 if grep -Fq '"plugin": ["@notchrisbutler/superduperpowers"]' "$REPO_ROOT/README.md" "$REPO_ROOT/.opencode/INSTALL.md"; then

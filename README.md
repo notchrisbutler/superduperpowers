@@ -14,18 +14,18 @@ This project is built from Jesse Vincent's [obra/superpowers](https://github.com
 
 ## Included Harness Config
 
-SuperDuperPowers is beta software. The workflow core is intended to stay harness and model agnostic. The first included harness config is for OpenCode, installed from GitHub Releases through the `latest` release tag.
+SuperDuperPowers is beta software. The workflow core is intended to stay harness and model agnostic. The first included harness config is for OpenCode, installed from the GitHub repository.
 
 Add the plugin to your OpenCode config, typically `opencode.json`:
 
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git#latest"]
+  "plugin": ["superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git"]
 }
 ```
 
-For reproducible installs, pin a specific GitHub release tag such as `2026.5.5` instead of `latest`.
+See [GitHub Releases](https://github.com/notchrisbutler/superduperpowers/releases) for release notes and active release history.
 
 For local checkout development, use a `git+file` source instead:
 

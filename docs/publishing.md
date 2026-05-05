@@ -1,6 +1,6 @@
 # Publishing
 
-SuperDuperPowers publishes through GitHub Releases. OpenCode installs should use the moving `latest` Git tag for the current recommended release, or a concrete calendar-version tag for reproducible installs.
+SuperDuperPowers publishes through GitHub Releases. OpenCode installs use the GitHub repository source.
 
 There is no npm publication flow for this project.
 
@@ -13,7 +13,7 @@ YYYY.M.D
 YYYY.M.D-N
 ```
 
-The `latest` tag should point at the same commit as the current recommended stable release.
+GitHub Releases are the active release history. The OpenCode install string intentionally omits a branch or tag fragment.
 
 ## Local Version Bump
 
@@ -50,33 +50,13 @@ Target: main
 
 Use `docs/superduperpowers/other/release-notes.md` as the release body when preparing the release.
 
-## Move The latest Tag
-
-After the GitHub Release is ready, move the `latest` tag to the same commit and push it:
-
-```bash
-git tag -f latest VERSION
-git push origin latest --force
-```
-
-Replace `VERSION` with the calendar release tag, such as `2026.5.5`.
-
 ## Install Strings
 
-Recommended moving install:
+Recommended install:
 
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git#latest"]
-}
-```
-
-Pinned install:
-
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "plugin": ["superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git#2026.5.5"]
+  "plugin": ["superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git"]
 }
 ```
