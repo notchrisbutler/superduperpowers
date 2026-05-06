@@ -3,7 +3,7 @@
 **OpenCode-first skills and workflow agents for deliberate coding workflows**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2026.0506.4-purple.svg)](https://github.com/notchrisbutler/superduperpowers/releases)
+[![Version](https://img.shields.io/badge/version-2026.0506.5-purple.svg)](https://github.com/notchrisbutler/superduperpowers/releases)
 [![OpenCode](https://img.shields.io/badge/OpenCode-plugin-111827.svg)](.opencode/INSTALL.md)
 
 SuperDuperPowers gives coding agents a practical workflow toolkit: brainstorm when the work is ambiguous, write plans when the scope is real, execute in grouped phases, review at meaningful checkpoints, and verify before claiming success.

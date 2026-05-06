@@ -194,7 +194,14 @@ git -C "$REPO_ROOT" fetch --no-tags origin main:refs/remotes/origin/main latest:
   echo "  [FAIL] release gate test requires origin/main and origin/latest to be fetchable"
   exit 1
 }
-GITHUB_ACTIONS= GITHUB_EVENT_NAME=workflow_dispatch GITHUB_EVENT_PATH="$release_dispatch_event" node "$REPO_ROOT/scripts/release-gate.mjs" --mode release
+release_gate_output="$(GITHUB_ACTIONS= GITHUB_EVENT_NAME=workflow_dispatch GITHUB_EVENT_PATH="$release_dispatch_event" node "$REPO_ROOT/scripts/release-gate.mjs" --mode release 2>&1)" || {
+  if ! grep -Eq "computed release tag already exists|GitHub Release already exists" <<<"$release_gate_output"; then
+    printf '%s\n' "$release_gate_output"
+    echo "  [FAIL] release gate failed for an unexpected reason"
+    exit 1
+  fi
+}
+printf '%s\n' "$release_gate_output"
 
 if [ ! -f "$REPO_ROOT/.github/workflows/release.yml" ]; then
   echo "  [FAIL] .github/workflows/release.yml is missing"
@@ -209,6 +216,7 @@ const root = process.env.REPO_ROOT;
 const bumpVersion = fs.readFileSync(path.join(root, 'scripts/bump-version.sh'), 'utf8');
 const releaseGate = fs.readFileSync(path.join(root, 'scripts/release-gate.mjs'), 'utf8');
 const releaseWorkflow = fs.readFileSync(path.join(root, '.github/workflows/release.yml'), 'utf8');
+const publishWorkflow = fs.readFileSync(path.join(root, '.github/workflows/publish.yml'), 'utf8');
 
 if (/tag --list "\$\{today\}\.\*"/.test(bumpVersion) || /tag --list "\$today\.\*"/.test(bumpVersion)) {
   throw new Error('version:next must not include raw same-day YYYY.MMDD.N tags when computing the next vYYYY.MMDD.N release suffix');
@@ -249,6 +257,16 @@ if (/grep -Fq "\$version" CHANGELOG\.md|grep -Fq "\$release_tag" CHANGELOG\.md/.
 if (!/daysInMonth|Date\(|validCalendar|validProjectVersion/.test(bumpVersion) || !/daysInMonth|Date\(|validCalendar|validProjectVersion/.test(releaseGate) || !/days_in_month|case "\$month"|Date\(/.test(releaseWorkflow)) {
   throw new Error('release gates/scripts/workflows must reject impossible MMDD dates, including invalid month/day ranges');
 }
+
+if (!/gh workflow run publish\.yml[\s\S]*publish=true/.test(releaseWorkflow)) {
+  throw new Error('release workflow must explicitly dispatch npm publish after creating a GitHub Release because GITHUB_TOKEN-created releases do not trigger release workflows');
+}
+if (!/publish:[\s\S]*type:\s*boolean/.test(publishWorkflow) || !/env\.MODE == 'publish'/.test(publishWorkflow)) {
+  throw new Error('publish workflow must preserve manual dry-runs while allowing explicit manual publish dispatches');
+}
+if (!/gh release view "\$RELEASE_TAG"/.test(publishWorkflow) || !/origin\/latest/.test(publishWorkflow)) {
+  throw new Error('manual publish dispatch must verify the GitHub Release exists and matches latest before npm publish');
+}
 NODE
 
 release_workflow="$REPO_ROOT/.github/workflows/release.yml"
@@ -271,6 +289,10 @@ if [ -f "$release_workflow" ]; then
   fi
   if ! grep -qi "dry_run\|dry-run" "$release_workflow" || ! grep -qi "gh release create\|release create" "$release_workflow"; then
     echo "  [FAIL] release workflow must stop dry-runs before release creation"
+    exit 1
+  fi
+  if ! grep -q -- "--latest" "$release_workflow" || ! grep -q "gh release view.*RELEASE_TAG" "$release_workflow"; then
+    echo "  [FAIL] release workflow must explicitly mark and verify the GitHub Release entry"
     exit 1
   fi
   if ! grep -q "CHANGELOG.md" "$release_workflow"; then
