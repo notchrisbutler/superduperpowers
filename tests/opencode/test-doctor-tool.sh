@@ -63,6 +63,32 @@ import fs from 'fs';
 import path from 'path';
 
 const { SuperpowersPlugin } = await import(process.env.SUPERPOWERS_PLUGIN_FILE);
+const project = path.join(process.env.TEST_HOME, 'global-settings-project');
+fs.mkdirSync(project, { recursive: true });
+const globalSettingsDir = path.join(process.env.OPENCODE_CONFIG_DIR, 'superduperpowers');
+fs.mkdirSync(globalSettingsDir, { recursive: true });
+fs.writeFileSync(path.join(globalSettingsDir, 'settings.jsonc'), `{
+  "schemaVersion": 1,
+  "workflow": { "defaultDocsRoot": "global-docs" }
+}
+`);
+
+const hooks = await SuperpowersPlugin({ directory: project, worktree: project });
+await hooks.config({});
+const context = { sessionID: 'ses_doctor_global_settings', messageID: 'msg_doctor_global_settings', directory: project, worktree: project, agent: 'build' };
+const doctor = JSON.parse(await hooks.tool.sdp_doctor.execute({ operation: 'check' }, context));
+const projectConfig = doctor.checks.find((check) => check.id === 'project-config');
+if (!projectConfig) throw new Error('project-config check missing');
+if (projectConfig.status !== 'ok') throw new Error(`global settings should make project config optional: ${projectConfig.status} ${projectConfig.message}`);
+if (!projectConfig.message.includes('project-local settings are optional')) throw new Error(`unexpected global-only project config message: ${projectConfig.message}`);
+console.log('global settings doctor behavior ok');
+NODE
+
+node --input-type=module <<'NODE'
+import fs from 'fs';
+import path from 'path';
+
+const { SuperpowersPlugin } = await import(process.env.SUPERPOWERS_PLUGIN_FILE);
 const project = path.join(process.env.TEST_HOME, 'test-project');
 const legacyShim = path.join(process.env.OPENCODE_CONFIG_DIR, 'plugins', 'superpowers.js');
 fs.writeFileSync(legacyShim, 'export const Legacy = async () => ({})\n');

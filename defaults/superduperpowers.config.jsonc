@@ -1,0 +1,60 @@
+{
+  "$schema": "https://notchrisbutler.github.io/superduperpowers/settings.schema.json",
+  "schemaVersion": 1,
+
+  "workflow": {
+    // null keeps SuperDuperPowers opt-in. Other values:
+    // "full-brainstorming", "quick-implementation", "none".
+    "defaultRoute": null,
+
+    // Generated specs/plans go under <defaultDocsRoot>/superduperpowers/.
+    // Set forceDefaultDocsRoot in an override only if auto-detecting docs/
+    // versus documents/ is undesirable for that project.
+    "defaultDocsRoot": "docs",
+
+    // Generated docs are local by default. Other value:
+    // "commit-after-approval".
+    "generatedDocsPolicy": "local-only",
+
+    // Implementation commits may be made by full workflows. Other values:
+    // "disabled", "spec-plan-and-implementation-commits".
+    "workflowCommitPolicy": "implementation-commits-only",
+
+    // Branch safety default. Use current branch only with explicit approval.
+    // Common override: "current-branch-after-approval".
+    "branchPolicy": "prefer-feature-branch",
+
+    // Test scope values:
+    // "full-regression", "major-behavior", "existing-tests-only".
+    "testingIntensity": "major-behavior",
+
+    "fullFlow": {
+      // false keeps normal task execution lean; high-risk tasks and final
+      // implementation still get the appropriate reviews.
+      "reviewEachChunk": false
+    }
+  },
+
+  "paths": {
+    // Runtime state stays in the OpenCode config dir, not in projects.
+    "runtimeDir": "superduperpowers",
+
+    // Generated workflow docs live under <docs root>/<docsDirName>/.
+    "docsDirName": "superduperpowers",
+    "specsDirName": "specs",
+    "plansDirName": "plans",
+
+    // User-level worktrees and repair quarantine are owned by this plugin.
+    "worktreesDirName": "worktrees",
+    "stateDirName": "state",
+    "quarantineDirName": "quarantine"
+  },
+
+  "cleanup": {
+    // /sdp-cleanup removes SDP state when the matching OpenCode session is
+    // gone. If OpenCode session presence cannot be checked, stale means this
+    // state directory has not been updated or reactivated in N days. Values
+    // above 7 are capped to 7.
+    "retentionDays": 7
+  }
+}

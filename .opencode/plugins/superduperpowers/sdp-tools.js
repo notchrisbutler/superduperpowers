@@ -15,14 +15,14 @@ const SDP_SETTINGS_FILE_CANDIDATES = [
   'superduperpowers.config.json',
   'superduperpowers.jsonc',
   'superduperpowers.json',
-  '.opencode/superduperpowers.jsonc',
-  '.opencode/superduperpowers.json'
+  '.opencode/superduperpowers.json',
+  '.opencode/superduperpowers.jsonc'
 ];
 const SDP_USER_SETTINGS_FILE_CANDIDATES = [
-  'superduperpowers/settings.jsonc',
-  'superduperpowers/settings.json',
   'superduperpowers/config.jsonc',
-  'superduperpowers/config.json'
+  'superduperpowers/config.json',
+  'superduperpowers/settings.json',
+  'superduperpowers/settings.jsonc'
 ];
 const SDP_PROFILE_KEYS = new Set([
   'schemaVersion',
@@ -192,11 +192,16 @@ const readJsoncFile = (filePath) => {
 const settingsSourcesFor = ({ configDir, packageInfo = {}, directory }) => {
   const sources = [];
   const packageRoot = packageInfo.packageRoot || path.resolve(path.dirname(fileURLSafe(packageInfo.pluginFile || '')), '../..');
-  const defaultSettingsPath = packageInfo.defaultSettingsPath || path.join(packageRoot, 'superduperpowers.config.jsonc');
-  if (defaultSettingsPath) sources.push({ type: 'package-default', path: defaultSettingsPath });
+  const defaultSettingsPath = packageInfo.defaultSettingsPath || path.join(packageRoot, 'defaults', 'superduperpowers.config.jsonc');
+  const fallbackSettingsPath = path.join(packageRoot, 'superduperpowers.config.jsonc');
+  if (defaultSettingsPath && fileExists(path.resolve(defaultSettingsPath))) {
+    sources.push({ type: 'package-default', path: defaultSettingsPath });
+  } else if (fallbackSettingsPath) {
+    sources.push({ type: 'package-fallback', path: fallbackSettingsPath });
+  }
   const projectRoot = path.resolve(directory || process.cwd());
-  for (const candidate of SDP_SETTINGS_FILE_CANDIDATES) sources.push({ type: 'project', path: path.join(projectRoot, candidate) });
   for (const candidate of SDP_USER_SETTINGS_FILE_CANDIDATES) sources.push({ type: 'user', path: path.join(configDir, candidate) });
+  for (const candidate of SDP_SETTINGS_FILE_CANDIDATES) sources.push({ type: 'project', path: path.join(projectRoot, candidate) });
   return sources;
 };
 
@@ -606,9 +611,9 @@ const validateRelatedStateFiles = (stateDir) => {
   return errors;
 };
 
-const inspectRuntimeDrift = (configDir, context) => {
+const inspectRuntimeDrift = (configDir, context, packageInfo = {}) => {
   const directory = context.directory || context.worktree || process.cwd();
-  const settingsInput = loadEffectiveSettings({ configDir, directory });
+  const settingsInput = loadEffectiveSettings({ configDir, packageInfo, directory });
   const baseProfile = buildDefaultProfile({ configDir, context: { ...context, directory }, profile: {}, settingsInput });
   const stateDir = baseProfile.stateDir;
   const parentPathErrors = validateRuntimeParentPaths(baseProfile);
@@ -698,9 +703,9 @@ const recordRepairFailureIfSafe = (baseProfile, context, errors) => {
   return recordRepairFailure(baseProfile, context, errors);
 };
 
-export const autoRepairRuntimeState = ({ configDir, context }) => {
+export const autoRepairRuntimeState = ({ configDir, context, packageInfo = {} }) => {
   if (!context?.sessionID) return { ok: true, repaired: false, reason: 'missing-session-id' };
-  const inspection = inspectRuntimeDrift(configDir, context);
+  const inspection = inspectRuntimeDrift(configDir, context, packageInfo);
   if (!inspection.drifted) {
     if (inspection.reason === 'ok') touchDirectory(inspection.baseProfile.stateDir);
     return { ok: true, repaired: false, reason: inspection.reason };
@@ -1296,12 +1301,23 @@ const createDoctorTool = (configDir, packageInfo, getRegistrationReport) => tool
     doctorCheck(checks, 'tools', 'ok', `expected tools exposed: ${tools.join(', ')}`, { tools });
 
     const initTarget = inspectProjectConfigTarget(directory, packageInfo);
+    const globalSettingsPaths = (settingsInput.searched || []).filter((source) => source.type === 'user').map((source) => source.path);
+    const projectSettingsPaths = (settingsInput.searched || []).filter((source) => source.type === 'project').map((source) => source.path);
+    const globalSettingsExists = globalSettingsPaths.some((sourcePath) => fileExists(sourcePath));
+    const projectSettingsExists = projectSettingsPaths.some((sourcePath) => fileExists(sourcePath));
+    const projectConfigMessage = initTarget.errors.length > 0
+      ? initTarget.errors.join('; ')
+      : (projectSettingsExists
+          ? (globalSettingsExists ? 'project SuperDuperPowers settings exist and override global settings' : 'project-local SuperDuperPowers config exists')
+          : (globalSettingsExists
+              ? 'global SuperDuperPowers settings exist; project-local settings are optional'
+              : 'no global or project SuperDuperPowers settings found; use /sdp-init as an in-session fallback, or configure OpenCode plugin settings manually until the npx installer is available'));
     doctorCheck(
       checks,
       'project-config',
-      initTarget.errors.length > 0 ? 'error' : (initTarget.exists ? 'ok' : 'warning'),
-      initTarget.errors.length > 0 ? initTarget.errors.join('; ') : (initTarget.exists ? 'project-local SuperDuperPowers config exists' : 'project-local .opencode/superduperpowers.jsonc not found; run /sdp-init to create one'),
-      { path: initTarget.configPath, exists: initTarget.exists, errors: initTarget.errors }
+      initTarget.errors.length > 0 ? 'error' : (projectSettingsExists || globalSettingsExists ? 'ok' : 'warning'),
+      projectConfigMessage,
+      { path: initTarget.configPath, exists: initTarget.exists, globalSettingsExists, projectSettingsExists, globalSettingsPaths, projectSettingsPaths, errors: initTarget.errors }
     );
 
     const runtimeParentErrors = validateRuntimeParentPaths(paths);

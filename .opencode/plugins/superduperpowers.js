@@ -41,7 +41,7 @@ export const SuperpowersPlugin = async ({ client, directory, worktree } = {}) =>
     pluginFile: fileURLToPath(import.meta.url),
     skillsDir: superpowersSkillsDir,
     agentsDir: superpowersAgentsDir,
-    defaultSettingsPath: path.resolve(__dirname, '../../superduperpowers.config.jsonc')
+    defaultSettingsPath: path.resolve(__dirname, '../../defaults/superduperpowers.config.jsonc')
   };
 
   return {
@@ -86,6 +86,7 @@ export const SuperpowersPlugin = async ({ client, directory, worktree } = {}) =>
       const activeWorktree = worktree || directory || process.cwd();
       autoRepairRuntimeState({
         configDir,
+        packageInfo,
         context: {
           sessionID: input.sessionID,
           messageID: input.messageID || null,
