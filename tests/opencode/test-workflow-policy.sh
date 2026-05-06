@@ -140,7 +140,7 @@ const output = execFileSync('npm', ['pack', '--dry-run', '--json'], { cwd: root,
 const packed = JSON.parse(output)[0].files.map((entry) => entry.path);
 const includes = (file) => packed.includes(file) || packed.some((entry) => entry.startsWith(`${file.replace(/\/$/, '')}/`));
 const required = [
-  'agents', 'skills', 'assets', 'bin', 'installer', 'defaults', 'templates',
+  'agents', 'skills', 'bin', 'installer', 'defaults', 'templates',
   '.opencode/plugins/superduperpowers.js', '.opencode/plugins/superduperpowers',
   '.opencode/INSTALL.md', 'docs/publishing.md', 'docs/testing.md', 'docs/workflow-map.md', 'docs/wiki',
   'scripts/context-budget.mjs', 'README.md', 'LICENSE', 'SECURITY.md', 'CONTRIBUTING.md', 'ACKNOWLEDGEMENTS.md', 'package.json'

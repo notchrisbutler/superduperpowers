@@ -26,7 +26,6 @@
   "files": [
     "agents/",
     "skills/",
-    "assets/",
     "bin/",
     "installer/",
     "defaults/",

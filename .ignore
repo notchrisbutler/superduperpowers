@@ -3,3 +3,4 @@
 !.opencode/node_modules/@opencode-ai/
 !.opencode/node_modules/@opencode-ai/plugin/
 !.opencode/node_modules/@opencode-ai/plugin/**
+!evals/
