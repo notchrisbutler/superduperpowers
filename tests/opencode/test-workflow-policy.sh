@@ -291,6 +291,10 @@ if [ -f "$release_workflow" ]; then
     echo "  [FAIL] release workflow must stop dry-runs before release creation"
     exit 1
   fi
+  if ! grep -q -- "--latest" "$release_workflow" || ! grep -q "gh release view.*RELEASE_TAG" "$release_workflow"; then
+    echo "  [FAIL] release workflow must explicitly mark and verify the GitHub Release entry"
+    exit 1
+  fi
   if ! grep -q "CHANGELOG.md" "$release_workflow"; then
     echo "  [FAIL] release workflow must use CHANGELOG.md as the release body source"
     exit 1
