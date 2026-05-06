@@ -38,11 +38,23 @@ When available, use `sdp_settings` once at the first meaningful route decision t
 
 Do not call runtime tools just to restate already-known values. Carry the compact profile summary in prompts instead of making every subagent read state again.
 
+## Context Discipline
+
+Frontier models can handle very large contexts, but SuperDuperPowers should still preserve attention and cacheability:
+
+- Put stable workflow rules and repeated project conventions in reusable skills, specs, plans, or profile summaries instead of pasting them into every worker prompt.
+- Keep worker handoffs narrow: include the assigned task, relevant acceptance criteria, exact files, recent evidence, and validation commands; omit unrelated transcript history.
+- Put static instructions before dynamic task data in prompts so provider-side prompt caching can reuse the shared prefix.
+- Summarize exploration as facts with file paths and line references. Do not paste whole files when a path plus focused excerpt is enough.
+- When context grows large, checkpoint the current state into the spec, plan, profile, or final handoff before continuing.
+- Prefer a small number of high-signal reviewer passes over repeated broad reviews with unchanged context.
+
 ## Full Workflow
 
 After the user selects or clearly requests full workflow, load only the next necessary skill:
 
 - `brainstorming` for design discovery.
+- `frontend-design` during brainstorming, planning, or implementation when the task includes web/app UI, visual design, interaction design, frontend component work, or user-facing layout.
 - `systematic-debugging` for complex bugs or failures.
 - `writing-plans` after an approved design or when a plan is requested.
 - `executing-plans` or `subagent-driven-development` after an approved plan exists.
@@ -66,9 +78,17 @@ Quick flow does not require TDD, generated specs, implementation plans, subagent
 
 Use subagents for independence, not ritual. Prefer inline work for small, tightly coupled, or low-risk tasks where a fresh worker would spend more context rediscovering the problem than executing it.
 
-## Review Loop Limits
+## Re-Evaluation Gates
 
-Avoid vicious review loops. For each review scope, group findings, fix them once, and request one focused re-review of the changed scope. If material issues remain after that, either escalate to a higher-capability reviewer with the unresolved findings or ask the user for direction. Do not repeatedly re-run the same reviewer with the same prompt and unchanged context.
+Avoid vicious loops. When an approach fails, do not bounce between variants without changing the underlying plan.
+
+- **One failed attempt:** capture the evidence, state the hypothesis that failed, and choose the next smallest different hypothesis.
+- **Two failed attempts in the same scope:** stop implementation and re-evaluate the approach against the spec/plan. Update the plan/spec if the change is light and preserves user-approved intent, then continue.
+- **Major design, dependency, architecture, data-model, security, or product-scope decision:** do not decide silently. Placeholder-code the seam when useful, finish all independent work that is still valid, and report what remains with the decision needed.
+- **Same tool or file-discovery path fails twice:** switch tactics, narrow the query, or ask for targeted context instead of repeating the same operation.
+- **Review loops:** for each review scope, group findings, fix them once, and request one focused re-review. If material issues remain, escalate reviewer capability or ask the user for direction.
+
+Do not repeatedly re-run the same worker, reviewer, command, or prompt with unchanged context.
 
 ## Generated Docs And Commits
 

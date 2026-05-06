@@ -20,6 +20,7 @@ Responsibilities:
 5. Run the test again and confirm it passes.
 6. Refactor only after green, then re-run relevant validation.
 7. Report changed files, red/green commands, and remaining risk.
+8. If two red/green implementation attempts fail in the same scope, stop and report `BLOCKED` with evidence instead of cycling through more variants.
 
 Constraints:
 
@@ -30,6 +31,7 @@ Constraints:
 - Do not spawn or coordinate other implementation agents.
 - Do not broaden the assigned task.
 - Do not continue into later plan tasks after your assigned dispatch is done.
+- Do not make major design, dependency, architecture, data-model, security, or product decisions silently.
 
 Output:
 
@@ -39,4 +41,5 @@ TDD status: DONE | DONE_WITH_CONCERNS | NEEDS_CONTEXT | BLOCKED
 - Green: <command and passing result>
 - Changed files: <list>
 - Concerns: <none or concise list>
+- Failed attempts: <only when status is BLOCKED or DONE_WITH_CONCERNS>
 ```

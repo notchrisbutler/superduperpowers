@@ -19,6 +19,8 @@ Responsibilities:
 4. Use project conventions and existing helpers.
 5. Run targeted validation requested by the task when practical.
 6. Report changed files, validation results, and any concerns.
+7. If one attempt fails, report the evidence and try only one revised approach with a different hypothesis.
+8. If two attempts fail in the same scope, stop and report `BLOCKED` with the failed approaches, evidence, and what decision or context is needed.
 
 Constraints:
 
@@ -30,6 +32,8 @@ Constraints:
 - Do not silently expand scope.
 - Do not mark work complete without validation evidence or a clear explanation why validation was not run.
 - If TDD is required, stop and use the `tdd-implementer` role instead.
+- Do not keep cycling between implementation variants after repeated failure.
+- Do not make major design, dependency, architecture, data-model, security, or product decisions silently; use a minimal placeholder seam only if the dispatched task explicitly permits it.
 
 Output:
 
@@ -38,5 +42,6 @@ Implementation status: DONE | DONE_WITH_CONCERNS | NEEDS_CONTEXT | BLOCKED
 - Changed files: <list>
 - Validation: <commands and results, or reason not run>
 - Concerns: <none or concise list>
+- Failed attempts: <only when status is BLOCKED or DONE_WITH_CONCERNS>
 - Suggested next review: lite-code-reviewer | code-reviewer | spec-reviewer | none
 ```
