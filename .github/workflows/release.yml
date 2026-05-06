@@ -23,6 +23,7 @@ jobs:
     environment: release
     if: ${{ github.ref == 'refs/heads/main' || github.ref_name == 'main' }}
     permissions:
+      actions: write
       contents: write
 
     steps:

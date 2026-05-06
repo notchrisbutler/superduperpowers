@@ -261,6 +261,9 @@ if (!/daysInMonth|Date\(|validCalendar|validProjectVersion/.test(bumpVersion) ||
 if (!/gh workflow run publish\.yml[\s\S]*publish=true/.test(releaseWorkflow)) {
   throw new Error('release workflow must explicitly dispatch npm publish after creating a GitHub Release because GITHUB_TOKEN-created releases do not trigger release workflows');
 }
+if (!/permissions:[\s\S]*actions:\s*write/.test(releaseWorkflow)) {
+  throw new Error('release workflow must grant actions: write so gh workflow run can dispatch npm publish');
+}
 if (!/publish:[\s\S]*type:\s*boolean/.test(publishWorkflow) || !/env\.MODE == 'publish'/.test(publishWorkflow)) {
   throw new Error('publish workflow must preserve manual dry-runs while allowing explicit manual publish dispatches');
 }
