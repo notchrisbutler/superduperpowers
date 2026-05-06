@@ -235,10 +235,48 @@ function stripJsoncConservatively(raw) {
     output += char;
   }
 
-  const withoutTrailingCommas = output.replace(/,\s*([}\]])/g, '$1');
+  const withoutTrailingCommas = removeTrailingCommasOutsideStrings(output);
   if (withoutTrailingCommas !== output) changed = true;
 
   return { safe: true, changed, text: withoutTrailingCommas };
+}
+
+function removeTrailingCommasOutsideStrings(raw) {
+  let output = '';
+  let inString = false;
+  let escaped = false;
+
+  for (let i = 0; i < raw.length; i += 1) {
+    const char = raw[i];
+
+    if (inString) {
+      output += char;
+      if (escaped) {
+        escaped = false;
+      } else if (char === '\\') {
+        escaped = true;
+      } else if (char === '"') {
+        inString = false;
+      }
+      continue;
+    }
+
+    if (char === '"') {
+      inString = true;
+      output += char;
+      continue;
+    }
+
+    if (char === ',') {
+      let j = i + 1;
+      while (/\s/.test(raw[j] || '')) j += 1;
+      if (raw[j] === '}' || raw[j] === ']') continue;
+    }
+
+    output += char;
+  }
+
+  return output;
 }
 
 function dedupePlugins(plugins) {

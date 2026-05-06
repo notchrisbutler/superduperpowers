@@ -6,7 +6,7 @@ export function writeStatusReport(installState, stream) {
   stream.write('SuperDuperPowers install status:\n');
   stream.write(`- project root: ${context.projectRoot}\n`);
   stream.write(`- global OpenCode config dir: ${context.openCodeConfigDir}\n`);
-  stream.write(`- OPENCODE_CONFIG: ${context.envOverrides.opencodeConfig ? `${context.envOverrides.opencodeConfig} (reported only; not targeted automatically)` : 'not set'}\n`);
+  stream.write(`- OPENCODE_CONFIG: ${context.envOverrides.opencodeConfig ? `${context.envOverrides.opencodeConfig} (automatic install/update writes require unsetting this override)` : 'not set'}\n`);
   stream.write(`- OPENCODE_CONFIG_CONTENT: ${context.envOverrides.opencodeConfigContent ? 'set; inline plugin config cannot be edited by this installer' : 'not set'}\n`);
 
   if (context.envOverrides.opencodeConfigContent) {

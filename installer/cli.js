@@ -157,6 +157,13 @@ function detectScopeFromCandidates(candidates, settingsPath) {
 }
 
 function installScope(scope, parsed, context) {
+  if (context.pathContext?.envOverrides?.opencodeConfig) {
+    return result(scope, 'needs manual attention', [], [
+      `OPENCODE_CONFIG is set to ${context.pathContext.envOverrides.opencodeConfig}; unset it before running the installer or add the plugin to that config manually.`,
+      'The installer will not edit project/global configs while an invocation-level config override may control OpenCode.',
+    ]);
+  }
+
   if (context.pathContext?.envOverrides?.opencodeConfigContent) {
     const inlineConfig = parseInlineOpenCodeConfigContent(context.pathContext.envOverrides.opencodeConfigContent);
     if (inlineConfig.status === 'needs-manual-attention') {
@@ -178,8 +185,6 @@ function installProjectScope(parsed, context) {
   const configPlan = planScopeConfig({
     candidates: context.pathContext.projectConfigCandidates,
     fallbackPath: path.join(projectRoot, 'opencode.json'),
-    seedCandidates: context.pathContext.globalConfigCandidates,
-    allowSeed: parsed.seedProjectFromGlobal !== false,
     reinstall: parsed.reinstall,
   });
   const settingsPath = projectSettingsPath(projectRoot);
@@ -196,7 +201,7 @@ function installGlobalScope(parsed, context) {
   return applyInstallPlan('global', configPlan, globalSettingsPath(configDir), parsed);
 }
 
-function planScopeConfig({ candidates, fallbackPath, seedCandidates = [], allowSeed = false, reinstall = false }) {
+function planScopeConfig({ candidates, fallbackPath, reinstall = false }) {
   let targetPath = null;
   let parsedConfig = null;
   const warnings = [];
@@ -216,17 +221,6 @@ function planScopeConfig({ candidates, fallbackPath, seedCandidates = [], allowS
   if (!parsedConfig && firstExisting) {
     targetPath = firstExisting.candidate;
     parsedConfig = firstExisting.parsed;
-  }
-
-  if (!parsedConfig && allowSeed) {
-    for (const candidate of seedCandidates) {
-      const parsed = readOpenCodeConfig(candidate);
-      if (parsed.status !== 'ok') continue;
-      targetPath = fallbackPath;
-      parsedConfig = { ...parsed, filePath: targetPath };
-      warnings.push(`seeded new project config from ${candidate}`);
-      break;
-    }
   }
 
   if (!parsedConfig) {
@@ -292,14 +286,6 @@ function applyInstallPlan(scope, configPlan, targetSettingsPath, parsed, hygiene
 
 function result(scope, status, modifiedFiles = [], messages = []) {
   return { scope, status, modifiedFiles, messages: messages.filter(Boolean) };
-}
-
-function projectConfigExists(context) {
-  return context.pathContext.projectConfigCandidates.some((candidate) => fs.existsSync(candidate));
-}
-
-function globalConfigExists(context) {
-  return context.pathContext.globalConfigCandidates.some((candidate) => fs.existsSync(candidate));
 }
 
 async function dispatchInstall(parsed, installState, context) {
@@ -445,10 +431,6 @@ async function confirmInteractiveInstall(scopes, parsed, context) {
   if (scopes.includes('project')) {
     const rootConfirmed = await confirmProjectRoot(context);
     if (!rootConfirmed) return cancel(context);
-
-    if (!projectConfigExists(context) && globalConfigExists(context)) {
-      parsed = { ...parsed, seedProjectFromGlobal: await confirmSeedProjectFromGlobal(context) };
-    }
   }
 
   parsed = { ...parsed, settingsActions: await promptSettingsActions(scopes, context) };
@@ -466,16 +448,6 @@ async function confirmProjectRoot(context) {
   try {
     const answer = (await readline.question(`Detected project root: ${context.pathContext.projectRoot}\nInstall to this project? [y/N]: `)).trim().toLowerCase();
     return answer === 'y' || answer === 'yes';
-  } finally {
-    readline.close();
-  }
-}
-
-async function confirmSeedProjectFromGlobal(context) {
-  const readline = createInterface({ input: context.stdin, output: context.stdout });
-  try {
-    const answer = (await readline.question('No project OpenCode config exists. Seed new project opencode.json from global config? [Y/n]: ')).trim().toLowerCase();
-    return answer === '' || answer === 'y' || answer === 'yes';
   } finally {
     readline.close();
   }
@@ -523,8 +495,6 @@ function plannedInstallChanges(scopes, parsed, context) {
       const configPlan = planScopeConfig({
         candidates: context.pathContext.projectConfigCandidates,
         fallbackPath: path.join(context.pathContext.projectRoot, 'opencode.json'),
-        seedCandidates: context.pathContext.globalConfigCandidates,
-        allowSeed: parsed.seedProjectFromGlobal !== false,
         reinstall: parsed.reinstall,
       });
       return {

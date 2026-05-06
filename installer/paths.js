@@ -65,7 +65,7 @@ export function summarizeOpenCodeEnvOverrides(envOverrides) {
     lines.push(`OPENCODE_CONFIG_DIR=${envOverrides.opencodeConfigDir}`);
   }
   if (envOverrides?.opencodeConfig) {
-    lines.push(`OPENCODE_CONFIG=${envOverrides.opencodeConfig} (reported only; not targeted automatically)`);
+    lines.push(`OPENCODE_CONFIG=${envOverrides.opencodeConfig} (automatic install/update writes require unsetting this override)`);
   }
   if (envOverrides?.opencodeConfigContent) {
     lines.push('OPENCODE_CONFIG_CONTENT is set (inline config requires manual review before installer edits)');

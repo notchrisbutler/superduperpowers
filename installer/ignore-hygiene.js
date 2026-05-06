@@ -1,10 +1,12 @@
 import fs from 'node:fs';
 import path from 'node:path';
+import { docsPathFromSettings, projectSettingsPath } from './settings.js';
 
 export function ensureDefaultIgnoreHygiene(projectRoot) {
+  const docsPath = docsPathFromSettings(projectSettingsPath(projectRoot));
   const results = [];
-  results.push(ensureLine(path.join(projectRoot, '.gitignore'), 'docs/superduperpowers/'));
-  results.push(ensureLine(path.join(projectRoot, '.ignore'), '!docs/superduperpowers/'));
+  results.push(ensureLine(path.join(projectRoot, '.gitignore'), docsPath));
+  results.push(ensureLine(path.join(projectRoot, '.ignore'), `!${docsPath}`));
   return results;
 }
 

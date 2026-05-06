@@ -73,6 +73,17 @@ if (firstLine !== "#!/usr/bin/env node") throw new Error(`unexpected binary sheb
 for (const dir of ["defaults", "templates", "bin", "installer"]) {
   if (!fs.existsSync(path.join(packageRoot, dir))) throw new Error(`setup did not copy ${dir}/ into package layout`);
 }
+const pack = JSON.parse(require("child_process").execFileSync("npm", ["pack", "--dry-run", "--json"], { cwd: packageRoot, encoding: "utf8" }))[0];
+const packed = new Set(pack.files.map((entry) => entry.path));
+for (const file of [
+  "bin/superduperpowers.js",
+  "installer/cli.js",
+  "installer/settings.js",
+  "defaults/superduperpowers.config.jsonc",
+  "templates/superduperpowers.settings.jsonc",
+]) {
+  if (!packed.has(file)) throw new Error(`npm pack would omit ${file}`);
+}
 '
 
 # Project install creates root opencode.json with plugin and project settings.
@@ -97,17 +108,63 @@ run_cli "$project_merge" "$config_merge" --repo >"$OUTPUT_DIR/merge.out"
 assert_json_expr "$project_merge/opencode.json" 'data.theme === "system" && data.model === "test-model"'
 assert_json_expr "$project_merge/opencode.json" 'data.plugin.includes("other-plugin") && data.plugin.filter((entry) => entry === "superduperpowers").length === 1'
 
-# Project install seeds from global OpenCode config when no project config exists.
-project_seed="$(make_project project-seed)"
-config_seed="$(make_config_dir config-seed)"
-cat > "$config_seed/opencode.json" <<'JSON'
+# Project install creates a minimal project config when no project config exists, even if a global config exists.
+project_minimal="$(make_project project-minimal)"
+config_minimal="$(make_config_dir config-minimal)"
+cat > "$config_minimal/opencode.json" <<'JSON'
 {
   "theme": "dark",
   "plugin": ["global-helper"]
 }
 JSON
-run_cli "$project_seed" "$config_seed" --repo >"$OUTPUT_DIR/seed.out"
-assert_json_expr "$project_seed/opencode.json" 'data.theme === "dark" && data.plugin.includes("global-helper") && data.plugin.includes("superduperpowers")'
+run_cli "$project_minimal" "$config_minimal" --repo >"$OUTPUT_DIR/minimal.out"
+assert_json_expr "$project_minimal/opencode.json" 'Object.keys(data).length === 1 && Array.isArray(data.plugin) && data.plugin.length === 1 && data.plugin[0] === "superduperpowers"'
+
+# JSONC parsing preserves string literals that look like trailing comma patterns.
+project_jsonc="$(make_project project-jsonc)"
+config_jsonc="$(make_config_dir config-jsonc)"
+cat > "$project_jsonc/opencode.jsonc" <<'JSONC'
+{
+  "theme": "literal ,} and ,] stays",
+  "plugin": [
+    "other-plugin",
+  ],
+}
+JSONC
+run_cli "$project_jsonc" "$config_jsonc" --repo >"$OUTPUT_DIR/jsonc.out"
+assert_json_expr "$project_jsonc/opencode.jsonc" 'data.theme === "literal ,} and ,] stays" && data.plugin.includes("other-plugin") && data.plugin.includes("superduperpowers")'
+
+# Project install uses configured generated-docs path for ignore hygiene.
+project_hygiene="$(make_project project-hygiene)"
+config_hygiene="$(make_config_dir config-hygiene)"
+mkdir -p "$project_hygiene/.opencode"
+cat > "$project_hygiene/.opencode/superduperpowers.jsonc" <<'JSONC'
+{
+  "schemaVersion": 1,
+  "workflow": { "defaultDocsRoot": "project-notes" },
+  "paths": { "docsDirName": "sdp" }
+}
+JSONC
+run_cli "$project_hygiene" "$config_hygiene" --repo >"$OUTPUT_DIR/hygiene.out"
+grep -qx 'project-notes/sdp/' "$project_hygiene/.gitignore" || fail "project .gitignore did not use configured docs path"
+grep -qx '!project-notes/sdp/' "$project_hygiene/.ignore" || fail "project .ignore did not use configured docs path"
+
+# OPENCODE_CONFIG is an invocation override; installer refuses to edit durable configs while it is set.
+project_override="$(make_project project-override)"
+config_override="$(make_config_dir config-override)"
+override_config="$TEST_HOME/custom-opencode.json"
+cat > "$override_config" <<'JSON'
+{
+  "plugin": []
+}
+JSON
+set +e
+override_output="$(cd "$project_override" && HOME="$TEST_HOME" OPENCODE_CONFIG_DIR="$config_override" OPENCODE_CONFIG="$override_config" node "$CLI" --repo 2>&1)"
+override_status=$?
+set -e
+[ "$override_status" -ne 0 ] || fail "install with OPENCODE_CONFIG unexpectedly succeeded"
+[[ "$override_output" == *"OPENCODE_CONFIG is set"* ]] || fail "install with OPENCODE_CONFIG did not report manual action"
+[ ! -f "$project_override/opencode.json" ] || fail "install with OPENCODE_CONFIG wrote project config"
 
 # Global install creates/updates global OpenCode config and global settings.
 project_global="$(make_project project-global)"
