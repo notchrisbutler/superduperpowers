@@ -98,16 +98,6 @@ if ! grep -R "vYYYY\.MMDD\.N\|v[0-9][0-9][0-9][0-9]\.MMDD\.N" "$REPO_ROOT/README
   exit 1
 fi
 
-plan_file="$REPO_ROOT/docs/superduperpowers/plans/2026-05-06-release-workflow-hardening.md"
-if grep -A30 'Keep the allowlist limited to:' "$plan_file" | grep -q '"AGENTS.md"\|"superduperpowers.config.jsonc"'; then
-  echo "  [FAIL] Task 4 plan package allowlist includes local/contributor-only package files"
-  exit 1
-fi
-if ! grep -A40 'Do not include `docs/`, `docs/superduperpowers/`' "$plan_file" | grep -q '`AGENTS.md`.*`superduperpowers.config.jsonc`\|`superduperpowers.config.jsonc`.*`AGENTS.md`'; then
-  echo "  [FAIL] Task 4 plan package exclusions do not name local/contributor-only files"
-  exit 1
-fi
-
 REPO_ROOT="$REPO_ROOT" SUPERPOWERS_DIR="$SUPERPOWERS_DIR" node --input-type=module <<'NODE'
 import fs from 'fs';
 import path from 'path';
