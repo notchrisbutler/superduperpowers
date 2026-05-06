@@ -66,6 +66,7 @@ tests=(
     "test-setup-hygiene.sh"
     "test-branch-context.sh"
     "test-workflow-policy.sh"
+    "test-installer-cli.sh"
     "test-agent-skill-drift.sh"
 )
 

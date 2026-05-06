@@ -63,6 +63,28 @@ import fs from 'fs';
 import path from 'path';
 
 const { SuperpowersPlugin } = await import(process.env.SUPERPOWERS_PLUGIN_FILE);
+const project = path.join(process.env.TEST_HOME, 'no-settings-project');
+fs.mkdirSync(project, { recursive: true });
+const hooks = await SuperpowersPlugin({ directory: project, worktree: project });
+await hooks.config({});
+const context = { sessionID: 'ses_doctor_no_settings', messageID: 'msg_doctor_no_settings', directory: project, worktree: project, agent: 'build' };
+
+const doctor = JSON.parse(await hooks.tool.sdp_doctor.execute({ operation: 'check' }, context));
+const projectConfig = doctor.checks.find((check) => check.id === 'project-config');
+if (!projectConfig) throw new Error('project-config check missing');
+if (projectConfig.status !== 'warning') throw new Error(`missing settings should warn: ${projectConfig.status} ${projectConfig.message}`);
+if (!projectConfig.message.includes('npx superduperpowers --repo') || !projectConfig.message.includes('npx superduperpowers --global')) {
+  throw new Error(`doctor did not recommend installer-first setup: ${projectConfig.message}`);
+}
+if (!projectConfig.message.includes('/sdp-init')) throw new Error(`doctor did not preserve /sdp-init fallback guidance: ${projectConfig.message}`);
+console.log('no settings doctor installer guidance ok');
+NODE
+
+node --input-type=module <<'NODE'
+import fs from 'fs';
+import path from 'path';
+
+const { SuperpowersPlugin } = await import(process.env.SUPERPOWERS_PLUGIN_FILE);
 const project = path.join(process.env.TEST_HOME, 'global-settings-project');
 fs.mkdirSync(project, { recursive: true });
 const globalSettingsDir = path.join(process.env.OPENCODE_CONFIG_DIR, 'superduperpowers');
@@ -82,6 +104,40 @@ if (!projectConfig) throw new Error('project-config check missing');
 if (projectConfig.status !== 'ok') throw new Error(`global settings should make project config optional: ${projectConfig.status} ${projectConfig.message}`);
 if (!projectConfig.message.includes('project-local settings are optional')) throw new Error(`unexpected global-only project config message: ${projectConfig.message}`);
 console.log('global settings doctor behavior ok');
+NODE
+
+node --input-type=module <<'NODE'
+import fs from 'fs';
+import path from 'path';
+
+const { SuperpowersPlugin } = await import(process.env.SUPERPOWERS_PLUGIN_FILE);
+const project = path.join(process.env.TEST_HOME, 'global-and-project-settings');
+fs.mkdirSync(path.join(project, '.opencode'), { recursive: true });
+const globalSettingsDir = path.join(process.env.OPENCODE_CONFIG_DIR, 'superduperpowers');
+fs.mkdirSync(globalSettingsDir, { recursive: true });
+fs.writeFileSync(path.join(globalSettingsDir, 'settings.jsonc'), `{
+  "schemaVersion": 1,
+  "workflow": { "defaultDocsRoot": "global-docs" }
+}
+`);
+fs.writeFileSync(path.join(project, '.opencode', 'superduperpowers.jsonc'), `{
+  "schemaVersion": 1,
+  "workflow": { "defaultDocsRoot": "project-docs" }
+}
+`);
+
+const hooks = await SuperpowersPlugin({ directory: project, worktree: project });
+await hooks.config({});
+const context = { sessionID: 'ses_doctor_project_overrides_global', messageID: 'msg_doctor_project_overrides_global', directory: project, worktree: project, agent: 'build' };
+const doctor = JSON.parse(await hooks.tool.sdp_doctor.execute({ operation: 'check' }, context));
+const projectConfig = doctor.checks.find((check) => check.id === 'project-config');
+if (!projectConfig) throw new Error('project-config check missing');
+if (projectConfig.status !== 'ok') throw new Error(`global and project settings should be ok: ${projectConfig.status} ${projectConfig.message}`);
+if (!projectConfig.message.includes('override global settings')) throw new Error(`doctor did not report project-overrides-global precedence: ${projectConfig.message}`);
+if (!projectConfig.details.globalSettingsExists || !projectConfig.details.projectSettingsExists) {
+  throw new Error(`doctor did not report both settings sources: ${JSON.stringify(projectConfig.details)}`);
+}
+console.log('project over global doctor behavior ok');
 NODE
 
 node --input-type=module <<'NODE'
