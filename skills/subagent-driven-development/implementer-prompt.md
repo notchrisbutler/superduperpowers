@@ -16,7 +16,7 @@ Generic worker or implementation subagent:
 
     ## Scope Boundary
 
-    You own only this dispatched task. Do not continue into later plan tasks, choose the next task, mutate todos, spawn other implementation agents, or run task-scope/final review gates. Report back to the coordinator when this assignment is done or blocked.
+    You own only this dispatched task. Do not continue into later plan tasks, choose the next task, mutate todos, spawn/dispatch/coordinate any other subagents, or run task-scope/final review gates. Report back to the coordinator when this assignment is done or blocked.
 
     ## Context
 

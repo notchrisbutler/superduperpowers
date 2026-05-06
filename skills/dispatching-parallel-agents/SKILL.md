@@ -1,7 +1,8 @@
 ---
 name: dispatching-parallel-agents
 description: Use when facing 2+ independent tasks that can be worked on without shared state or sequential dependencies
-category: action
+metadata:
+  category: action
 ---
 
 # Dispatching Parallel Agents
@@ -14,7 +15,7 @@ When you have multiple unrelated failures (different test files, different subsy
 
 **Core principle:** Dispatch one agent per independent problem domain. Let them work concurrently.
 
-The main agent remains the orchestrator. It owns the visible todo list, dispatch decisions, integration, review routing, validation, and commits. Parallel workers own only their assigned stream and report back; they do not mutate todos, choose later work, or coordinate other workers.
+The main agent remains the orchestrator. It owns the visible todo list, dispatch decisions, integration, review routing, validation, and commits. Parallel workers own only their assigned stream and report back; they do not mutate todos, choose later work, or spawn/dispatch/coordinate other subagents.
 
 ## When to Use
 
@@ -71,12 +72,7 @@ After advisor output:
 
 ### 1. Identify Independent Domains
 
-Group failures by what's broken:
-- File A tests: Tool approval flow
-- File B tests: Batch completion behavior
-- File C tests: Abort functionality
-
-Each domain is independent - fixing tool approval doesn't affect abort tests.
+Group failures by what is broken and only split domains where one fix should not change another stream's files, validation state, or assumptions.
 
 ### 2. Create Focused Agent Tasks
 
@@ -84,18 +80,12 @@ Each agent gets:
 - **Specific scope:** One test file or subsystem
 - **Clear goal:** Make these tests pass
 - **Constraints:** Don't change other code
-- **No orchestration:** Don't update todos, dispatch other agents, or pick follow-up tasks
+- **No orchestration:** Don't update todos, spawn/dispatch/coordinate other subagents, or pick follow-up tasks
 - **Expected output:** Summary of what you found and fixed
 
 ### 3. Dispatch in Parallel
 
-```typescript
-// In the active harness's worker-dispatch mechanism
-dispatchWorker("Fix agent-tool-abort.test.ts failures")
-dispatchWorker("Fix batch-completion-behavior.test.ts failures")
-dispatchWorker("Fix tool-approval-race-conditions.test.ts failures")
-// All three run concurrently
-```
+Dispatch independent streams through the active harness's worker mechanism only after file ownership, validation commands, and integration gates are clear. For extended examples/details, read [parallelization examples](references/parallelization-examples.md) when this extra detail is needed.
 
 ### 4. Review and Integrate
 
@@ -112,26 +102,7 @@ Good agent prompts are:
 2. **Self-contained** - All context needed to understand the problem
 3. **Specific about output** - What should the agent return?
 
-```markdown
-Fix the 3 failing tests in src/agents/agent-tool-abort.test.ts:
-
-1. "should abort tool with partial output capture" - expects 'interrupted at' in message
-2. "should handle mixed completed and aborted tools" - fast tool aborted instead of completed
-3. "should properly track pendingToolCount" - expects 3 results but gets 0
-
-These are timing/race condition issues. Your task:
-
-1. Read the test file and understand what each test verifies
-2. Identify root cause - timing issues or actual bugs?
-3. Fix by:
-   - Replacing arbitrary timeouts with event-based waiting
-   - Fixing bugs in abort implementation if found
-   - Adjusting test expectations if testing changed behavior
-
-Do NOT just increase timeouts - find the real issue.
-
-Return: Summary of what you found and what you fixed.
-```
+Include exact failures, file ownership, constraints, validation, and required return fields. For extended examples/details, read [focused worker prompt example](references/parallelization-examples.md) when this extra detail is needed.
 
 ## Common Mistakes
 
@@ -154,32 +125,9 @@ Return: Summary of what you found and what you fixed.
 **Exploratory debugging:** You don't know what's broken yet
 **Shared state:** Agents would interfere (editing same files, using same resources)
 
-## Real Example from Session
+## Examples
 
-**Scenario:** 6 test failures across 3 files after major refactoring
-
-**Failures:**
-- agent-tool-abort.test.ts: 3 failures (timing issues)
-- batch-completion-behavior.test.ts: 2 failures (tools not executing)
-- tool-approval-race-conditions.test.ts: 1 failure (execution count = 0)
-
-**Decision:** Independent domains - abort logic separate from batch completion separate from race conditions
-
-**Dispatch:**
-```
-Agent 1 → Fix agent-tool-abort.test.ts
-Agent 2 → Fix batch-completion-behavior.test.ts
-Agent 3 → Fix tool-approval-race-conditions.test.ts
-```
-
-**Results:**
-- Agent 1: Replaced timeouts with event-based waiting
-- Agent 2: Fixed event structure bug (threadId in wrong place)
-- Agent 3: Added wait for async tool execution to complete
-
-**Integration:** All fixes independent, no conflicts, full suite green
-
-**Time saved:** 3 problems solved in parallel vs sequentially
+Keep examples out of the hot path. For extended examples/details, read [real-world parallel splits](references/parallelization-examples.md) when this extra detail is needed.
 
 ## Key Benefits
 
@@ -195,12 +143,3 @@ After agents return:
 2. **Check for conflicts** - Did agents edit same code?
 3. **Run full suite** - Verify all fixes work together
 4. **Spot check** - Agents can make systematic errors
-
-## Real-World Impact
-
-From debugging session (2025-10-03):
-- 6 failures across 3 files
-- 3 agents dispatched in parallel
-- All investigations completed concurrently
-- All fixes integrated successfully
-- Zero conflicts between agent changes

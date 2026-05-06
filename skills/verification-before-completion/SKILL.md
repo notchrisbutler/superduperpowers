@@ -1,20 +1,19 @@
 ---
 name: verification-before-completion
 description: Use when about to claim work is complete, fixed, or passing, before committing or creating PRs - requires running verification commands and confirming output before making any success claims; evidence before assertions always
-category: completion
+metadata:
+  category: completion
 ---
 
 # Verification Before Completion
 
 ## Overview
 
-Claiming work is complete without verification is unreliable and creates avoidable risk.
+Claiming completion without fresh evidence is unreliable.
 
 **Core principle:** Evidence before claims, always.
 
-This is a completion gate used by `executing-plans`, `subagent-driven-development`, and `finishing-a-development-branch`. It is not a routing skill and should rarely be invoked directly by users; workflow skills load it before final success claims, local commits, PR summaries, or branch completion options.
-
-**Violating the letter of this rule is violating the spirit of this rule.**
+This completion gate is used by `executing-plans`, `subagent-driven-development`, and `finishing-a-development-branch` before final success claims, local commits, PR summaries, or branch completion options.
 
 ## The Iron Law
 
@@ -22,121 +21,58 @@ This is a completion gate used by `executing-plans`, `subagent-driven-developmen
 NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE
 ```
 
-If you haven't run the verification command in this message, you cannot claim it passes.
+If you have not run the relevant verification command in this message, you cannot claim it passes.
 
-## The Gate Function
+## Gate Function
 
-```
-BEFORE claiming any status or expressing satisfaction:
+Before any success/completion statement:
 
-1. IDENTIFY: What command proves this claim?
-2. RUN: Execute the FULL command (fresh, complete)
-3. READ: Full output, check exit code, count failures
-4. VERIFY: Does output confirm the claim?
-   - If NO: State actual status with evidence
-   - If YES: State claim WITH evidence
-5. ONLY THEN: Make the claim
+1. **Identify** the command or evidence that proves the claim.
+2. **Run** the full command fresh, or gather fresh read-only evidence when you are not allowed to edit/run tests.
+3. **Read** the complete output: exit code, pass/fail count, warnings, and errors.
+4. **Verify** whether the output proves the claim.
+5. **Report** the claim only with evidence. If not proven, state actual status and blockers.
 
 Skipping a required step means the work is not verified.
-```
 
-## Common Failures
+## Evidence Requirements
 
 | Claim | Requires | Not Sufficient |
 |-------|----------|----------------|
-| Tests pass | Test command output: 0 failures | Previous run, "should pass" |
-| Linter clean | Linter output: 0 errors | Partial check, extrapolation |
-| Build succeeds | Build command: exit 0 | Linter passing, logs look good |
-| Bug fixed | Test original symptom: passes | Code changed, assumed fixed |
-| Regression test works | Red-green cycle verified | Test passes once |
-| Agent completed | VCS diff shows changes | Agent reports "success" |
-| Requirements met | Line-by-line checklist | Tests passing |
+| Tests pass | Test command output with 0 failures | Previous run, "should pass" |
+| Linter clean | Linter output with 0 errors | Partial check |
+| Build succeeds | Build command exit 0 | Linter passing |
+| Bug fixed | Original symptom/regression check passes | Code changed |
+| Regression test works | Red and green behavior verified | Test passes once |
+| Agent completed | VCS diff plus validation of changes | Agent says success |
+| Requirements met | Checklist against plan/spec | Tests passing alone |
 
-## Red Flags - STOP
+Editing agents must run targeted validation when practical and quote commands/results. Read-only reviewers or investigators must verify with allowed evidence such as diffs, file reads, logs, and checklist comparison, and must not claim tests pass unless they saw test output.
 
-- Using "should", "probably", "seems to"
-- Expressing satisfaction before verification ("Great!", "Perfect!", "Done!", etc.)
-- About to commit/push/PR without verification
-- Trusting agent success reports
-- Depending on partial verification
-- Thinking "just this once"
-- Tired and wanting work over
-- **ANY wording suggesting success without having run verification**
+## Red Flags - Stop
 
-## Rationalization Prevention
+- Saying "should," "probably," "seems," "done," "fixed," or similar before verification.
+- Expressing satisfaction before evidence.
+- Committing, pushing, creating a PR, moving to the next task, or delegating based on unverified assumptions.
+- Trusting an agent success report without checking changes/evidence.
+- Treating partial checks as proof.
 
-| Excuse | Reality |
-|--------|---------|
-| "Should work now" | RUN the verification |
-| "I'm confident" | Confidence ≠ evidence |
-| "Just this once" | No exceptions |
-| "Linter passed" | Linter ≠ compiler |
-| "Agent said success" | Verify independently |
-| "I'm tired" | Exhaustion ≠ excuse |
-| "Partial check is enough" | Partial proves nothing |
-| "Different words so rule doesn't apply" | Spirit over letter |
+## Good/Bad Patterns
 
-## Key Patterns
+**Tests:** Good: run the test command and report `34/34 pass`. Bad: "should pass now."
 
-**Tests:**
-```
-✅ [Run test command] [See: 34/34 pass] "All tests pass"
-❌ "Should pass now" / "Looks correct"
-```
+**Regression tests:** Good: show red failure, restore fix, show green pass. Bad: "I wrote a regression test" without red-green evidence.
 
-**Regression tests (TDD Red-Green):**
-```
-✅ Write → Run (pass) → Revert fix → Run (MUST FAIL) → Restore → Run (pass)
-❌ "I've written a regression test" (without red-green verification)
-```
+**Build:** Good: run build and report exit 0. Bad: infer build success from lint success.
 
-**Build:**
-```
-✅ [Run build] [See: exit 0] "Build passes"
-❌ "Linter passed" (linter doesn't check compilation)
-```
+**Requirements:** Good: re-read plan, check each item, report gaps or completion. Bad: "tests pass, so phase complete."
 
-**Requirements:**
-```
-✅ Re-read plan → Create checklist → Verify each → Report gaps or completion
-❌ "Tests pass, phase complete"
-```
-
-**Agent delegation:**
-```
-✅ Agent reports success → Check VCS diff → Verify changes → Report actual state
-❌ Trust agent report
-```
-
-## Why This Matters
-
-From 24 failure memories:
-- the user said "I don't believe you" - trust broken
-- Undefined functions shipped - would crash
-- Missing requirements shipped - incomplete features
-- Time wasted on false completion → redirect → rework
-- Violates: do not make success claims without fresh evidence.
+**Delegation:** Good: agent report plus VCS diff/checklist/validation. Bad: trusting the report alone.
 
 ## When To Apply
 
-**ALWAYS before:**
-- ANY variation of success/completion claims
-- ANY expression of satisfaction
-- ANY positive statement about work state
-- Committing, PR creation, task completion
-- Moving to next task
-- Delegating to agents
+Always before any variation or implication of success, completion, correctness, committing, PR creation, task completion, moving to another task, or branch finalization.
 
-**Rule applies to:**
-- Exact phrases
-- Paraphrases and synonyms
-- Implications of success
-- ANY communication suggesting completion/correctness
+## Bottom Line
 
-## The Bottom Line
-
-**No shortcuts for verification.**
-
-Run the command. Read the output. THEN claim the result.
-
-This is non-negotiable.
+Run the command. Read the output. Then claim only what the evidence proves. If verification was not run or could not be run, say that clearly and refuse to claim verified success.

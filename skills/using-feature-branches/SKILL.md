@@ -1,7 +1,8 @@
 ---
 name: using-feature-branches
 description: Use when executing approved plans safely on a feature branch without git worktrees.
-category: action
+metadata:
+  category: action
 ---
 
 # Using Feature Branches

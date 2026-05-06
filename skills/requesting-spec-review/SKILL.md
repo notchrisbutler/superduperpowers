@@ -1,7 +1,8 @@
 ---
 name: requesting-spec-review
 description: Use when completed work needs a lightweight or full review against a spec, plan, task scope, or acceptance criteria.
-category: review
+metadata:
+  category: review
 ---
 
 # Requesting Spec Review

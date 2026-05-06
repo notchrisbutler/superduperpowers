@@ -1,18 +1,19 @@
 ---
 name: subagent-driven-development
 description: Use when executing implementation plans with independent tasks in the current session
-category: action
+metadata:
+  category: action
 ---
 
 # Subagent-Driven Development
 
-Execute implementation plans with subagents while keeping the main session as the orchestrator, using coordinator-owned dispatch todos, proportional review at meaningful task boundaries, and local commits after verified task scopes when workflow commits are enabled.
+Execute implementation plans with subagents while keeping the main session as the orchestrator, using coordinator-owned dispatch todos, proportional review at meaningful task boundaries, and local commits only after verified implementation task scopes when workflow commits are enabled by the approved execution workflow.
 
 If the active harness does not support subagents or worker dispatch, use `executing-plans` in the main session and preserve the same flat coordinator-owned todo boundaries.
 
 **Why subagents:** You delegate work to specialized agents with isolated context. By precisely crafting their instructions and context, you keep them focused while preserving your own context for coordination.
 
-**Core principle:** The main agent owns the todo list and orchestration. Each implementation todo maps to one bounded worker dispatch or a deliberately local coordinator action; workers perform assigned tasks and report back, but they do not plan the rest of the workflow, mutate todos, run review gates, or absorb a whole parent task when it contains multiple dispatchable units.
+**Core principle:** The main agent owns the todo list and orchestration. Each implementation todo maps to one bounded worker dispatch or a deliberately local coordinator action; workers perform assigned tasks and report back, but they do not plan the rest of the workflow, mutate todos, dispatch or coordinate other subagents, run review gates, or absorb a whole parent task when it contains multiple dispatchable units.
 
 ## When to Use
 
@@ -67,10 +68,10 @@ If you stay inline, preserve the same bounded `Task N.M` todo boundaries and rev
 9. Execute each todo in dependency order, dispatching the named worker/reviewer for that todo when it is not coordinator-local.
 10. For each parent `Task N`, complete its dispatchable `Task N.M` implementation todos, lite checkpoints, task-scope validation, and required reviews.
 11. Run task-scope review at parent task boundaries only when the plan, live settings, or risk calls for it; otherwise rely on dispatch validation plus the final full reviews.
-12. Commit the verified parent task scope locally when workflow commits are enabled.
+12. Commit the verified parent task scope locally only when workflow commits are enabled by the approved execution workflow.
 13. Run final full implementation review and validation across all tasks.
-14. Commit verified remaining changes locally when workflow commits are enabled.
-15. Invoke `superpowers:finishing-a-development-branch`, preserving whether execution happened on the current branch or in a temporary worktree/task branch.
+14. Commit verified remaining implementation changes locally only when workflow commits are enabled by the approved execution workflow.
+15. Invoke `finishing-a-development-branch`, preserving whether execution happened on the current branch or in a temporary worktree/task branch.
 
 Subagents honor the profile's testing intensity. For `major-behavior`, they test important behavior and integration points without creating exhaustive or obvious tests.
 
@@ -96,22 +97,11 @@ Keep the coordinator-owned harness todo list current throughout orchestration:
 ## Coordinator Todo Shape
 
 Most harnesses do not support nested todos, but the visible todo list must still show the coordinator's actual dispatch plan. Keep it flat and dependency ordered. Use one visible todo per bounded worker assignment, review gate, validation gate, or finalization step. Do not collapse a whole parent task into one implementation todo when it contains multiple `Task N.M` units that should go to separate workers.
-
-```markdown
-- Task 0: Execution setup - read plan, classify task scopes, prepare context
-- Task 1.1: Login validation tests - dispatch tdd-implementer
-- Task 1.2: Login form behavior - dispatch implementer
-- Task 1 Review: validate Task 1, run required reviewers, commit if enabled
-- Task 2.1: Password reset token model - dispatch implementer
-- Task 2.2: Password reset email flow - dispatch implementer
-- Task 2 Review: validate Task 2, run required reviewers, commit if enabled
-- Review: final full-scope spec review, code review, and validation
-- Finalize: finish branch according to current execution mode
-```
-
-Each visible implementation todo names the exact plan unit, expected worker role, and bounded ownership scope. Parent `Task N Review` todos collect the task-scope validation, required reviewers, and coordinator-owned commit step after the child implementation todos report back. Do not create nested todo structures. Do not use `Group N` in harness todos. Do not expand every plan checkbox or mechanical command into a harness todo; expand the work at the level where the coordinator will make a dispatch, review, validation, dependency, or blocker-resolution decision.
+Each visible implementation todo names the exact plan unit, expected worker role, and bounded ownership scope. Parent `Task N Review` todos collect task-scope validation, required reviewers, and coordinator-owned commit handling after child implementation todos report back. Do not create nested todos, use `Group N`, or expand every checkbox/mechanical command into a visible todo; expand at the level where the coordinator makes a dispatch, review, validation, dependency, or blocker-resolution decision.
 
 If several adjacent plan steps are truly mechanical, affect the same files, and have one obvious validation command, the coordinator may combine them into one implementation dispatch todo. The prompt must still list the included steps explicitly and forbid the worker from continuing into later plan work.
+
+For extended examples/details, read [execution cadence examples](references/execution-cadence.md) when this extra detail is needed.
 
 ## Review Policy
 
@@ -132,9 +122,9 @@ Review loop budget: after a reviewer reports issues, group the findings, fix the
 
 ## Commit Cadence
 
-When workflow commits are enabled, the coordinator commits locally after each parent task scope passes its required reviews and validation. This is the normal feature-branch cadence: small, reviewable commits for each verified task scope, then a final commit for any verified remaining changes.
+When workflow commits are enabled by the approved execution workflow, the coordinator commits locally after each parent task scope passes required reviews and validation, plus a final commit for any verified remaining implementation changes. Ordinary sessions must not commit unasked. Implementer subagents never commit directly; they report changed files and verification. In worktree or temporary task-branch execution, keep commits on that branch and let `finishing-a-development-branch` handle integration. Do not push unless the user explicitly requests it.
 
-Implementer subagents do not commit directly. They report changed files and verification results; the coordinator reviews the aggregate diff, writes the commit message, and commits only after the task boundary is clean. In worktree or temporary task-branch execution, keep commits on that branch and let finishing-a-development-branch handle integration back to the parent/source branch. Do not push unless the user explicitly requests it.
+For extended examples/details, read [commit cadence details](references/execution-cadence.md) when this extra detail is needed.
 
 ## Reviewer Routing
 
@@ -152,7 +142,7 @@ For platforms without named agents, use the matching prompt templates in this sk
 - Complex bug task where root cause is not yet proven: dispatch `debugging-investigator` first. Only dispatch an implementation worker after it reports a supported root-cause hypothesis or the human approves proceeding.
 - Multiple apparently independent task streams: use `parallelization-advisor` before dispatching parallel workers unless the independence is already explicit in the plan.
 
-Implementation workers may edit assigned files but must not commit, mutate todos, spawn their own implementation subagents, or decide the next plan task. The coordinator owns todo state, dependency ordering, worker selection, review, validation gates, and local commits.
+Implementation workers may edit assigned files but must not commit, mutate todos, spawn/dispatch/coordinate any subagents, or decide the next plan task. The coordinator owns todo state, dependency ordering, worker selection, review, validation gates, and local commits.
 
 ## Model Selection
 
@@ -204,28 +194,9 @@ When a worker returns `NEEDS_CONTEXT`, provide only the missing context needed f
 
 ## Example Workflow
 
-```markdown
-You: I'm using Subagent-Driven Development to execute this plan.
+Keep the inline cadence simple: read plan once, create flat coordinator-owned todos, dispatch each bounded `Task N.M`, run task-boundary review/validation, finish with final reviews and `finishing-a-development-branch`.
 
-[Read plan file once: {DOCS_ROOT}/superduperpowers/plans/feature-plan.md]
-[Extract groups and tasks with full text and context]
-[Create flat coordinator-owned todos with setup, one visible todo per bounded worker dispatch or review gate, Review, and Finalize]
-
-Task 1.1: Hook installation model
-[Dispatch implementer with Task 1.1 text + context]
-Implementer: DONE, tests passing, changed files reported.
-
-Task 1.2: Hook installation command flow
-[Dispatch implementer with Task 1.2 text + context]
-Implementer: DONE, tests passing, changed files reported.
-
-Task 1 Review: Optional task-scope review when plan/risk/settings require it
-[Dispatch lite-code-reviewer or spec-reviewer against the Task 1 diff]
-Result: Approved
-
-Review: final full task-set spec review, code review, and validation
-Finalize: invoke finishing-a-development-branch
-```
+For extended examples/details, read [subagent execution cadence](references/execution-cadence.md) when this extra detail is needed.
 
 ## Red Flags
 
@@ -238,7 +209,7 @@ Finalize: invoke finishing-a-development-branch
 - Proceed with unfixed full-review issues
 - Dispatch multiple implementation subagents in parallel if they can conflict
 - Make subagents read the plan file; provide full text instead
-- Let subagents mutate todos, choose later tasks, or orchestrate other subagents
+- Let subagents mutate todos, choose later tasks, or spawn/dispatch/coordinate other subagents
 - Skip scene-setting context
 - Ignore subagent questions
 - Let implementer self-review replace required task-scope or final review
@@ -253,18 +224,18 @@ Finalize: invoke finishing-a-development-branch
 ## Integration
 
 **Required workflow skills:**
-- **superpowers:writing-plans** - Creates the plan this skill executes
-- **superpowers:using-feature-branches** - Required setup for feature-branch execution before dispatch
-- **superpowers:using-git-worktrees** - Required setup for worktree execution before dispatch
-- **superpowers:requesting-spec-review** - Spec compliance review routing for lite and full spec reviews
-- **superpowers:requesting-code-review** - Code review guidance for full code reviews
-- **superpowers:receiving-spec-review** - Required when spec-review feedback returns findings
-- **superpowers:receiving-code-review** - Required when code-review feedback returns findings
-- **superpowers:dispatching-parallel-agents** - Use when task streams can safely run concurrently
-- **superpowers:finishing-a-development-branch** - Complete development after all tasks
+- **writing-plans** - Creates the plan this skill executes
+- **using-feature-branches** - Required setup for feature-branch execution before dispatch
+- **using-git-worktrees** - Required setup for worktree execution before dispatch
+- **requesting-spec-review** - Spec compliance review routing for lite and full spec reviews
+- **requesting-code-review** - Code review guidance for full code reviews
+- **receiving-spec-review** - Required when spec-review feedback returns findings
+- **receiving-code-review** - Required when code-review feedback returns findings
+- **dispatching-parallel-agents** - Use when task streams can safely run concurrently
+- **finishing-a-development-branch** - Complete development after all tasks
 
 **Subagents should use:**
-- **superpowers:test-driven-development** - Subagents follow TDD for implementation tasks when the plan requires it
+- **test-driven-development** - Subagents follow TDD for implementation tasks when the plan requires it
 
 **Alternative workflow:**
-- **superpowers:executing-plans** - Use for inline execution instead of subagent-driven execution
+- **executing-plans** - Use for inline execution instead of subagent-driven execution

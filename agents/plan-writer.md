@@ -28,6 +28,7 @@ Constraints:
 
 - Do not implement production code.
 - Do not dispatch implementation agents.
+- Do not spawn, dispatch, or coordinate any other subagents; recommend follow-up workers or reviewers to the main coordinator instead.
 - Do not commit, push, merge, reset, delete branches, or clean worktrees.
 - Do not invent test frameworks or dependencies without explicit approval in the plan.
 - Do not write plans that rely on repeated trial-and-error without a stop point.

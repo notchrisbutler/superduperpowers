@@ -12,6 +12,13 @@ if grep -R "docs/superpowers" "$SUPERPOWERS_DIR/skills" "$SUPERPOWERS_DIR/agents
   exit 1
 fi
 
+for legacy_dir in explicit-skill-requests skill-triggering subagent-driven-dev; do
+  if [ -e "$REPO_ROOT/tests/$legacy_dir" ]; then
+    echo "  [FAIL] Found stale Claude-harness test directory: tests/$legacy_dir"
+    exit 1
+  fi
+done
+
 if grep -R "default .*\.opencode/worktrees\|Default worktree root.*\.opencode/worktrees\|Use \.opencode/worktrees" "$SUPERPOWERS_DIR/skills"; then
   echo "  [FAIL] Found stale default .opencode/worktrees guidance"
   exit 1
@@ -44,6 +51,20 @@ if grep -qi "future npm\|not an npm package\|installed from the GitHub repositor
   exit 1
 fi
 
+REPO_ROOT="$REPO_ROOT" node --input-type=module <<'NODE'
+import fs from 'fs';
+import path from 'path';
+
+const packageJson = JSON.parse(fs.readFileSync(path.join(process.env.REPO_ROOT, 'package.json'), 'utf8'));
+const files = packageJson.files || [];
+if (files.includes('docs/') || files.includes('docs')) {
+  throw new Error('package files must not include the whole docs directory because docs/superduperpowers is local-only');
+}
+for (const required of ['docs/publishing.md', 'docs/testing.md', 'docs/workflow-map.md', 'docs/wiki/']) {
+  if (!files.includes(required)) throw new Error(`package files missing public doc: ${required}`);
+}
+NODE
+
 using_skill="$SUPERPOWERS_DIR/skills/using-superpowers/SKILL.md"
 if ! grep -q "SuperDuperPowers" "$using_skill"; then
   echo "  [FAIL] using-superpowers lacks SuperDuperPowers naming"
@@ -67,8 +88,24 @@ if ! grep -q "Do not repeatedly re-run the same worker, reviewer, command, or pr
 fi
 
 for skill_file in "$SUPERPOWERS_DIR"/skills/*/SKILL.md; do
-  if ! grep -q "^category: " "$skill_file"; then
-    echo "  [FAIL] skill lacks category metadata: $skill_file"
+  if awk '
+    NR == 1 && $0 == "---" { in_fm=1; next }
+    in_fm && $0 == "---" { exit }
+    in_fm && $0 ~ /^category: / { found=1 }
+    END { exit found ? 0 : 1 }
+  ' "$skill_file"; then
+    echo "  [FAIL] skill has unsupported top-level category metadata: $skill_file"
+    exit 1
+  fi
+  if ! awk '
+    NR == 1 && $0 == "---" { in_fm=1; next }
+    in_fm && $0 == "---" { exit }
+    in_fm && $0 == "metadata:" { in_meta=1; next }
+    in_fm && in_meta && $0 ~ /^  category: / { found=1 }
+    in_fm && in_meta && $0 !~ /^  / && $0 != "" { in_meta=0 }
+    END { exit found ? 0 : 1 }
+  ' "$skill_file"; then
+    echo "  [FAIL] skill lacks metadata.category: $skill_file"
     exit 1
   fi
 done

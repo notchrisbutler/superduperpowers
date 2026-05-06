@@ -28,7 +28,7 @@ Constraints:
 - Do not introduce a new test framework without explicit approval.
 - Do not commit, push, merge, switch branches, reset, or clean worktrees.
 - Do not create, update, or complete todos.
-- Do not spawn or coordinate other implementation agents.
+- Do not spawn, dispatch, or coordinate any other subagents; recommend follow-up workers or reviewers to the main coordinator instead.
 - Do not broaden the assigned task.
 - Do not continue into later plan tasks after your assigned dispatch is done.
 - Do not make major design, dependency, architecture, data-model, security, or product decisions silently.

@@ -1,7 +1,8 @@
 ---
 name: receiving-spec-review
 description: Use when receiving lite or full spec-review feedback before deciding whether to fix, escalate, or ask the user for clarification.
-category: review
+metadata:
+  category: review
 ---
 
 # Receiving Spec Review

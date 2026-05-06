@@ -1,7 +1,8 @@
 ---
 name: using-superpowers
 description: Use when routing an explicit or ambiguous SuperDuperPowers request between full flow, quick flow, and no SuperDuperPowers.
-category: routing
+metadata:
+  category: routing
 ---
 
 <SUBAGENT-STOP>
@@ -10,17 +11,21 @@ If you were dispatched as a subagent for a specific task, skip this skill.
 
 # Using SuperDuperPowers
 
-SuperDuperPowers is opt-in by default. `superpowers`, `Superpowers`, `SuperPowers`, `superduperpowers`, `SuperDuperPowers`, `/superpowers`, `/superduperpowers`, `/sdp`, and `/brainstorm` invoke this routing family. Use `SuperDuperPowers` in user-facing prose; keep `superpowers:*` only as the compatibility namespace for concrete skills.
+SuperDuperPowers is opt-in by default. `superpowers`, `Superpowers`, `SuperPowers`, `superduperpowers`, `SuperDuperPowers`, `/superpowers`, `/superduperpowers`, `/sdp`, and `/brainstorm` invoke this routing family. Use `SuperDuperPowers` in user-facing prose. Historical `superpowers:<skill-name>` aliases may appear in old docs, but canonical skill references use plain skill names.
 
 User instructions always win over this workflow. If the user asks for quick work, no process, no TDD, or no docs, honor that unless safety or correctness requires a brief escalation.
 
+## User-Facing Output
+
+Keep user-facing messages focused on results, next action, and the one decision or question needed now. Do not include internal route justifications, workflow notes, or lists of what SuperDuperPowers did not do unless the user asks for process detail, the information affects safety, or you are reporting final verification/branch status.
+
 ## Architecture Boundary
 
-Skills are the canonical, harness-neutral workflow source. Named agents are thin adapter roles for harnesses that support subagents, especially the included OpenCode config. Use named agents for role isolation, permissions, parallelism, and independent review; use generic fallback prompts only when named agents are unavailable. Do not turn named agents into workflow owners: the main agent owns todos, route decisions, branch flow, commits, review gates, validation gates, and next-step decisions.
+Skills are the canonical, harness-neutral workflow source. Named agents are thin adapter roles for harnesses that support subagents. Use named agents for role isolation, permissions, parallelism, and independent review; use generic fallback prompts only when named agents are unavailable. Do not turn named agents into workflow owners or nested coordinators: the main agent owns todos, route decisions, subagent dispatch, branch flow, commits, review gates, validation gates, and next-step decisions.
 
 ## Route
 
-Use full workflow when the user explicitly invokes SuperDuperPowers, names a SuperDuperPowers skill/workflow, asks for brainstorming, planning, execution workflow, TDD, systematic debugging, root-cause investigation, or gives work that is clearly broad, ambiguous, high-risk, multi-system, or decomposition-heavy.
+Use full workflow when the user explicitly invokes SuperDuperPowers for brainstorming/planning/execution, names a heavyweight SuperDuperPowers workflow, asks for TDD, systematic debugging, root-cause investigation, or gives work that is clearly broad, ambiguous, high-risk, multi-system, or decomposition-heavy. If an explicit SuperDuperPowers request is also clearly bounded and low-risk, use quick flow unless the user asks for full workflow.
 
 Use quick flow for bounded changes where lightweight process helps: small reviews, small code changes, wording edits, config tweaks, and similar tasks.
 
@@ -68,7 +73,7 @@ For quick flow:
 
 1. Gather only enough local context to avoid guessing.
 2. Ask up to five focused questions if needed.
-3. Propose the intended approach and wait for user approval or adjustment before editing files.
+3. Propose the intended approach and wait for user approval or adjustment before editing files when the user has not already given clear edit instructions or the active harness requires approval.
 4. Make the smallest correct change.
 5. Run targeted validation when practical.
 6. Do a brief self-review for obvious regressions, missed call sites, and formatting.
@@ -92,4 +97,4 @@ Do not repeatedly re-run the same worker, reviewer, command, or prompt with unch
 
 ## Generated Docs And Commits
 
-Generated SuperDuperPowers specs and plans are local-only by default. Do not commit or force-add generated docs unless the user explicitly asks or repo instructions require it. When workflow commits are enabled, commit verified implementation task scopes and final verified implementation changes locally. Never push unless explicitly requested.
+Generated SuperDuperPowers specs and plans are local-only by default. Do not commit or force-add generated docs unless the user explicitly asks or repo instructions require it. When workflow commits are enabled by an approved execution workflow, commit only verified implementation task scopes and final verified implementation changes locally. Ordinary sessions must not commit unasked. Never push unless explicitly requested.

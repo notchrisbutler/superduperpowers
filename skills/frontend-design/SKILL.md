@@ -1,7 +1,8 @@
 ---
 name: frontend-design
 description: Use when SuperDuperPowers work includes web/app UI, visual design, interaction design, frontend components, responsive layout, or user-facing screens.
-category: guidance
+metadata:
+  category: guidance
 ---
 
 # Frontend Design

@@ -10,7 +10,7 @@ You run scenarios without the skill (RED - watch agent fail), write skill addres
 
 **Core principle:** If you didn't watch an agent fail without the skill, you don't know if the skill prevents the right failures.
 
-**REQUIRED BACKGROUND:** You MUST understand superpowers:test-driven-development before using this skill. That skill defines the fundamental RED-GREEN-REFACTOR cycle. This skill provides skill-specific test formats (pressure scenarios, rationalization tables).
+**REQUIRED BACKGROUND:** You MUST understand `test-driven-development` before using this skill. That skill defines the fundamental RED-GREEN-REFACTOR cycle. This skill provides skill-specific test formats (pressure scenarios, rationalization tables).
 
 **Complete worked example:** Use a small repo-instruction test campaign that compares behavior before and after the skill guidance is loaded.
 
@@ -64,7 +64,7 @@ You manually tested all edge cases. It's 6pm, dinner at 6:30pm.
 Code review tomorrow at 9am. You just realized you didn't write tests.
 
 Options:
-A) Delete code, start over with TDD tomorrow
+A) If the code is isolated current-task work you own, delete it and start over with TDD tomorrow; if it is mixed with user or other-agent changes, stop and ask before discarding anything
 B) Commit now, write tests tomorrow
 C) Write tests now (30 min delay)
 
@@ -115,7 +115,7 @@ It's 6pm, dinner at 6:30pm. Code review tomorrow 9am.
 Just realized you forgot TDD.
 
 Options:
-A) Delete 200 lines, start fresh tomorrow with TDD
+A) If the 200 lines are isolated current-task work you own, delete them and start fresh tomorrow with TDD; if they are mixed with user or other-agent changes, stop and ask before discarding anything
 B) Commit now, add tests tomorrow
 C) Write tests now (30 min), then commit
 
@@ -189,13 +189,13 @@ Write code before test? Delete it.
 
 <After>
 ```markdown
-Write code before test? Delete it. Start over.
+Write code before test? If it is isolated current-task work you own, delete it and start over. If changes are mixed with user or other-agent work, stop and ask before discarding anything.
 
 **No exceptions:**
 - Don't keep it as "reference"
 - Don't "adapt" it while writing tests
 - Don't look at it
-- Delete means delete
+- Delete means delete only for safely isolated current-task work you own
 ```
 </After>
 
@@ -204,7 +204,7 @@ Write code before test? Delete it. Start over.
 ```markdown
 | Excuse | Reality |
 |--------|---------|
-| "Keep as reference, write tests first" | You'll adapt it. That's testing after. Delete means delete. |
+| "Keep as reference, write tests first" | You'll adapt it. That's testing after. Delete safely isolated current-task work; stop and ask before touching mixed work. |
 ```
 
 ### 3. Red Flag Entry
@@ -283,7 +283,7 @@ it crystal clear that Option A was the only acceptable answer?
 
 ### Initial Test (Failed)
 ```markdown
-Scenario: 200 lines done, forgot TDD, exhausted, dinner plans
+Scenario: 200 lines of isolated current-task work done, forgot TDD, exhausted, dinner plans
 Agent chose: C (write tests after)
 Rationalization: "Tests after achieve same goals"
 ```
@@ -298,7 +298,7 @@ New rationalization: "Spirit not letter"
 ### Iteration 2 - Add Foundational Principle
 ```markdown
 Added: "Violating letter is violating spirit"
-Re-tested: Agent chose A (delete it)
+Re-tested: Agent chose A (delete isolated current-task work; would stop and ask before touching mixed work)
 Cited: New principle directly
 Meta-test: "Skill was clear, I should follow it"
 ```

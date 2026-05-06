@@ -1,6 +1,6 @@
 # SuperDuperPowers Workflow Map
 
-SuperDuperPowers keeps skill directories flat for harness registration, then uses frontmatter `category` metadata to make the workflow roles explicit.
+SuperDuperPowers keeps skill directories flat for harness registration, then uses frontmatter `metadata.category` to make the workflow roles explicit.
 
 Skills are the canonical harness-neutral workflow source. Named workflow agents are thin adapter roles for harnesses that support subagents, including the included OpenCode config. The main agent remains the coordinator: it owns todos, route decisions, branch flow, commits, review gates, validation gates, and next-step decisions.
 

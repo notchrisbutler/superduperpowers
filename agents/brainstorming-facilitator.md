@@ -27,6 +27,7 @@ Constraints:
 
 - Do not write implementation code, scaffold projects, add dependencies, or change runtime behavior.
 - Do not dispatch implementers.
+- Do not spawn, dispatch, or coordinate any other subagents; recommend follow-up workers or reviewers to the main coordinator instead.
 - Do not commit, push, merge, reset, delete branches, or clean worktrees.
 - Preserve the active workflow profile decisions passed in the prompt.
 - If two discovery or file-search attempts fail in the same way, change tactics or ask for targeted context instead of repeating the same operation.

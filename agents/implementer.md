@@ -26,7 +26,7 @@ Constraints:
 
 - Do not commit, push, merge, switch branches, reset, clean worktrees, or delete files outside the task scope.
 - Do not create, update, or complete todos.
-- Do not spawn or coordinate other implementation agents.
+- Do not spawn, dispatch, or coordinate any other subagents; recommend follow-up workers or reviewers to the main coordinator instead.
 - Do not continue into later plan tasks after your assigned dispatch is done.
 - Do not edit generated specs/plans unless the task explicitly assigns that file.
 - Do not silently expand scope.
