@@ -75,8 +75,8 @@ jobs:
           npm run version:next
           version="$(node -p "require('./package.json').version")"
           release_tag="v${version}"
-          if ! [[ "$release_tag" =~ ^v[0-9]{4}\.[0-9]{4}\.[0-9]+$ ]]; then
-            echo "Release tag must be vYYYY.MMDD.N, found ${release_tag}."
+          if ! [[ "$release_tag" =~ ^v[0-9]{4}\.[0-9]{3,4}\.[0-9]+$ ]]; then
+            echo "Release tag must be vYYYY.[M]MDD.N, found ${release_tag}."
             exit 1
           fi
           if git show-ref --tags --verify --quiet "refs/tags/${release_tag}"; then

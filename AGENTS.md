@@ -21,7 +21,7 @@ SuperDuperPowers is an alpha skills and reviewer-agents plugin. Keep changes foc
 - Document local checkout installs as `superduperpowers@git+file:///path/to/superduperpowers` for development against local checkouts.
 - Do not present `npm install -g superduperpowers` as a supported product path.
 - Keep npm metadata aligned with the included OpenCode plugin resolution.
-- This project uses calendar versions in the form `YYYY.MMDD.N`, with zero-padded `MMDD`; GitHub Release tags use `vYYYY.MMDD.N`. Active release history lives in GitHub Releases, `main` is nightly/integration, and `latest` is the protected published-state branch.
+- This project uses SemVer-compatible calendar versions in the form `YYYY.[M]MDD.N`; GitHub Release tags use `vYYYY.[M]MDD.N`. Active release history lives in GitHub Releases, `main` is nightly/integration, and `latest` is the protected published-state branch.
 
 ## Skill Changes
 

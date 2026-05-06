@@ -4,7 +4,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { execFileSync } from 'node:child_process';
 
-const VERSION_RE = /^[0-9]{4}\.[0-9]{4}\.[0-9]+$/;
+const VERSION_RE = /^[0-9]{4}\.[0-9]{3,4}\.[0-9]+$/;
 const root = path.resolve(new URL('..', import.meta.url).pathname);
 
 function fail(message) {
@@ -47,11 +47,13 @@ function gitOk(args) {
 }
 
 function validProjectVersion(version) {
-  const match = /^([0-9]{4})\.([0-9]{2})([0-9]{2})\.([0-9]+)$/.exec(version);
+  const match = /^([0-9]{4})\.([0-9]{3,4})\.([0-9]+)$/.exec(version);
   if (!match) return false;
   const year = Number(match[1]);
-  const month = Number(match[2]);
-  const day = Number(match[3]);
+  const middle = match[2];
+  if (middle.length === 4 && middle.startsWith('0')) return false;
+  const month = Number(middle.slice(0, -2));
+  const day = Number(middle.slice(-2));
   const daysInMonth = [31, (year % 400 === 0 || (year % 4 === 0 && year % 100 !== 0)) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
   return month >= 1 && month <= 12 && day >= 1 && day <= daysInMonth[month - 1];
 }
@@ -66,8 +68,12 @@ function compareVersions(left, right) {
 }
 
 function normalizeHistoricalVersion(version) {
-  const active = /^([0-9]{4})\.([0-9]{2})([0-9]{2})\.([0-9]+)$/.exec(version);
-  if (active) return version;
+  const active = /^([0-9]{4})\.([0-9]{3,4})\.([0-9]+)$/.exec(version);
+  if (active) {
+    const middle = active[2];
+    if (middle.length === 4 && middle.startsWith('0')) return `${active[1]}.${Number(middle.slice(0, -2))}${middle.slice(-2)}.${active[3]}`;
+    return version;
+  }
   const historical = /^([0-9]{4})\.([0-9]{1,2})\.([0-9]{1,2})-([0-9]+)$/.exec(version);
   if (!historical) return null;
   return `${historical[1]}.${historical[2].padStart(2, '0')}${historical[3].padStart(2, '0')}.${historical[4]}`;
@@ -88,7 +94,7 @@ function showPackageVersionAtRef(ref) {
   }
   const version = typeof pkg.version === 'string' ? normalizeHistoricalVersion(pkg.version) : null;
   if (!version || !validProjectVersion(version)) {
-    fail(`package version at ${ref} must use valid YYYY.MMDD.N, found ${pkg.version ?? '<missing>'}`);
+    fail(`package version at ${ref} must use valid YYYY.[M]MDD.N, found ${pkg.version ?? '<missing>'}`);
   }
   return version;
 }
@@ -129,7 +135,7 @@ function packageMetadata() {
   const pkg = readJson(packagePath);
   if (pkg.name !== 'superduperpowers') fail(`package name must be superduperpowers, found ${pkg.name ?? '<missing>'}`);
   if (typeof pkg.version !== 'string' || !VERSION_RE.test(pkg.version) || !validProjectVersion(pkg.version)) {
-    fail(`package version must use valid YYYY.MMDD.N, found ${pkg.version ?? '<missing>'}`);
+    fail(`package version must use valid YYYY.[M]MDD.N, found ${pkg.version ?? '<missing>'}`);
   }
   if (typeof pkg.main !== 'string' || !fs.existsSync(path.join(root, pkg.main))) {
     fail(`package main entry is missing or does not exist: ${pkg.main ?? '<missing>'}`);

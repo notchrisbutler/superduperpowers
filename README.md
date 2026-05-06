@@ -3,7 +3,7 @@
 **OpenCode-first skills and workflow agents for deliberate coding workflows**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2026.0506.6-purple.svg)](https://github.com/notchrisbutler/superduperpowers/releases/tag/v2026.0506.6)
+[![Version](https://img.shields.io/badge/version-2026.506.6-purple.svg)](https://github.com/notchrisbutler/superduperpowers/releases/tag/v2026.506.6)
 [![OpenCode](https://img.shields.io/badge/OpenCode-plugin-111827.svg)](.opencode/INSTALL.md)
 
 SuperDuperPowers gives coding agents a practical workflow toolkit: brainstorm when the work is ambiguous, write plans when the scope is real, execute in grouped phases, review at meaningful checkpoints, and verify before claiming success.
@@ -38,7 +38,7 @@ Project settings override global settings. Use repo install for project-local de
 
 See [GitHub Releases](https://github.com/notchrisbutler/superduperpowers/releases) for release notes and active release history. Published releases are available on npm as [`superduperpowers`](https://www.npmjs.com/package/superduperpowers).
 
-The bare package name follows npm `latest`, which reflects the protected `latest` published-state branch. Use an explicit version such as `superduperpowers@YYYY.MMDD.N` only when you want to pin a specific release tag such as `vYYYY.MMDD.N`.
+The bare package name follows npm `latest`, which reflects the protected `latest` published-state branch. Use an explicit version such as `superduperpowers@YYYY.[M]MDD.N` only when you want to pin a specific release tag such as `vYYYY.[M]MDD.N`.
 
 For fallback or nightly use, power users can install directly from the GitHub `main` branch. `main` is the nightly/integration branch; it tracks repository changes before the next restricted promotion to `latest` and may include bugs:
 
@@ -81,7 +81,7 @@ If the CLI cannot update your environment, run `/sdp-status` for diagnostics and
 - Named workflow agents as thin OpenCode adapter roles for review, planning, implementation, TDD, debugging, and safe parallelization
 - Local-first finishing flow that prepares PR commands without pushing unless explicitly requested
 - Included OpenCode plugin entrypoint through `.opencode/plugins/superduperpowers.js`
-- Calendar release versioning in the form `YYYY.MMDD.N`, with zero-padded `MMDD`, npm versions such as `YYYY.MMDD.N`, and GitHub release tags such as `vYYYY.MMDD.N`
+- Calendar release versioning in the form `YYYY.[M]MDD.N`, without leading zeroes in SemVer numeric fields, and GitHub release tags such as `vYYYY.[M]MDD.N`
 
 ---
 
@@ -129,10 +129,10 @@ The packaged defaults live in `defaults/superduperpowers.jsonc`. OpenCode sessio
 
 The release workflow updates this block during the version bump. The final npm tarball hashes are published by the registry after publish; verify them with npm instead of trusting a self-referential hash embedded in this packaged README.
 
-- Version: `2026.0506.6`
-- GitHub tag: `v2026.0506.6`
-- npm package: `superduperpowers@2026.0506.6`
-- Verify npm integrity: `npm view superduperpowers@2026.0506.6 dist.integrity dist.shasum`
+- Version: `2026.506.6`
+- GitHub tag: `v2026.506.6`
+- npm package: `superduperpowers@2026.506.6`
+- Verify npm integrity: `npm view superduperpowers@2026.506.6 dist.integrity dist.shasum`
 
 ---
 

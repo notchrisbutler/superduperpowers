@@ -9,8 +9,9 @@
 #   bump-version.sh --check         Report current versions (detect drift)
 #   bump-version.sh --audit         Check + grep repo for old version strings
 #
-# Project versions use YYYY.MMDD.N, where MMDD is zero-padded and N is the
-# release number for that date. Git tags use vYYYY.MMDD.N.
+# Project versions use YYYY.[M]MDD.N, where single-digit months do not keep a
+# leading zero because npm normalizes SemVer numeric fields. Git tags use
+# vYYYY.[M]MDD.N.
 #
 set -euo pipefail
 
@@ -74,17 +75,19 @@ current_declared_version() {
 }
 
 is_project_version() {
-  local version="$1" year month day suffix daysInMonth
-  [[ "$version" =~ ^([0-9]{4})\.([0-9]{2})([0-9]{2})\.([0-9]+)$ ]] || return 1
+  local version="$1" year middle month day suffix daysInMonth
+  [[ "$version" =~ ^([0-9]{4})\.([0-9]{3,4})\.([0-9]+)$ ]] || return 1
   year="${BASH_REMATCH[1]}"
-  month="${BASH_REMATCH[2]}"
-  day="${BASH_REMATCH[3]}"
-  suffix="${BASH_REMATCH[4]}"
+  middle="${BASH_REMATCH[2]}"
+  [[ ${#middle} -eq 4 && "$middle" == 0* ]] && return 1
+  month="${middle:0:${#middle}-2}"
+  day="${middle: -2}"
+  suffix="${BASH_REMATCH[3]}"
   [[ "$suffix" =~ ^[0-9]+$ ]] || return 1
-  case "$month" in
-    01|03|05|07|08|10|12) daysInMonth=31 ;;
-    04|06|09|11) daysInMonth=30 ;;
-    02)
+  case "$((10#$month))" in
+    1|3|5|7|8|10|12) daysInMonth=31 ;;
+    4|6|9|11) daysInMonth=30 ;;
+    2)
       if (( (10#$year % 400 == 0) || (10#$year % 4 == 0 && 10#$year % 100 != 0) )); then
         daysInMonth=29
       else
@@ -108,7 +111,7 @@ update_readme_badge() {
   local tmp="${readme}.tmp"
   sed -E \
     -e "s#version-[0-9]{4}\.[0-9]+\.[0-9]+(--[0-9]+|--alpha\.[0-9]+)?-purple\.svg#version-$(badge_version "$version")-purple.svg#g" \
-    -e "s#https://github\.com/notchrisbutler/superduperpowers/releases(/tag/v[0-9]{4}\.[0-9]+\.[0-9]+(--[0-9]+|--alpha\.[0-9]+)?)?#https://github.com/notchrisbutler/superduperpowers/releases/tag/v${version}#g" \
+    -e "/\[!\[Version\]/ s#https://github\.com/notchrisbutler/superduperpowers/releases(/tag/v[0-9]{4}\.[0-9]+\.[0-9]+(--[0-9]+|--alpha\.[0-9]+)?)?#https://github.com/notchrisbutler/superduperpowers/releases/tag/v${version}#g" \
     "$readme" > "$tmp"
   mv "$tmp" "$readme"
 }
@@ -116,6 +119,7 @@ update_readme_badge() {
 next_version_for_today() {
   local today today_re current max_suffix version tag_name
   today=$(date '+%Y.%m%d')
+  today="${today/.0/.}"
   today_re=${today//./\\.}
   current=$(current_declared_version)
   max_suffix=-1
@@ -158,7 +162,7 @@ cmd_check() {
     ver=$(read_json_field "$fullpath" "$field")
     printf "  %-45s  %s\n" "$path ($field)" "$ver"
     if ! is_project_version "$ver"; then
-      echo "  INVALID: expected YYYY.MMDD.N"
+      echo "  INVALID: expected YYYY.[M]MDD.N"
       has_drift=1
     fi
     versions+=("$ver")
@@ -264,7 +268,7 @@ cmd_bump() {
   local new_version="$1"
 
   if ! is_project_version "$new_version"; then
-    echo "error: '$new_version' doesn't look like a project version (expected YYYY.MMDD.N)" >&2
+    echo "error: '$new_version' doesn't look like a project version (expected YYYY.[M]MDD.N)" >&2
     exit 1
   fi
 
@@ -306,8 +310,8 @@ case "${1:-}" in
   --help|-h|"")
     echo "Usage: bump-version.sh --next | <new-version> | --check | --audit"
     echo ""
-    echo "  --next         Bump to today's next vYYYY.MMDD.N release version based on package.json and tags"
-    echo "  <new-version>  Bump all declared files to the given date version, e.g. 2026.0506.0 or 2026.0506.1"
+    echo "  --next         Bump to today's next vYYYY.[M]MDD.N release version based on package.json and tags"
+    echo "  <new-version>  Bump all declared files to the given date version, e.g. 2026.506.0 or 2026.1006.1"
     echo "  --check        Show current versions, detect drift"
     echo "  --audit        Check + scan repo for undeclared version references"
     exit 0

@@ -23,11 +23,11 @@ The intended path is now:
 The real release run then:
 
 - validates that `main` can fast-forward `latest`
-- computes the next `YYYY.MMDD.N` package version
+- computes the next `YYYY.[M]MDD.N` package version
 - checks version metadata, release policy, package contents, and OpenCode tests
 - commits the version bump to `main`
 - fast-forwards `latest` to the new `main` commit
-- creates the `vYYYY.MMDD.N` GitHub Release from `latest`
+- creates the `vYYYY.[M]MDD.N` GitHub Release from `latest`
 - publishes the package to npm with the `latest` dist-tag
 
 ## Publishing Guardrails
@@ -51,3 +51,10 @@ Workflow policy tests now guard the new shape so future changes do not reintrodu
 - Duplicate root settings/template files and the top-level `templates/` package entry were removed from the npm package contents.
 - `README.md` now includes release verification metadata that the release workflow refreshes during the version bump.
 - The README verification section points users to `npm view superduperpowers@VERSION dist.integrity dist.shasum` so package hashes come from the npm registry instead of a self-invalidating hash embedded in the packaged README.
+
+## Version Format Normalization
+
+- Calendar versions now use npm-compatible SemVer numeric fields in the form `YYYY.[M]MDD.N`, matching how npm publishes and resolves versions.
+- May 6, 2026 is represented as `2026.506.N`, not `2026.0506.N`, because npm normalizes numeric fields by removing leading zeroes.
+- Release workflow, release gate, README badge links, release verification metadata, and publishing docs now use the same canonical version/tag shape.
+- `scripts/bump-version.sh --next` now computes same-day release versions without a leading month zero for single-digit months.

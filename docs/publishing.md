@@ -9,10 +9,10 @@ OpenCode installs should use the npm package by default. GitHub `main` repositor
 Calendar release tags use:
 
 ```text
-vYYYY.MMDD.N
+vYYYY.[M]MDD.N
 ```
 
-GitHub Releases are the active release history. Tags use zero-padded `MMDD`, for example `vYYYY.MMDD.N`. npm `latest` is the stable OpenCode install channel and mirrors the protected `latest` branch.
+GitHub Releases are the active release history. Tags and npm versions use SemVer-compatible CalVer, for example `v2026.506.N` for May 6 and `v2026.1006.N` for October 6. npm `latest` is the stable OpenCode install channel and mirrors the protected `latest` branch.
 
 The release and publish gates reject tags outside this format and reject GitHub prereleases because every automated publish updates npm `latest`. The protected npm trusted-publishing environment should allow only the `latest` branch and `v*` tags; it should not allow `main` directly.
 
@@ -27,13 +27,13 @@ git add CHANGELOG.md
 git commit -m "Update changelog for release"
 ```
 
-The first release on a date uses `YYYY.MMDD.0`. Additional releases on the same date increment the final numeric segment, for example `YYYY.MMDD.1` and `YYYY.MMDD.2`.
+The first release on a date uses `YYYY.[M]MDD.0`. Additional releases on the same date increment the final numeric segment, for example `YYYY.[M]MDD.1` and `YYYY.[M]MDD.2`.
 
 You can also pass an explicit version:
 
 ```bash
-scripts/bump-version.sh 2026.0506.0
-scripts/bump-version.sh YYYY.MMDD.N
+scripts/bump-version.sh 2026.506.0
+scripts/bump-version.sh YYYY.[M]MDD.N
 ```
 
 ## Run The Restricted Release Workflow

@@ -57,9 +57,9 @@ import path from 'path';
 
 const root = process.env.REPO_ROOT;
 const packageJson = JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8'));
-const calverTagVersion = /^[0-9]{4}\.[0-9]{4}\.[0-9]+$/;
+const calverTagVersion = /^[0-9]{4}\.[0-9]{3,4}\.[0-9]+$/;
 if (!calverTagVersion.test(packageJson.version)) {
-  throw new Error(`package.json version must use YYYY.MMDD.N numeric package form, found ${packageJson.version}`);
+  throw new Error(`package.json version must use YYYY.[M]MDD.N numeric package form, found ${packageJson.version}`);
 }
 NODE
 
@@ -93,8 +93,8 @@ if (offenders.length) {
 }
 NODE
 
-if ! grep -R "vYYYY\.MMDD\.N\|v[0-9][0-9][0-9][0-9]\.MMDD\.N" "$REPO_ROOT/README.md" "$REPO_ROOT/docs" "$REPO_ROOT/.opencode/INSTALL.md" >/dev/null 2>&1; then
-  echo "  [FAIL] release docs do not require vYYYY.MMDD.N tags"
+if ! grep -R "vYYYY\.\[M\]MDD\.N\|v[0-9][0-9][0-9][0-9]\.\[M\]MDD\.N" "$REPO_ROOT/README.md" "$REPO_ROOT/docs" "$REPO_ROOT/.opencode/INSTALL.md" >/dev/null 2>&1; then
+  echo "  [FAIL] release docs do not require vYYYY.[M]MDD.N tags"
   exit 1
 fi
 
@@ -218,7 +218,7 @@ const releaseGate = fs.readFileSync(path.join(root, 'scripts/release-gate.mjs'),
 const releaseWorkflow = fs.readFileSync(path.join(root, '.github/workflows/release.yml'), 'utf8');
 
 if (/tag --list "\$\{today\}\.\*"/.test(bumpVersion) || /tag --list "\$today\.\*"/.test(bumpVersion)) {
-  throw new Error('version:next must not include raw same-day YYYY.MMDD.N tags when computing the next vYYYY.MMDD.N release suffix');
+  throw new Error('version:next must not include raw same-day YYYY.[M]MDD.N tags when computing the next vYYYY.[M]MDD.N release suffix');
 }
 
 if (!/showPackageVersionAtRef|gitShowPackageJson|compareVersions/.test(releaseGate) || !/latest.*version|version.*latest/s.test(releaseGate)) {
