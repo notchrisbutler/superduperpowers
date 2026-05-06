@@ -148,10 +148,15 @@ jobs:
       - name: Commit release version to main
         id: commit
         env:
+          GH_TOKEN: ${{ secrets.RELEASE_TOKEN }}
           RELEASE_TAG: ${{ needs.validate.outputs.release_tag }}
           VERSION: ${{ needs.validate.outputs.version }}
         run: |
           set -euo pipefail
+          if [ -z "${GH_TOKEN:-}" ]; then
+            echo "RELEASE_TOKEN secret is required to push the release version commit to protected main."
+            exit 1
+          fi
           npm run version:next
           actual_version="$(node -p "require('./package.json').version")"
           if [ "$actual_version" != "$VERSION" ]; then
@@ -160,6 +165,7 @@ jobs:
           fi
           git status --short
           git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -am "Bump version for ${RELEASE_TAG}"
+          git remote set-url origin "https://x-access-token:${GH_TOKEN}@github.com/${GITHUB_REPOSITORY}.git"
           git push origin HEAD:main
           git fetch origin main latest --tags --prune
           release_commit="$(git rev-parse origin/main)"
