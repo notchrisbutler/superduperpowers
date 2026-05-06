@@ -67,8 +67,24 @@ if ! grep -q "Do not repeatedly re-run the same worker, reviewer, command, or pr
 fi
 
 for skill_file in "$SUPERPOWERS_DIR"/skills/*/SKILL.md; do
-  if ! grep -q "^category: " "$skill_file"; then
-    echo "  [FAIL] skill lacks category metadata: $skill_file"
+  if awk '
+    NR == 1 && $0 == "---" { in_fm=1; next }
+    in_fm && $0 == "---" { exit }
+    in_fm && $0 ~ /^category: / { found=1 }
+    END { exit found ? 0 : 1 }
+  ' "$skill_file"; then
+    echo "  [FAIL] skill has unsupported top-level category metadata: $skill_file"
+    exit 1
+  fi
+  if ! awk '
+    NR == 1 && $0 == "---" { in_fm=1; next }
+    in_fm && $0 == "---" { exit }
+    in_fm && $0 == "metadata:" { in_meta=1; next }
+    in_fm && in_meta && $0 ~ /^  category: / { found=1 }
+    in_fm && in_meta && $0 !~ /^  / && $0 != "" { in_meta=0 }
+    END { exit found ? 0 : 1 }
+  ' "$skill_file"; then
+    echo "  [FAIL] skill lacks metadata.category: $skill_file"
     exit 1
   fi
 done

@@ -1,7 +1,8 @@
 ---
 name: test-driven-development
 description: Use when the user asks for TDD, when a SuperDuperPowers full workflow calls for TDD, or when a high-risk behavior change needs tests-first implementation.
-category: guidance
+metadata:
+  category: guidance
 ---
 
 # Test-Driven Development (TDD)

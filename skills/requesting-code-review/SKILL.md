@@ -1,7 +1,8 @@
 ---
 name: requesting-code-review
 description: Use when code changes need a lightweight or full code-quality review checkpoint.
-category: review
+metadata:
+  category: review
 ---
 
 # Requesting Code Review

@@ -1,7 +1,8 @@
 ---
 name: systematic-debugging
 description: Use when the user asks for debugging/root-cause analysis, when an issue is complex or non-reproducible, when multiple components are involved, or when prior fixes failed.
-category: guidance
+metadata:
+  category: guidance
 ---
 
 # Systematic Debugging

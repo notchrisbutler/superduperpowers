@@ -1,7 +1,8 @@
 ---
 name: subagent-driven-development
 description: Use when executing implementation plans with independent tasks in the current session
-category: action
+metadata:
+  category: action
 ---
 
 # Subagent-Driven Development

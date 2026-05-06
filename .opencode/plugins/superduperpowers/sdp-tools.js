@@ -1237,13 +1237,21 @@ const createDoctorTool = (configDir, packageInfo, getRegistrationReport) => tool
       'using-superpowers': 'routing',
       brainstorming: 'guidance',
       'writing-plans': 'guidance',
-      'executing-plans': 'action',
+      'systematic-debugging': 'guidance',
+      'test-driven-development': 'guidance',
+      'frontend-design': 'guidance',
       'subagent-driven-development': 'action',
+      'executing-plans': 'action',
+      'dispatching-parallel-agents': 'action',
+      'using-feature-branches': 'action',
+      'using-git-worktrees': 'action',
       'requesting-spec-review': 'review',
       'requesting-code-review': 'review',
       'receiving-spec-review': 'review',
       'receiving-code-review': 'review',
-      'verification-before-completion': 'completion'
+      'verification-before-completion': 'completion',
+      'finishing-a-development-branch': 'completion',
+      'writing-skills': 'maintainer'
     };
     const missingSkills = Object.keys(requiredSkills).filter((name) => !skillsDir || !fileExists(path.join(skillsDir, name, 'SKILL.md')));
     doctorCheck(checks, 'required-skills', missingSkills.length === 0 ? 'ok' : 'error', missingSkills.length === 0 ? 'required skills exist' : `missing skills: ${missingSkills.join(', ')}`, { requiredSkills: Object.keys(requiredSkills), missingSkills });
@@ -1253,8 +1261,9 @@ const createDoctorTool = (configDir, packageInfo, getRegistrationReport) => tool
       const skillPath = skillsDir ? path.join(skillsDir, name, 'SKILL.md') : null;
       if (!skillPath || !fileExists(skillPath)) continue;
       const { frontmatter } = extractAndStripFrontmatter(fs.readFileSync(skillPath, 'utf8'));
-      if (frontmatter.category !== expectedCategory) {
-        skillCategoryMismatches.push(`${name}:${frontmatter.category || 'missing'}!=${expectedCategory}`);
+      const actualCategory = frontmatter.metadata?.category;
+      if (actualCategory !== expectedCategory) {
+        skillCategoryMismatches.push(`${name}:${actualCategory || 'missing'}!=${expectedCategory}`);
       }
     }
     doctorCheck(checks, 'skill-categories', skillCategoryMismatches.length === 0 ? 'ok' : 'error', skillCategoryMismatches.length === 0 ? 'required skills have expected categories' : `skill category mismatches: ${skillCategoryMismatches.join(', ')}`, { expectedCategories: requiredSkills, mismatches: skillCategoryMismatches });

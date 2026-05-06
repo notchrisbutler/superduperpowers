@@ -1,7 +1,8 @@
 ---
 name: finishing-a-development-branch
 description: Use when implementation is complete, tests have been verified, and local branch or worktree completion needs an explicit next-step decision.
-category: completion
+metadata:
+  category: completion
 ---
 
 # Finishing a Development Branch

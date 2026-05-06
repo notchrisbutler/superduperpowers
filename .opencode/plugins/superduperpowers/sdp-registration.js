@@ -16,6 +16,19 @@ export const extractAndStripFrontmatter = (content) => {
     if (colonIdx > 0) {
       const key = line.slice(0, colonIdx).trim();
       const rawValue = line.slice(colonIdx + 1).trim();
+      if (!line.startsWith(' ') && rawValue === '') {
+        const nested = {};
+        while (i + 1 < lines.length && /^  [^ ].*:/.test(lines[i + 1])) {
+          i++;
+          const nestedLine = lines[i];
+          const nestedColonIdx = nestedLine.indexOf(':');
+          const nestedKey = nestedLine.slice(0, nestedColonIdx).trim();
+          const nestedValue = nestedLine.slice(nestedColonIdx + 1).trim();
+          nested[nestedKey] = nestedValue.replace(/^["']|["']$/g, '');
+        }
+        frontmatter[key] = nested;
+        continue;
+      }
       if (rawValue === '|' || rawValue === '>') {
         const block = [];
         while (i + 1 < lines.length && (/^\s/.test(lines[i + 1]) || lines[i + 1] === '')) {

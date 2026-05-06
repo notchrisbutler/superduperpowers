@@ -1,7 +1,8 @@
 ---
 name: brainstorming
 description: "Use when the user explicitly asks for SuperDuperPowers brainstorming or when a request clearly needs design discovery, decomposition, or an approved spec before implementation."
-category: guidance
+metadata:
+  category: guidance
 ---
 
 # Brainstorming Ideas Into Designs
