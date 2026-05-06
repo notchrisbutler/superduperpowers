@@ -117,8 +117,6 @@ jobs:
 
       - name: Dry run npm publish
         run: npm publish --access public --provenance --tag "$DIST_TAG" --dry-run
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Stop after dry run
         if: ${{ env.MODE == 'dry-run' }}
@@ -128,5 +126,3 @@ jobs:
       - name: Publish to npm
         if: ${{ env.MODE == 'publish' }}
         run: npm publish --access public --provenance --tag "$DIST_TAG"
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

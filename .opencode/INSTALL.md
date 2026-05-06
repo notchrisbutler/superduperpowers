@@ -1,23 +1,25 @@
 # OpenCode Install
 
-SuperDuperPowers is beta software. Its workflow sources are harness and model agnostic. OpenCode is the first included harness config, installed from the GitHub repository. This is not an npm package or global CLI install path.
+SuperDuperPowers is beta software. Its workflow sources are harness and model agnostic. OpenCode is the first included harness config, installed from the npm package `superduperpowers`.
 
-## GitHub Package Install
+## npm Package Install
 
 Add the plugin to your OpenCode config, typically `opencode.json`:
 
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git"]
+  "plugin": ["superduperpowers"]
 }
 ```
 
-Start a fresh OpenCode session after changing plugin config so the package is resolved and loaded.
+Start a fresh OpenCode session after changing plugin config so the package is resolved from npm and loaded.
+
+The bare package name follows npm `latest`. Use an explicit version such as `superduperpowers@2026.5.6` only when you want to pin a specific release.
 
 If you previously tested a local shim named `superpowers.js` in your user OpenCode plugins directory, remove that stale shim before verifying this package. The included entrypoint is now `superduperpowers.js`; keeping both shims can make OpenCode load duplicate plugin copies.
 
-See GitHub Releases for release notes and active release history.
+See GitHub Releases for release notes and active release history. npm `latest` is the stable OpenCode install path.
 
 ## First Run
 
@@ -49,7 +51,20 @@ Expected: the agent stays lightweight and does not enter full brainstorming, pla
 
 OpenCode documents package plugin loading through the `plugin` config option, and resolved plugin dependencies are cached under `~/.cache/opencode/node_modules/`.
 
-If OpenCode keeps loading an older package copy, remove the cached SuperDuperPowers package directory under `~/.cache/opencode/node_modules/` and restart OpenCode. If you use a local checkout, update that checkout and restart OpenCode.
+If OpenCode keeps loading an older package copy, remove the cached SuperDuperPowers package directory under `~/.cache/opencode/node_modules/` and restart OpenCode. For the stable install path, OpenCode should resolve the npm package named `superduperpowers`. If you use a GitHub or local checkout source, update that source and restart OpenCode.
+
+## GitHub Fallback And Nightly Install
+
+Power users can install directly from the GitHub `main` branch when they want a fallback source or nightly-style updates before the next npm release. This can include unreleased bugs or packaging changes:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git#main"]
+}
+```
+
+Use npm `latest` unless you intentionally want repository-head behavior.
 
 ## Local Checkout Install
 

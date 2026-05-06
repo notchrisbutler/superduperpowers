@@ -108,7 +108,7 @@ Verify these behaviors:
 
 ## Troubleshooting
 
-If skills are not discovered, verify the plugin is installed from the expected GitHub release source or `git+file` checkout path and restart OpenCode.
+If skills are not discovered, verify the plugin is installed from the expected npm package name (`superduperpowers`) and restart OpenCode. For fallback/nightly or development installs, verify the GitHub `main` source or `git+file` checkout path instead.
 
 If workflow subagents are missing, check `.opencode/plugins/superduperpowers.js` and confirm it registers the packaged definitions from `agents/`.
 

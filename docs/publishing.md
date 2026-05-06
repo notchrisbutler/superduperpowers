@@ -2,7 +2,7 @@
 
 SuperDuperPowers publishes through GitHub Releases. Publishing a release with a calendar-version tag runs `.github/workflows/publish.yml`, validates the package, and publishes the matching npm version to the `latest` dist-tag for the `superduperpowers` package.
 
-OpenCode installs may continue to use the GitHub repository source during the alpha period.
+OpenCode installs should use the npm package by default. GitHub repository installs are fallback/nightly sources for power users who intentionally want repository-head behavior and can tolerate unreleased bugs.
 
 ## Release Tags
 
@@ -13,7 +13,7 @@ YYYY.M.D
 YYYY.M.D-N
 ```
 
-GitHub Releases are the active release history. The OpenCode install string intentionally omits a branch or tag fragment.
+GitHub Releases are the active release history. npm `latest` is the stable OpenCode install channel.
 
 The publish workflow rejects tags outside this format and rejects GitHub prereleases because every automated publish updates npm `latest`.
 
@@ -52,7 +52,7 @@ Target: main
 
 Use `docs/superduperpowers/other/release-notes.md` as the release body when preparing the release.
 
-Publishing uses the protected GitHub `npm` environment. For the first publish, keep an npm automation or granular access token in that environment as `NPM_TOKEN` because the npm package does not exist yet. After the package exists, npm trusted publishing can be configured for repository `notchrisbutler/superduperpowers`, workflow file `publish.yml`, and environment `npm`.
+Publishing uses the protected GitHub `npm` environment and npm trusted publishing. The package already exists on npm, so configure trusted publishing for repository `notchrisbutler/superduperpowers`, workflow file `publish.yml`, and environment `npm`.
 
 ## Install Strings
 
@@ -61,6 +61,15 @@ Recommended install:
 ```json
 {
   "$schema": "https://opencode.ai/config.json",
-  "plugin": ["superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git"]
+  "plugin": ["superduperpowers"]
+}
+```
+
+Fallback/nightly install from GitHub `main`:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git#main"]
 }
 ```

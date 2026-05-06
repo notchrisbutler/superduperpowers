@@ -27,20 +27,20 @@ if grep -R "commit the approved spec\|commit the approved plan\|force-add it\|fo
   exit 1
 fi
 
-if ! grep -q "superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git" "$REPO_ROOT/README.md" "$REPO_ROOT/.opencode/INSTALL.md"; then
-  echo "  [FAIL] GitHub repository install path is not documented"
+if ! grep -Fq '"plugin": ["superduperpowers"]' "$REPO_ROOT/README.md" "$REPO_ROOT/.opencode/INSTALL.md"; then
+  echo "  [FAIL] npm package path is not documented as the active OpenCode install path"
   exit 1
 fi
-if grep -q "superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git#" "$REPO_ROOT/README.md" "$REPO_ROOT/.opencode/INSTALL.md"; then
-  echo "  [FAIL] GitHub install path still includes a branch or tag fragment"
+if ! grep -q "superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git#main" "$REPO_ROOT/README.md" "$REPO_ROOT/.opencode/INSTALL.md"; then
+  echo "  [FAIL] GitHub fallback/nightly install path is not documented"
   exit 1
 fi
 if grep -Fq '"plugin": ["@notchrisbutler/superduperpowers"]' "$REPO_ROOT/README.md" "$REPO_ROOT/.opencode/INSTALL.md"; then
-  echo "  [FAIL] npm package path is documented as the active OpenCode install path"
+  echo "  [FAIL] scoped npm package path is documented as the active OpenCode install path"
   exit 1
 fi
-if grep -qi "npm publication\|future npm\|npm install" "$REPO_ROOT/README.md" "$REPO_ROOT/.opencode/INSTALL.md"; then
-  echo "  [FAIL] npm publication/install language is still documented in setup guides"
+if grep -qi "future npm\|not an npm package\|installed from the GitHub repository" "$REPO_ROOT/README.md" "$REPO_ROOT/.opencode/INSTALL.md"; then
+  echo "  [FAIL] stale pre-publication install language is still documented in setup guides"
   exit 1
 fi
 

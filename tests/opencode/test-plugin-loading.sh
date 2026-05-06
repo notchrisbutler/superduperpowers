@@ -72,7 +72,7 @@ import path from 'path';
 
 const packagePath = path.join(process.env.SUPERPOWERS_DIR, 'package.json');
 const pkg = JSON.parse(fs.readFileSync(packagePath, 'utf8'));
-if (pkg.name !== '@notchrisbutler/superduperpowers') throw new Error(`unexpected package name ${pkg.name}`);
+if (pkg.name !== 'superduperpowers') throw new Error(`unexpected package name ${pkg.name}`);
 if (pkg.main !== '.opencode/plugins/superduperpowers.js') throw new Error(`unexpected main ${pkg.main}`);
 const mod = await import(path.join(process.env.SUPERPOWERS_DIR, pkg.main));
 if (!mod.SuperpowersPlugin) throw new Error('missing SuperpowersPlugin export');
