@@ -4,7 +4,7 @@
   ],
   "audit": {
     "exclude": [
-      "docs/superpowers",
+      "docs/superduperpowers",
       "docs/publishing.md",
       "docs/release-notes.md",
       "node_modules",

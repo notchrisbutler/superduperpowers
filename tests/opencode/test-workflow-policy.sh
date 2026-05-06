@@ -12,6 +12,13 @@ if grep -R "docs/superpowers" "$SUPERPOWERS_DIR/skills" "$SUPERPOWERS_DIR/agents
   exit 1
 fi
 
+for legacy_dir in explicit-skill-requests skill-triggering subagent-driven-dev; do
+  if [ -e "$REPO_ROOT/tests/$legacy_dir" ]; then
+    echo "  [FAIL] Found stale Claude-harness test directory: tests/$legacy_dir"
+    exit 1
+  fi
+done
+
 if grep -R "default .*\.opencode/worktrees\|Default worktree root.*\.opencode/worktrees\|Use \.opencode/worktrees" "$SUPERPOWERS_DIR/skills"; then
   echo "  [FAIL] Found stale default .opencode/worktrees guidance"
   exit 1
