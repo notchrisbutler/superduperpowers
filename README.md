@@ -3,7 +3,7 @@
 **OpenCode-first skills and workflow agents for deliberate coding workflows**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2026.506.6-purple.svg)](https://github.com/notchrisbutler/superduperpowers/releases/tag/v2026.506.6)
+[![Version](https://img.shields.io/badge/version-2026.506.7-purple.svg)](https://github.com/notchrisbutler/superduperpowers/releases/tag/v2026.506.7)
 [![OpenCode](https://img.shields.io/badge/OpenCode-plugin-111827.svg)](.opencode/INSTALL.md)
 
 SuperDuperPowers gives coding agents a practical workflow toolkit: brainstorm when the work is ambiguous, write plans when the scope is real, execute in grouped phases, review at meaningful checkpoints, and verify before claiming success.
@@ -129,10 +129,10 @@ The packaged defaults live in `defaults/superduperpowers.jsonc`. OpenCode sessio
 
 The release workflow updates this block during the version bump. The final npm tarball hashes are published by the registry after publish; verify them with npm instead of trusting a self-referential hash embedded in this packaged README.
 
-- Version: `2026.506.6`
-- GitHub tag: `v2026.506.6`
-- npm package: `superduperpowers@2026.506.6`
-- Verify npm integrity: `npm view superduperpowers@2026.506.6 dist.integrity dist.shasum`
+- Version: `2026.506.7`
+- GitHub tag: `v2026.506.7`
+- npm package: `superduperpowers@2026.506.7`
+- Verify npm integrity: `npm view superduperpowers@2026.506.7 dist.integrity dist.shasum`
 
 ---
 
