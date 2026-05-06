@@ -9,7 +9,7 @@ metadata:
 
 Dispatch the right code-review subagent to catch issues before they cascade. The reviewer gets precisely crafted context for evaluation, never your session's history. This keeps the reviewer focused on the work product, not your thought process, and preserves your own context for continued work.
 
-**Core principle:** Review at meaningful boundaries. Use lite code review for normal task-scope checkpoints, and reserve full code review for high-risk tasks, escalations, final validation, and pre-merge review.
+**Core principle:** Review at meaningful boundaries. Use lite code review for normal task-scope checkpoints, and reserve full code review for high-risk tasks, escalations, final validation, and pre-merge review. The main agent remains the coordinator and owns todos, branch decisions, commits, reviews, validation gates, and next-step routing. Do not spawn, dispatch, or coordinate any other subagents from inside a reviewer; report split, follow-up worker, or reviewer recommendations to the main coordinator, and the main coordinator decides.
 
 ## When to Request Review
 

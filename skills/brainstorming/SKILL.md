@@ -23,7 +23,7 @@ Keep brainstorming replies concise and user-facing: ask the next useful question
 
 ## Agent Dispatch
 
-When named agents are available and isolated context helps, dispatch `brainstorming-facilitator` with the user request, compact workflow profile, relevant project context, docs policy, and an explicit “may write approved spec, must not implement code” instruction.
+When named agents are available and isolated context helps, dispatch `brainstorming-facilitator` with the user request, compact workflow profile, relevant project context, docs policy, and an explicit “may write approved spec, must not implement code” instruction. The main agent remains the coordinator and owns todos, branch decisions, commits, reviews, validation gates, and next-step routing. Do not spawn, dispatch, or coordinate any other subagents from inside a facilitator or reviewer; report split, follow-up worker, or reviewer recommendations to the main coordinator, and the main coordinator decides.
 
 Keep direct collaboration in the main session when the design is small, the user is actively answering questions, or dispatch would obscure approval gates.
 

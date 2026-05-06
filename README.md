@@ -3,7 +3,7 @@
 **OpenCode-first skills and workflow agents for deliberate coding workflows**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2026.5.6--3-purple.svg)](https://github.com/notchrisbutler/superduperpowers/releases)
+[![Version](https://img.shields.io/badge/version-2026.0506.4-purple.svg)](https://github.com/notchrisbutler/superduperpowers/releases)
 [![OpenCode](https://img.shields.io/badge/OpenCode-plugin-111827.svg)](.opencode/INSTALL.md)
 
 SuperDuperPowers gives coding agents a practical workflow toolkit: brainstorm when the work is ambiguous, write plans when the scope is real, execute in grouped phases, review at meaningful checkpoints, and verify before claiming success.
@@ -38,9 +38,9 @@ Project settings override global settings. Use repo install for project-local de
 
 See [GitHub Releases](https://github.com/notchrisbutler/superduperpowers/releases) for release notes and active release history. Published releases are available on npm as [`superduperpowers`](https://www.npmjs.com/package/superduperpowers).
 
-The bare package name follows npm `latest`. Use an explicit version such as `superduperpowers@2026.5.6` only when you want to pin a specific release.
+The bare package name follows npm `latest`, which reflects the protected `latest` published-state branch. Use an explicit version such as `superduperpowers@YYYY.MMDD.N` only when you want to pin a specific release tag such as `vYYYY.MMDD.N`.
 
-For fallback or nightly use, power users can install directly from the GitHub `main` branch. This tracks repository changes before the next npm release and may include bugs:
+For fallback or nightly use, power users can install directly from the GitHub `main` branch. `main` is the nightly/integration branch; it tracks repository changes before the next restricted promotion to `latest` and may include bugs:
 
 ```json
 {
@@ -81,7 +81,7 @@ If the CLI cannot update your environment, run `/sdp-status` for diagnostics and
 - Named workflow agents as thin OpenCode adapter roles for review, planning, implementation, TDD, debugging, and safe parallelization
 - Local-first finishing flow that prepares PR commands without pushing unless explicitly requested
 - Included OpenCode plugin entrypoint through `.opencode/plugins/superduperpowers.js`
-- Calendar release versioning in the form `YYYY.M.D`, with `YYYY.M.D-N` for additional same-day releases
+- Calendar release versioning in the form `YYYY.MMDD.N`, with zero-padded `MMDD`, npm versions such as `YYYY.MMDD.N`, and GitHub release tags such as `vYYYY.MMDD.N`
 
 ---
 
@@ -93,7 +93,7 @@ If the CLI cannot update your environment, run `/sdp-status` for diagnostics and
 | [Workflow Map](docs/workflow-map.md) | Current SDP routes, skill categories, agent roles, and registration constraints |
 | [Wiki](docs/wiki/index.md) | Documentation index |
 | [Testing](docs/testing.md) | Included OpenCode config tests and integration checks |
-| [Publishing](docs/publishing.md) | GitHub Releases and `latest` tag release flow |
+| [Publishing](docs/publishing.md) | GitHub Releases, `latest` published-state branch, and npm `latest` release flow |
 | [GitHub Releases](https://github.com/notchrisbutler/superduperpowers/releases) | Release notes and active release history |
 | [Acknowledgements](ACKNOWLEDGEMENTS.md) | Baseline platform attribution |
 

@@ -1,0 +1,6 @@
+{
+  "pull_request": {
+    "base": { "ref": "latest" },
+    "head": { "ref": "main" }
+  }
+}

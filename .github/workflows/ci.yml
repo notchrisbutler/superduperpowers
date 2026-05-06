@@ -22,5 +22,20 @@ jobs:
       - name: Check version metadata
         run: npm run version:check
 
+      - name: Run release gate
+        run: node scripts/release-gate.mjs --mode pr
+
+      - name: Run workflow policy tests
+        run: tests/opencode/test-workflow-policy.sh
+
+      - name: Run agent and skill drift tests
+        run: tests/opencode/test-agent-skill-drift.sh
+
+      - name: Run installer CLI tests
+        run: tests/opencode/test-installer-cli.sh
+
+      - name: Run OpenCode tests
+        run: tests/opencode/run-tests.sh
+
       - name: Check package contents
-        run: npm pack --dry-run
+        run: npm pack --dry-run --json

@@ -19,7 +19,7 @@ Save plans to `{DOCS_ROOT}/{SDP_DOCS_DIR}/plans/YYYY-MM-DD-<feature-name>.md` un
 
 ## Agent Dispatch
 
-For substantial plans, dispatch `plan-writer` with the approved spec, compact workflow profile, repo conventions, docs path, generated-doc policy, testing intensity, and execution constraints. It may write the plan document but must not implement code.
+For substantial plans, dispatch `plan-writer` with the approved spec, compact workflow profile, repo conventions, docs path, generated-doc policy, testing intensity, and execution constraints. It may write the plan document but must not implement code. The main agent remains the coordinator and owns todos, branch decisions, commits, reviews, validation gates, and next-step routing. Do not spawn, dispatch, or coordinate any other subagents from inside a plan writer or reviewer; report split, follow-up worker, or reviewer recommendations to the main coordinator, and the main coordinator decides.
 
 After the plan is written, use `plan-reviewer` for broad, high-risk, many-file, multi-worker, or uncertain execution shapes. For small plans, inline self-review is enough unless required by the user or profile. If review requires changes, update once, request one focused re-review, then ask the user if material issues remain.
 
@@ -115,7 +115,7 @@ Fix issues inline. Then ask the user to review the saved plan:
 
 > "Plan written to `<path>`. Please review it and let me know if you want changes before execution."
 
-Wait for approval. If changes are requested, update the plan and re-run self-review. After approval, re-read live settings, record the approved plan path, and respect generated-doc policy.
+Wait for approval. If changes are requested, update the plan and re-run self-review. After approval, re-read live settings, update the workflow profile or explicit handoff context with the approved plan path before offering execution choices, and respect generated-doc policy.
 
 For extended examples/details, read [placeholder and self-review rules](references/placeholder-and-self-review-rules.md) when this extra detail is needed.
 

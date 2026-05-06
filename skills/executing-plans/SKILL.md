@@ -27,6 +27,8 @@ Before execution, read live settings and the workflow profile. Run branch prefli
 3. If concerns: Raise them with the user before starting
 4. If no concerns: Re-read live settings, determine whether workflow commits are enabled by the approved execution workflow, create a flat, dependency-ordered harness todo list, and proceed
 
+For fresh session resume requests, require an approved plan path before starting execution. Use an explicit plan path first; otherwise read the approved plan path from the workflow profile. If neither exists, stop and ask for the path or route the user back to planning. Do not reconstruct or continue a plan from memory, stale transcript context, or unverified assumptions.
+
 ### Step 2: Execute Tasks
 
 Build the harness todo list flat and dependency ordered. Use one visible todo per bounded implementation unit, parent task review gate, final review, and finalize step:

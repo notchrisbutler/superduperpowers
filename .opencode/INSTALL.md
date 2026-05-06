@@ -28,11 +28,11 @@ npx superduperpowers status
 
 Restart OpenCode after install, update, or uninstall so the package and config are reloaded.
 
-The bare package name follows npm `latest`. Use an explicit version such as `superduperpowers@2026.5.6` only when you want to pin a specific release.
+The bare package name follows npm `latest`, which reflects the protected `latest` published-state branch. Use an explicit version such as `superduperpowers@2026.0506.0` only when you want to pin a specific release tag such as `v2026.0506.0`.
 
 If you previously tested a local shim named `superpowers.js` in your user OpenCode plugins directory, remove that stale shim before verifying this package. The included entrypoint is now `superduperpowers.js`; keeping both shims can make OpenCode load duplicate plugin copies.
 
-See GitHub Releases for release notes and active release history. npm `latest` is the stable OpenCode install path.
+See GitHub Releases for release notes and active release history. npm `latest` is the stable OpenCode install path; GitHub `main` is the nightly repository-head path.
 
 ## First Run Verification
 
@@ -69,7 +69,7 @@ If OpenCode keeps loading an older package copy, run `npx superduperpowers@lates
 
 ## GitHub Fallback And Nightly Install
 
-Power users can install directly from the GitHub `main` branch when they want a fallback source or nightly-style updates before the next npm release. This can include unreleased bugs or packaging changes:
+Power users can install directly from the GitHub `main` branch when they want a fallback source or nightly-style updates before the next npm release. `main` is not the published-state branch and can include unreleased bugs or packaging changes:
 
 ```json
 {

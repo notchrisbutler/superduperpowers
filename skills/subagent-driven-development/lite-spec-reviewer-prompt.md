@@ -4,6 +4,8 @@ Use this template when named `lite-spec-reviewer` agents are unavailable.
 
 Fallback alignment: this prompt is for harnesses that cannot dispatch the canonical named reviewer agent from `agents/`. Preserve the corresponding canonical reviewer behavior and output priorities when adapting this prompt.
 
+Orchestration boundary: Do not spawn, dispatch, or coordinate any other subagents. The main agent remains the coordinator and owns todos, branch decisions, commits, reviews, validation gates, and next-step routing. Report any split, follow-up worker, or reviewer recommendations to the main coordinator; the main coordinator decides.
+
 **Purpose:** Run a fast spec checkpoint for small, mechanical, or low-risk tasks.
 
 ```

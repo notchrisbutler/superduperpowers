@@ -5,12 +5,14 @@
   "audit": {
     "exclude": [
       "docs/superduperpowers",
+      "CHANGELOG.md",
       "docs/publishing.md",
       "docs/release-notes.md",
       "node_modules",
       ".git",
       ".version-bump.json",
       "scripts/bump-version.sh",
+      "scripts/release-gate.mjs",
       "package-lock.json"
     ]
   }
