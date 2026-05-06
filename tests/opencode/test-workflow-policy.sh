@@ -190,6 +190,10 @@ if GITHUB_EVENT_NAME=pull_request GITHUB_EVENT_PATH="$latest_bad_head_event" nod
   echo "  [FAIL] release gate allowed a PR into latest from a feature branch"
   exit 1
 fi
+git -C "$REPO_ROOT" fetch --no-tags origin latest:refs/remotes/origin/latest >/dev/null 2>&1 || {
+  echo "  [FAIL] release gate test requires origin/latest to be fetchable"
+  exit 1
+}
 GITHUB_EVENT_NAME=workflow_dispatch GITHUB_EVENT_PATH="$release_dispatch_event" node "$REPO_ROOT/scripts/release-gate.mjs" --mode release
 
 if [ ! -f "$REPO_ROOT/.github/workflows/release.yml" ]; then
