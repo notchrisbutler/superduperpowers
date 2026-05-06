@@ -9,10 +9,8 @@
 #   bump-version.sh --check         Report current versions (detect drift)
 #   bump-version.sh --audit         Check + grep repo for old version strings
 #
-# Project versions use YYYY.M.D for the first release on a date and
-# YYYY.M.D-N for additional same-day releases. Git tags use the same raw
-# version string without a leading v; --next also detects legacy v-prefixed
-# tags during the transition.
+# Project versions use YYYY.MMDD.N, where MMDD is zero-padded and N is the
+# release number for that date. Git tags use vYYYY.MMDD.N.
 #
 set -euo pipefail
 
@@ -76,12 +74,30 @@ current_declared_version() {
 }
 
 is_project_version() {
-  echo "$1" | grep -qE '^[0-9]{4}\.[1-9][0-9]*\.[1-9][0-9]*(-[1-9][0-9]*)?$'
+  local version="$1" year month day suffix daysInMonth
+  [[ "$version" =~ ^([0-9]{4})\.([0-9]{2})([0-9]{2})\.([0-9]+)$ ]] || return 1
+  year="${BASH_REMATCH[1]}"
+  month="${BASH_REMATCH[2]}"
+  day="${BASH_REMATCH[3]}"
+  suffix="${BASH_REMATCH[4]}"
+  [[ "$suffix" =~ ^[0-9]+$ ]] || return 1
+  case "$month" in
+    01|03|05|07|08|10|12) daysInMonth=31 ;;
+    04|06|09|11) daysInMonth=30 ;;
+    02)
+      if (( (10#$year % 400 == 0) || (10#$year % 4 == 0 && 10#$year % 100 != 0) )); then
+        daysInMonth=29
+      else
+        daysInMonth=28
+      fi
+      ;;
+    *) return 1 ;;
+  esac
+  (( 10#$day >= 1 && 10#$day <= daysInMonth ))
 }
 
 badge_version() {
-  # shields.io uses -- to render a literal hyphen in badge text.
-  printf '%s' "$1" | sed 's/-/--/g'
+  printf '%s' "$1"
 }
 
 update_readme_badge() {
@@ -96,30 +112,26 @@ update_readme_badge() {
 
 next_version_for_today() {
   local today today_re current max_suffix version tag_name
-  today=$(date '+%Y.%-m.%-d')
+  today=$(date '+%Y.%m%d')
   today_re=${today//./\\.}
   current=$(current_declared_version)
   max_suffix=-1
 
-  if [[ "$current" == "$today" ]]; then
-    max_suffix=0
-  elif [[ "$current" =~ ^${today_re}-([1-9][0-9]*)$ ]]; then
+  if [[ "$current" =~ ^${today_re}\.([0-9]+)$ ]]; then
     max_suffix="${BASH_REMATCH[1]}"
   fi
 
   while IFS= read -r tag_name; do
     version="${tag_name#v}"
-    if [[ "$version" == "$today" ]]; then
-      (( max_suffix < 0 )) && max_suffix=0
-    elif [[ "$version" =~ ^${today_re}-([1-9][0-9]*)$ ]]; then
+    if [[ "$version" =~ ^${today_re}\.([0-9]+)$ ]]; then
       (( BASH_REMATCH[1] > max_suffix )) && max_suffix="${BASH_REMATCH[1]}"
     fi
-  done < <({ git -C "$REPO_ROOT" tag --list "${today}*"; git -C "$REPO_ROOT" tag --list "v${today}*"; } | sort -u)
+  done < <(git -C "$REPO_ROOT" tag --list "v${today}.*" | sort -u)
 
   if (( max_suffix < 0 )); then
-    printf '%s\n' "$today"
+    printf '%s.0\n' "$today"
   else
-    printf '%s-%s\n' "$today" "$((max_suffix + 1))"
+    printf '%s.%s\n' "$today" "$((max_suffix + 1))"
   fi
 }
 
@@ -142,6 +154,10 @@ cmd_check() {
     local ver
     ver=$(read_json_field "$fullpath" "$field")
     printf "  %-45s  %s\n" "$path ($field)" "$ver"
+    if ! is_project_version "$ver"; then
+      echo "  INVALID: expected YYYY.MMDD.N"
+      has_drift=1
+    fi
     versions+=("$ver")
   done < <(declared_files)
 
@@ -245,7 +261,7 @@ cmd_bump() {
   local new_version="$1"
 
   if ! is_project_version "$new_version"; then
-    echo "error: '$new_version' doesn't look like a project version (expected YYYY.M.D or YYYY.M.D-N)" >&2
+    echo "error: '$new_version' doesn't look like a project version (expected YYYY.MMDD.N)" >&2
     exit 1
   fi
 
@@ -287,8 +303,8 @@ case "${1:-}" in
   --help|-h|"")
     echo "Usage: bump-version.sh --next | <new-version> | --check | --audit"
     echo ""
-    echo "  --next         Bump to today's next release version based on package.json and raw numeric tags"
-    echo "  <new-version>  Bump all declared files to the given date version, e.g. 2026.4.30 or 2026.4.30-1"
+    echo "  --next         Bump to today's next vYYYY.MMDD.N release version based on package.json and tags"
+    echo "  <new-version>  Bump all declared files to the given date version, e.g. 2026.0506.0 or 2026.0506.1"
     echo "  --check        Show current versions, detect drift"
     echo "  --audit        Check + scan repo for undeclared version references"
     exit 0

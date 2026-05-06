@@ -1,62 +1,82 @@
 # Publishing
 
-SuperDuperPowers publishes through GitHub Releases. Publishing a release with a calendar-version tag runs `.github/workflows/publish.yml`, validates the package, and publishes the matching npm version to the `latest` dist-tag for the `superduperpowers` package.
+SuperDuperPowers publishes through GitHub Releases. A restricted manual release workflow promotes the prepared `main` branch to the protected `latest` published-state branch, creates a GitHub Release from `CHANGELOG.md`, and lets `.github/workflows/publish.yml` publish the matching npm version to the `latest` dist-tag for the `superduperpowers` package.
 
-OpenCode installs should use the npm package by default. GitHub repository installs are fallback/nightly sources for power users who intentionally want repository-head behavior and can tolerate unreleased bugs.
+OpenCode installs should use the npm package by default. GitHub `main` repository installs are fallback/nightly sources for power users who intentionally want repository-head behavior and can tolerate unreleased bugs. No PRs should target `latest`; it is promoted only by the restricted manual release workflow.
 
 ## Release Tags
 
 Calendar release tags use:
 
 ```text
-YYYY.M.D
-YYYY.M.D-N
+vYYYY.MMDD.N
 ```
 
-GitHub Releases are the active release history. npm `latest` is the stable OpenCode install channel.
+GitHub Releases are the active release history. Tags use zero-padded `MMDD`, for example `vYYYY.MMDD.N`. npm `latest` is the stable OpenCode install channel and mirrors the protected `latest` branch.
 
-The publish workflow rejects tags outside this format and rejects GitHub prereleases because every automated publish updates npm `latest`.
+The release and publish gates reject tags outside this format and reject GitHub prereleases because every automated publish updates npm `latest`. The protected npm trusted-publishing environment should allow only the `latest` branch and `v*` tags; it should not allow `main` directly.
 
 ## Local Version Bump
 
-Before creating a release, bump the version locally and push the result to `main`:
+Before running the restricted release workflow, prepare `main` through the normal PR/CI path. Version and changelog updates are release-prep work on `main`; the release workflow takes `main` as-is and does not bump versions, rewrite changelogs, commit, or push `main`:
 
 ```bash
 scripts/bump-version.sh --next
 scripts/bump-version.sh --check
 scripts/bump-version.sh --audit
-git add package.json README.md
+git add package.json README.md CHANGELOG.md
 VERSION=$(node -p "require('./package.json').version")
-git commit -m "Release ${VERSION}"
-git push origin main
+git commit -m "Prepare release ${VERSION}"
 ```
 
-The first release on a date uses `YYYY.M.D`. Additional releases on the same date use suffixes such as `YYYY.M.D-1`, `YYYY.M.D-2`, and so on. Do not use leading zeroes such as `YYYY.04.DD`.
+The first release on a date uses `YYYY.MMDD.0`. Additional releases on the same date increment the final numeric segment, for example `YYYY.MMDD.1` and `YYYY.MMDD.2`.
 
 You can also pass an explicit version:
 
 ```bash
-scripts/bump-version.sh 2026.5.1
-scripts/bump-version.sh 2026.5.1-1
+scripts/bump-version.sh 2026.0506.0
+scripts/bump-version.sh YYYY.MMDD.N
 ```
 
-## Create The GitHub Release
+## Run The Restricted Release Workflow
 
-Create the GitHub Release:
+Run the restricted manual release workflow after `main` is release-prepared and green. Start with the default dry run, then rerun with `dry_run` false only after approval:
 
 ```text
-Tag: YYYY.M.D or YYYY.M.D-N
-Release title: YYYY.M.D or YYYY.M.D-N
-Target: main
+Source: main
+Promotes: latest by fast-forward only
+Tag: vYYYY.MMDD.N
+Release body: CHANGELOG.md
 ```
 
-Use `docs/superduperpowers/other/release-notes.md` as the release body when preparing the release.
+`CHANGELOG.md` is the GitHub Release body source. The release gate requires `main` as the source, a valid `YYYY.MMDD.N` package version, computed tag `vYYYY.MMDD.N`, a non-empty `CHANGELOG.md`, an existing `latest` branch, and proof that `main` is not behind `latest`.
 
-Publishing uses the protected GitHub `npm` environment and npm trusted publishing. The package already exists on npm, so configure trusted publishing for repository `notchrisbutler/superduperpowers`, workflow file `publish.yml`, and environment `npm`.
+The release workflow validates `main`, fast-forwards `latest` to the validated commit, verifies `origin/latest` exactly equals that commit, and then creates the GitHub Release. It does not run `npm run version:next`, rewrite `CHANGELOG.md`, commit, push `main`, or open PRs into `latest`.
+
+Publishing uses the protected GitHub `npm` environment and npm trusted publishing. The package already exists on npm, so configure trusted publishing for repository `notchrisbutler/superduperpowers`, workflow file `publish.yml`, and environment `npm`. `.github/workflows/publish.yml` publishes only non-prerelease GitHub Releases whose `vYYYY.MMDD.N` tag matches `package.json` and whose tag commit equals `origin/latest`; manual dispatch is dry-run validation only and cannot publish npm.
+
+## Package Verification
+
+Before publishing, verify the installer tests and package dry-run output:
+
+```bash
+tests/opencode/run-tests.sh --test test-installer-cli.sh
+npm pack --dry-run
+```
+
+Confirm the dry-run package contents include the CLI and installer support directories (`bin/`, `installer/`, `defaults/`, and `templates/`) alongside the existing `skills/`, `agents/`, docs, and `.opencode/plugins/` OpenCode plugin files.
 
 ## Install Strings
 
-Recommended install:
+The primary setup path is the npm CLI installer:
+
+```bash
+npx superduperpowers
+```
+
+The installer configures OpenCode to load the npm package:
+
+Recommended plugin entry after install:
 
 ```json
 {

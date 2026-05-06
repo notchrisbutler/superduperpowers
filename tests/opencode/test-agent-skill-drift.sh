@@ -61,6 +61,48 @@ for (const [file, agent] of Object.entries(fallbackPrompts)) {
     throw new Error(`${file} does not tie fallback behavior to a canonical named agent`);
   }
   if (!text.includes(agent)) throw new Error(`${file} does not name canonical agent ${agent}`);
+  if (!/Do not spawn, dispatch, or coordinate (any other )?subagents/i.test(text)) {
+    throw new Error(`${file} lacks no-nested-subagent fallback boundary language`);
+  }
+  if (!/main agent remains the (coordinator|orchestrator)|main agent owns/i.test(text)) {
+    throw new Error(`${file} lacks coordinator-owned orchestration boundary language`);
+  }
+  if (!/report .*recommendations? to the main (agent|coordinator)|report .*split.* to the main (agent|coordinator)|main (agent|coordinator).*decides/i.test(text)) {
+    throw new Error(`${file} lacks fallback reporting-only split/reviewer recommendation language`);
+  }
+  const coordinatorResponsibilities = [
+    /todos?|todo list/i,
+    /branch decisions?|branch/i,
+    /commits?/i,
+    /reviews?/i,
+    /validation gates?|validation/i,
+    /next-step routing|routing/i
+  ];
+  for (const pattern of coordinatorResponsibilities) {
+    if (!pattern.test(text)) throw new Error(`${file} lacks coordinator-owned ${pattern.source} boundary language`);
+  }
+}
+
+const coordinatorBoundarySkills = [
+  'skills/subagent-driven-development/SKILL.md',
+  'skills/dispatching-parallel-agents/SKILL.md',
+  'skills/test-driven-development/SKILL.md',
+  'skills/requesting-spec-review/SKILL.md',
+  'skills/requesting-code-review/SKILL.md',
+  'skills/writing-plans/SKILL.md',
+  'skills/brainstorming/SKILL.md'
+];
+for (const file of coordinatorBoundarySkills) {
+  const text = read(file);
+  if (!/Do not spawn, dispatch, or coordinate (any other )?subagents/i.test(text)) {
+    throw new Error(`${file} lacks no-nested-subagent skill boundary language`);
+  }
+  if (!/main agent remains the (coordinator|orchestrator)|main agent owns/i.test(text)) {
+    throw new Error(`${file} lacks coordinator-owned skill boundary language`);
+  }
+  if (!/report .*recommendations? to the main (agent|coordinator)|report .*split.* to the main (agent|coordinator)|main (agent|coordinator).*decides/i.test(text)) {
+    throw new Error(`${file} lacks reporting-only split/reviewer recommendation boundary language`);
+  }
 }
 
 requireIncludes('agents/implementer.md', [
@@ -136,8 +178,9 @@ for (const file of fs.readdirSync(agentsDir)) {
 console.log('agent/skill drift checks passed');
 NODE
 
-node "$REPO_ROOT/scripts/context-budget.mjs" --check >/tmp/sdp-context-budget-check.txt
-if ! grep -q "Bootstrap:" /tmp/sdp-context-budget-check.txt; then
+context_budget_report="$(mktemp "$TEST_HOME/sdp-context-budget-check.XXXXXX")"
+node "$REPO_ROOT/scripts/context-budget.mjs" --check >"$context_budget_report"
+if ! grep -q "Bootstrap:" "$context_budget_report"; then
   echo "  [FAIL] context budget report did not include bootstrap line"
   exit 1
 fi

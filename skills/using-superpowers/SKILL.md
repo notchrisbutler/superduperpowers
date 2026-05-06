@@ -43,6 +43,15 @@ When available, use `sdp_settings` once at the first meaningful route decision t
 
 Do not call runtime tools just to restate already-known values. Carry the compact profile summary in prompts instead of making every subagent read state again.
 
+## Fresh-Session Plan Resume
+
+When a fresh session asks to execute or resume an approved SuperDuperPowers plan, do not improvise from memory or stale transcript context.
+
+1. Look first for an explicit plan path in the user's request.
+2. If no explicit plan path is present, check the workflow profile for the approved plan path and execution choice.
+3. If an approved plan path is present, route to `executing-plans` for inline/separate-session execution or `subagent-driven-development` for same-session subagent execution, matching the explicit request or profile.
+4. If no approved plan path is available, stop and ask for the plan path or route back to `brainstorming`/`writing-plans` to produce an approved plan.
+
 ## Context Discipline
 
 Frontier models can handle very large contexts, but SuperDuperPowers should still preserve attention and cacheability:

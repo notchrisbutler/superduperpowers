@@ -15,7 +15,7 @@ When you have multiple unrelated failures (different test files, different subsy
 
 **Core principle:** Dispatch one agent per independent problem domain. Let them work concurrently.
 
-The main agent remains the orchestrator. It owns the visible todo list, dispatch decisions, integration, review routing, validation, and commits. Parallel workers own only their assigned stream and report back; they do not mutate todos, choose later work, or spawn/dispatch/coordinate other subagents.
+The main agent remains the orchestrator. It owns the visible todo list, branch decisions, dispatch decisions, integration, review routing, validation gates, commits, and next-step routing. Do not spawn, dispatch, or coordinate any other subagents from inside an advisor, worker, or reviewer; report split, follow-up worker, or reviewer recommendations to the main coordinator, and the main coordinator decides. Parallel workers own only their assigned stream and report back; they do not mutate todos, choose later work, or spawn/dispatch/coordinate other subagents.
 
 ## When to Use
 

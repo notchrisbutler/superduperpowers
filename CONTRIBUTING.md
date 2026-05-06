@@ -20,7 +20,7 @@ Pull requests should include:
 - The problem being solved
 - A concise summary of the change
 - Verification performed
-- Harness compatibility risks for OpenCode, Claude, Codex, Cursor, Gemini, or Copilot when relevant
+- Harness compatibility risks for OpenCode and any other supported harness when relevant
 
 ---
 

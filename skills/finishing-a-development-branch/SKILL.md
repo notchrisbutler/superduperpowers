@@ -33,6 +33,8 @@ If workflow commits are enabled by an approved execution workflow and verified i
 
 Do not commit unrelated user changes, ignored secrets, or local-only generated files. If unrelated changes are mixed and cannot be safely separated, stop and ask. Do not push unless explicitly requested.
 
+When preparing `main` for release promotion to `latest`, treat `CHANGELOG.md` finalization as part of making `main` release-ready. Before declaring readiness, compare `latest...main`, rewrite `CHANGELOG.md` by default to summarize the unreleased changes, preserve the file's current prose and section style, and include validation evidence in the final report. If the project has no versioning schema, use commit IDs or the `latest...main` branch comparison string instead of inventing a version. This guidance prepares `main`; the restricted release workflow itself validates release readiness and must not rewrite the changelog.
+
 ### Step 3: Determine Completion Context
 
 Determine whether work is already on the user's durable branch or on a temporary worktree/task branch that must be integrated elsewhere. Use the workflow profile or active harness context for execution method, parent/source branch, selected durable branch, and worktree paths. Do not rely on memory or brittle shell pipelines when profile data exists.

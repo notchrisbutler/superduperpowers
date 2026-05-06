@@ -12,7 +12,7 @@ What did you run or manually test?
 
 ## Harness Impact
 
-Which harnesses could be affected? Mention Claude, OpenCode, Codex, Cursor, Gemini, or Copilot as relevant.
+Which harnesses could be affected? Mention OpenCode and any other supported harness as relevant.
 
 ## Risks
 

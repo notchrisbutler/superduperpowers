@@ -13,7 +13,7 @@ If the active harness does not support subagents or worker dispatch, use `execut
 
 **Why subagents:** You delegate work to specialized agents with isolated context. By precisely crafting their instructions and context, you keep them focused while preserving your own context for coordination.
 
-**Core principle:** The main agent owns the todo list and orchestration. Each implementation todo maps to one bounded worker dispatch or a deliberately local coordinator action; workers perform assigned tasks and report back, but they do not plan the rest of the workflow, mutate todos, dispatch or coordinate other subagents, run review gates, or absorb a whole parent task when it contains multiple dispatchable units.
+**Core principle:** The main agent owns the todo list and orchestration. Do not spawn, dispatch, or coordinate any other subagents from inside a worker or reviewer; report split, follow-up worker, or reviewer recommendations to the main coordinator, and the main coordinator decides. Each implementation todo maps to one bounded worker dispatch or a deliberately local coordinator action; workers perform assigned tasks and report back, but they do not plan the rest of the workflow, mutate todos, dispatch or coordinate other subagents, run review gates, or absorb a whole parent task when it contains multiple dispatchable units. The main agent owns todos, branch decisions, commits, reviews, validation gates, and next-step routing.
 
 ## When to Use
 

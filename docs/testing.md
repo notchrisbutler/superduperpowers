@@ -42,6 +42,13 @@ Run one named test when narrowing a failure:
 
 ```bash
 tests/opencode/run-tests.sh --test test-plugin-loading.sh
+tests/opencode/run-tests.sh --test test-installer-cli.sh
+```
+
+When changing installer behavior, package metadata, or release contents, also verify the npm package file list:
+
+```bash
+npm pack --dry-run
 ```
 
 ## Test Layout
@@ -51,6 +58,7 @@ tests/opencode/
 ├── run-tests.sh              # Main OpenCode test runner
 ├── setup.sh                  # Shared setup helpers
 ├── test-plugin-loading.sh    # Package and plugin structure checks
+├── test-installer-cli.sh     # Installer CLI, settings, and package layout checks
 ├── test-profile-tool.sh       # Workflow profile tool contract checks
 ├── test-setup-hygiene.sh      # Generated-doc ignore hygiene checks
 ├── test-branch-context.sh     # Read-only branch safety checks
@@ -82,6 +90,15 @@ tests/opencode/run-tests.sh --integration
 ```
 
 Runtime behavior includes skill discovery, the `using-superpowers` bootstrap, reviewer agent registration, custom workflow tools, tool priority handling, and plugin loading inside OpenCode.
+
+Package and installer changes should include targeted verification:
+
+```bash
+tests/opencode/run-tests.sh --test test-installer-cli.sh
+npm pack --dry-run
+```
+
+Confirm the dry-run package contents include `bin/`, `installer/`, `defaults/`, and `templates/` alongside the existing `skills/`, `agents/`, docs, and `.opencode/plugins/` OpenCode plugin files.
 
 When changing `agents/`, fallback prompts, or skill routing language, confirm `test-agent-skill-drift.sh` stays green. It verifies that skills remain canonical, named agents stay thin adapter roles, fallback prompts name their canonical agent, writable/read-only expectations stay aligned, and the context-budget check still passes.
 

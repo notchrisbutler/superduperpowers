@@ -4,6 +4,8 @@ Use this template when dispatching a plan document reviewer subagent.
 
 Fallback alignment: this prompt is for harnesses that cannot dispatch the canonical named `plan-reviewer` agent from `agents/`. Preserve the corresponding execution-readiness checks and output priorities when adapting this prompt.
 
+Orchestration boundary: Do not spawn, dispatch, or coordinate any other subagents. The main agent remains the coordinator and owns todos, branch decisions, commits, reviews, validation gates, and next-step routing. Report any split, follow-up worker, or reviewer recommendations to the main coordinator; the main coordinator decides.
+
 **Purpose:** Verify the plan is complete, matches the spec, and has proper task decomposition.
 
 **Dispatch after:** The complete plan is written.

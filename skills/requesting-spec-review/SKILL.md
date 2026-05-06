@@ -9,7 +9,7 @@ metadata:
 
 Dispatch the right spec-review subagent to verify the work matches what was requested, without expanding scope.
 
-**Core principle:** Spec review checks compliance; code review checks implementation quality. Use both when the workflow calls for both.
+**Core principle:** Spec review checks compliance; code review checks implementation quality. Use both when the workflow calls for both. The main agent remains the coordinator and owns todos, branch decisions, commits, reviews, validation gates, and next-step routing. Do not spawn, dispatch, or coordinate any other subagents from inside a reviewer; report split, follow-up worker, or reviewer recommendations to the main coordinator, and the main coordinator decides.
 
 ## Reviewer Router
 

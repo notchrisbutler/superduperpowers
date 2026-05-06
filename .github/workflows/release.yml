@@ -1,0 +1,194 @@
+name: Release latest
+
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Validate release without promoting latest or creating the GitHub Release"
+        required: true
+        default: true
+        type: boolean
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-latest
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Promote main to latest
+    runs-on: ubuntu-latest
+    environment: release
+    if: ${{ github.ref == 'refs/heads/main' || github.ref_name == 'main' }}
+    permissions:
+      contents: write
+
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: main
+          fetch-depth: 0
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version: 24
+          package-manager-cache: false
+
+      - name: Fetch published-state refs
+        run: git fetch origin main latest --tags --prune
+
+      - name: Validate release source and tag
+        env:
+          GITHUB_EVENT_PATH: ${{ github.event_path }}
+          GITHUB_REF: refs/heads/main
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          git checkout main
+          release_commit="$(git rev-parse HEAD)"
+          origin_main="$(git rev-parse origin/main)"
+          if [ "$release_commit" != "$origin_main" ]; then
+            echo "Checked-out main ${release_commit} does not match origin/main ${origin_main}."
+            exit 1
+          fi
+
+          if ! git merge-base --is-ancestor origin/latest HEAD; then
+            echo "main is behind or diverged from latest; latest cannot fast-forward."
+            exit 1
+          fi
+          if ! git merge-tree --write-tree origin/latest HEAD >/dev/null; then
+            echo "latest cannot be fast-forwarded linearly to main."
+            exit 1
+          fi
+
+          version="$(node -p "require('./package.json').version")"
+          if ! [[ "$version" =~ ^[0-9]{4}\.[0-9]{4}\.[0-9]+$ ]]; then
+            echo "package.json version must be YYYY.MMDD.N, found ${version}."
+            exit 1
+          fi
+          year="${version:0:4}"
+          month="${version:5:2}"
+          day="${version:7:2}"
+          case "$month" in
+            01|03|05|07|08|10|12) days_in_month=31 ;;
+            04|06|09|11) days_in_month=30 ;;
+            02)
+              if (( (10#$year % 400 == 0) || (10#$year % 4 == 0 && 10#$year % 100 != 0) )); then
+                days_in_month=29
+              else
+                days_in_month=28
+              fi
+              ;;
+            *)
+              echo "package.json version has an invalid MMDD month: ${version}."
+              exit 1
+              ;;
+          esac
+          if (( 10#$day < 1 || 10#$day > days_in_month )); then
+            echo "package.json version has an invalid MMDD day: ${version}."
+            exit 1
+          fi
+          latest_version="$(git show origin/latest:package.json | node -p "JSON.parse(require('fs').readFileSync(0, 'utf8')).version")"
+          node --input-type=module --eval "
+            const [mainVersion, latestVersion] = process.argv.slice(1);
+            const normalizeHistoricalVersion = (version) => {
+              const active = /^([0-9]{4})\.([0-9]{2})([0-9]{2})\.([0-9]+)$/.exec(version);
+              if (active) return version;
+              const historical = /^([0-9]{4})\.([0-9]{1,2})\.([0-9]{1,2})-([0-9]+)$/.exec(version);
+              if (!historical) throw new Error(\`latest package version \${version} is not comparable\`);
+              return \`${historical[1]}.\${historical[2].padStart(2, '0')}\${historical[3].padStart(2, '0')}.\${historical[4]}\`;
+            };
+            const compareVersions = (left, right) => {
+              const leftParts = left.split('.').map(Number);
+              const rightParts = normalizeHistoricalVersion(right).split('.').map(Number);
+              for (let index = 0; index < leftParts.length; index += 1) {
+                if (leftParts[index] !== rightParts[index]) return leftParts[index] - rightParts[index];
+              }
+              return 0;
+            };
+            if (compareVersions(mainVersion, latestVersion) < 0) {
+              throw new Error(\`main package version \${mainVersion} is lower than latest package version \${latestVersion}\`);
+            }
+          " "$version" "$latest_version"
+          release_tag="v${version}"
+          if ! [[ "$release_tag" =~ ^v[0-9]{4}\.[0-9]{4}\.[0-9]+$ ]]; then
+            echo "Release tag must be vYYYY.MMDD.N, found ${release_tag}."
+            exit 1
+          fi
+          if git show-ref --tags --verify --quiet "refs/tags/${release_tag}"; then
+            echo "Release tag ${release_tag} already exists."
+            exit 1
+          fi
+          if gh release view "$release_tag" >/dev/null 2>&1; then
+            echo "GitHub Release ${release_tag} already exists."
+            exit 1
+          fi
+          if [ ! -s CHANGELOG.md ]; then
+            echo "CHANGELOG.md must exist and be non-empty."
+            exit 1
+          fi
+          VERSION="$version" RELEASE_TAG="$release_tag" node --input-type=module <<'NODE'
+          import fs from 'node:fs';
+          const version = process.env.VERSION;
+          const releaseTag = process.env.RELEASE_TAG;
+          const changelog = fs.readFileSync('CHANGELOG.md', 'utf8');
+          const escapeRegExp = (value) => value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+          const releaseMentionRegex = (value) => new RegExp(`(^|[^0-9A-Za-z.])${escapeRegExp(value)}([^0-9A-Za-z.]|$)`);
+          if (!releaseMentionRegex(version).test(changelog) && !releaseMentionRegex(releaseTag).test(changelog)) {
+            throw new Error(`CHANGELOG.md must mention ${version} or ${releaseTag}.`);
+          }
+          NODE
+
+          node scripts/release-gate.mjs --mode release
+          {
+            echo "RELEASE_COMMIT=${release_commit}"
+            echo "RELEASE_TAG=${release_tag}"
+          } >> "$GITHUB_ENV"
+
+      - name: Check version metadata
+        run: npm run version:check
+
+      - name: Audit version references
+        run: npm run version:audit
+
+      - name: Run workflow policy tests
+        run: tests/opencode/test-workflow-policy.sh
+
+      - name: Run agent and skill drift tests
+        run: tests/opencode/test-agent-skill-drift.sh
+
+      - name: Run installer CLI tests
+        run: tests/opencode/test-installer-cli.sh
+
+      - name: Run OpenCode tests
+        run: tests/opencode/run-tests.sh
+
+      - name: Check package contents
+        run: npm pack --dry-run --json
+
+      - name: Stop after release dry-run
+        if: ${{ inputs.dry_run }}
+        run: |
+          echo "Release dry-run passed for ${RELEASE_TAG} at ${RELEASE_COMMIT}; latest was not pushed and no GitHub Release was created."
+
+      - name: Promote latest by fast-forward only
+        if: ${{ !inputs.dry_run }}
+        run: |
+          set -euo pipefail
+          git checkout latest
+          git merge --ff-only "$RELEASE_COMMIT"
+          git push origin HEAD:latest
+          git fetch origin latest --prune
+          latest_commit="$(git rev-parse origin/latest)"
+          if [ "$latest_commit" != "$RELEASE_COMMIT" ]; then
+            echo "origin/latest ${latest_commit} does not equal release commit ${RELEASE_COMMIT}."
+            exit 1
+          fi
+
+      - name: Create GitHub Release from CHANGELOG.md
+        if: ${{ !inputs.dry_run }}
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$RELEASE_TAG" --target "$RELEASE_COMMIT" --title "$RELEASE_TAG" --notes-file CHANGELOG.md

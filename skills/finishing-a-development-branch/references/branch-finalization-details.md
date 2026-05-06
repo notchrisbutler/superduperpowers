@@ -2,6 +2,10 @@
 
 Use this reference when the inline branch-finalization gates are not enough.
 
+## Preparing Main For Release Promotion
+
+When the branch being finalized is `main` and the next step is promotion to `latest`, compare `latest...main` and rewrite `CHANGELOG.md` by default before calling `main` release-ready. Keep the existing changelog prose and section style, cite validation evidence, and avoid inventing versions: if no versioning schema exists, identify entries with commit IDs or the branch comparison string. The restricted release workflow validates and publishes; it does not rewrite changelog content.
+
 ## Option 1: Merge Temporary Branch Into Parent/Source
 
 Use only when finishing from a worktree or temporary task branch.

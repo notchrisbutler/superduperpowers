@@ -28,6 +28,44 @@ const context = {
 const settingsResult = JSON.parse(await settingsTool.execute({ operation: 'get' }, context));
 if (!settingsResult.ok) throw new Error(`settings failed: ${JSON.stringify(settingsResult)}`);
 if (settingsResult.settings.workflow.defaultDocsRoot !== 'docs') throw new Error('default docs root missing from live settings');
+if (!settingsResult.sources.some((source) => source.type === 'package-default' && source.path.endsWith('defaults/superduperpowers.config.jsonc'))) {
+  throw new Error(`settings did not load packaged defaults from defaults/: ${JSON.stringify(settingsResult.sources)}`);
+}
+
+const precedenceProject = path.join(process.env.TEST_HOME, 'settings-precedence-project');
+fs.mkdirSync(path.join(precedenceProject, '.opencode'), { recursive: true });
+const globalSettingsDir = path.join(process.env.OPENCODE_CONFIG_DIR, 'superduperpowers');
+fs.mkdirSync(globalSettingsDir, { recursive: true });
+fs.writeFileSync(path.join(globalSettingsDir, 'config.jsonc'), `{
+  "schemaVersion": 1,
+  "workflow": { "defaultDocsRoot": "legacy-global-docs" }
+}
+`);
+fs.writeFileSync(path.join(globalSettingsDir, 'settings.jsonc'), `{
+  "schemaVersion": 1,
+  "workflow": { "defaultDocsRoot": "preferred-global-docs" }
+}
+`);
+fs.writeFileSync(path.join(precedenceProject, 'superduperpowers.config.jsonc'), `{
+  "schemaVersion": 1,
+  "workflow": { "defaultDocsRoot": "legacy-project-docs" }
+}
+`);
+fs.writeFileSync(path.join(precedenceProject, '.opencode', 'superduperpowers.jsonc'), `{
+  "schemaVersion": 1,
+  "workflow": { "defaultDocsRoot": "preferred-project-docs" }
+}
+`);
+const precedenceContext = { ...context, sessionID: 'ses_precedence', messageID: 'msg_precedence', directory: precedenceProject, worktree: precedenceProject };
+const precedenceSettings = JSON.parse(await settingsTool.execute({ operation: 'get' }, precedenceContext));
+if (!precedenceSettings.ok) throw new Error(`precedence settings failed: ${JSON.stringify(precedenceSettings)}`);
+if (precedenceSettings.settings.workflow.defaultDocsRoot !== 'preferred-project-docs') {
+  throw new Error(`project preferred settings did not override global and legacy settings: ${precedenceSettings.settings.workflow.defaultDocsRoot}`);
+}
+const loadedSourceTypes = precedenceSettings.sources.map((source) => source.type).join('>');
+if (!loadedSourceTypes.includes('package-default') || loadedSourceTypes.indexOf('user') > loadedSourceTypes.lastIndexOf('project')) {
+  throw new Error(`settings source order did not load user before project: ${loadedSourceTypes}`);
+}
 
 const setResult = JSON.parse(await profileTool.execute({ operation: 'set', profile: { route: 'full-brainstorming' } }, context));
 if (!setResult.ok) throw new Error(`set failed: ${JSON.stringify(setResult)}`);
