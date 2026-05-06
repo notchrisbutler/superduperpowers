@@ -76,6 +76,8 @@ if (pkg.name !== '@notchrisbutler/superduperpowers') throw new Error(`unexpected
 if (pkg.main !== '.opencode/plugins/superduperpowers.js') throw new Error(`unexpected main ${pkg.main}`);
 const mod = await import(path.join(process.env.SUPERPOWERS_DIR, pkg.main));
 if (!mod.SuperpowersPlugin) throw new Error('missing SuperpowersPlugin export');
+if (!mod.SuperpowersTuiPlugin) throw new Error('missing SuperpowersTuiPlugin export');
+if (mod.tui !== mod.SuperpowersTuiPlugin) throw new Error('missing TUI plugin alias export');
 const hooks = await mod.SuperpowersPlugin({});
 if (typeof hooks.config !== 'function') throw new Error('missing config hook');
 if (!hooks.tool?.sdp_settings) throw new Error('missing sdp_settings tool');
@@ -142,7 +144,7 @@ for (const name of writableAgents) {
   if (agent.permission?.todowrite !== 'deny') throw new Error(`${name} can mutate todos`);
 }
 
-const expectedCommands = ['sdp', 'superduperpowers', 'superpowers', 'brainstorm', 'quick-flow', 'write-plan', 'execute-plan', 'sdp-status', 'sdp-profile', 'sdp-init', 'sdp-cleanup'];
+const expectedCommands = ['sdp', 'superduperpowers', 'superpowers', 'brainstorm', 'quick-flow', 'write-plan', 'execute-plan', 'sdp-status', 'sdp-profile', 'sdp-setup', 'sdp-init', 'sdp-cleanup'];
 for (const name of expectedCommands) {
   const command = config.command?.[name];
   if (!command) throw new Error(`missing command ${name}`);
@@ -150,6 +152,8 @@ for (const name of expectedCommands) {
   if (!command.description) throw new Error(`${name} command is missing description`);
 }
 if (config.command['sdp-status'].template.includes('sdp_profile cleanup')) throw new Error('sdp-status should use diagnostics, not cleanup');
+if (!config.command['sdp-setup'].template.includes('sdp_init')) throw new Error('sdp-setup should invoke sdp_init');
+if (config.command['sdp-init'].template.includes('workflow routing request. Run sdp_profile')) throw new Error('sdp-init should not route through profile setup');
 if (!config.command.sdp.template.includes('Full Brainstorming')) throw new Error('sdp command does not route choices');
 if (!config.command['quick-flow'].template.includes('Keep the work lightweight')) throw new Error('quick-flow command does not route quick flow');
 if (config.command['sdp-verify']) throw new Error('unexpected sdp-verify command registered');
@@ -194,8 +198,50 @@ console.log('user-defined command preserved');
 NODE
 echo "  [PASS] User-defined command preserved"
 
-# Test 9: Verify bootstrap text does not reference a hardcoded skills path
-echo "Test 9: Checking bootstrap does not advertise a wrong skills path..."
+# Test 9: Verify TUI slash commands are registered
+echo "Test 9: Checking TUI slash command registration..."
+node --input-type=module <<'NODE'
+const { SuperpowersTuiPlugin } = await import(process.env.SUPERPOWERS_PLUGIN_FILE);
+const calls = [];
+const submitted = [];
+const api = {
+  command: {
+    register(cb) {
+      calls.push(cb);
+      return () => {};
+    }
+  },
+  client: {
+    tui: {
+      appendPrompt: async (input) => submitted.push(['append', input]),
+      submitPrompt: async (input) => submitted.push(['submit', input])
+    }
+  },
+  workspace: {
+    current: () => 'workspace-1'
+  }
+};
+await SuperpowersTuiPlugin(api);
+if (calls.length !== 1) throw new Error(`expected one TUI command registration, got ${calls.length}`);
+const serverSideResult = await SuperpowersTuiPlugin({ client: api.client });
+if (!serverSideResult || Object.keys(serverSideResult).length !== 0) throw new Error('TUI plugin should be inert outside TUI command API');
+const commands = calls[0]();
+const names = commands.map((command) => command.slash?.name).filter(Boolean);
+for (const name of ['sdp-setup', 'sdp-init']) {
+  if (!names.includes(name)) throw new Error(`missing TUI slash command ${name}`);
+}
+const setup = commands.find((command) => command.slash?.name === 'sdp-setup');
+if (!setup?.description || typeof setup.onSelect !== 'function') throw new Error('sdp-setup TUI command is incomplete');
+await setup.onSelect();
+if (submitted.length !== 2) throw new Error(`expected append and submit calls, got ${submitted.length}`);
+if (!submitted[0][1].text.includes('sdp_init')) throw new Error('sdp-setup TUI command did not append init prompt');
+if (submitted[0][1].workspace !== 'workspace-1') throw new Error('sdp-setup TUI command did not preserve workspace');
+console.log(names.sort().join('\n'));
+NODE
+echo "  [PASS] TUI slash commands registered"
+
+# Test 10: Verify bootstrap text does not reference a hardcoded skills path
+echo "Test 10: Checking bootstrap does not advertise a wrong skills path..."
 if grep -q 'configDir}/skills/superpowers/' "$SUPERPOWERS_PLUGIN_FILE"; then
     echo "  [FAIL] Plugin still references old configDir skills path"
     exit 1
@@ -203,8 +249,8 @@ else
     echo "  [PASS] Plugin does not advertise a misleading skills path"
 fi
 
-# Test 10: Verify bootstrap transform injects once
-echo "Test 10: Checking bootstrap transform injection..."
+# Test 11: Verify bootstrap transform injects once
+echo "Test 11: Checking bootstrap transform injection..."
 node --input-type=module <<'NODE'
 const { SuperpowersPlugin } = await import(process.env.SUPERPOWERS_PLUGIN_FILE);
 const hooks = await SuperpowersPlugin({});
@@ -231,8 +277,8 @@ console.log('bootstrap injected once');
 NODE
 echo "  [PASS] Bootstrap transform injects once"
 
-# Test 11: Verify compaction hook appends context
-echo "Test 11: Checking compaction profile context injection..."
+# Test 12: Verify compaction hook appends context
+echo "Test 12: Checking compaction profile context injection..."
 node --input-type=module <<'NODE'
 import fs from 'fs';
 import path from 'path';
@@ -280,8 +326,8 @@ console.log('compaction context injected');
 NODE
 echo "  [PASS] Compaction hook appends output.context"
 
-# Test 12: Verify personal test skill was created
-echo "Test 12: Checking test fixtures..."
+# Test 13: Verify personal test skill was created
+echo "Test 13: Checking test fixtures..."
 if [ -f "$OPENCODE_CONFIG_DIR/skills/personal-test/SKILL.md" ]; then
     echo "  [PASS] Personal test skill fixture created"
 else

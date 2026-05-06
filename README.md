@@ -3,7 +3,7 @@
 **OpenCode-first skills and workflow agents for deliberate coding workflows**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2026.5.5--2-purple.svg)](https://github.com/notchrisbutler/superduperpowers/releases)
+[![Version](https://img.shields.io/badge/version-2026.5.5--3-purple.svg)](https://github.com/notchrisbutler/superduperpowers/releases)
 [![OpenCode](https://img.shields.io/badge/OpenCode-plugin-111827.svg)](.opencode/INSTALL.md)
 
 SuperDuperPowers gives coding agents a practical workflow toolkit: brainstorm when the work is ambiguous, write plans when the scope is real, execute in grouped phases, review at meaningful checkpoints, and verify before claiming success.
@@ -38,7 +38,7 @@ For local checkout development, use a `git+file` source instead:
 
 See [OpenCode Install](.opencode/INSTALL.md) for the included setup and verification prompts.
 
-After the first launch, run `/sdp-status` to confirm the plugin loaded and `/sdp-init` to create `.opencode/superduperpowers.jsonc` for project-local defaults.
+After the first launch, run `/sdp-status` to confirm the plugin loaded and `/sdp-setup` or `/sdp-init` to create `.opencode/superduperpowers.jsonc` for project-local defaults.
 
 ---
 
@@ -48,7 +48,7 @@ After the first launch, run `/sdp-status` to confirm the plugin loaded and `/sdp
 - Live JSON/JSONC settings through `superduperpowers.config.jsonc`, project overrides, and compact `sdp_settings` summaries
 - Workflow profile tools for route, docs, execution, branch, and testing-intensity decisions; compact summaries are used by default, full JSON is available on demand
 - User-level OpenCode runtime state and default worktrees under `{OPENCODE_CONFIG_DIR}/superduperpowers/`
-- OpenCode TUI commands: `/sdp`, `/superduperpowers`, `/superpowers`, `/brainstorm`, `/quick-flow`, `/write-plan`, `/execute-plan`, `/sdp-status`, `/sdp-profile`, `/sdp-init`, and `/sdp-cleanup`
+- OpenCode TUI commands: `/sdp`, `/superduperpowers`, `/superpowers`, `/brainstorm`, `/quick-flow`, `/write-plan`, `/execute-plan`, `/sdp-status`, `/sdp-profile`, `/sdp-setup`, `/sdp-init`, and `/sdp-cleanup`
 - Read-only OpenCode diagnostics through `sdp_doctor` and `/sdp-status`
 - Safe automatic repair for SuperDuperPowers-owned runtime-state drift under `{OPENCODE_CONFIG_DIR}/superduperpowers/state/`; corrupt state is quarantined and repair does not edit user config, project files, generated docs, plugin shims, or git state
 - Legacy `superpowers.js` shim and duplicate-load warnings are reported through `sdp_doctor` and `/sdp-status`
