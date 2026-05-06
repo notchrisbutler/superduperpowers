@@ -7,9 +7,14 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Package version to validate in dry-run mode, for example YYYY.MMDD.N"
+        description: "Package version to validate or publish, for example YYYY.MMDD.N"
         required: true
         type: string
+      publish:
+        description: "Publish an existing GitHub Release to npm instead of running a dry-run"
+        required: true
+        default: false
+        type: boolean
 permissions:
   contents: read
   id-token: write
@@ -27,7 +32,7 @@ jobs:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-          ref: ${{ github.event.release.tag_name || github.ref }}
+          ref: ${{ github.event.release.tag_name || (inputs.publish && format('v{0}', inputs.version)) || github.ref }}
 
       - uses: actions/setup-node@v6
         with:
@@ -40,6 +45,7 @@ jobs:
           EVENT_NAME: ${{ github.event_name }}
           EVENT_PATH: ${{ github.event_path }}
           INPUT_VERSION: ${{ inputs.version }}
+          INPUT_PUBLISH: ${{ inputs.publish }}
         run: |
           node --input-type=module <<'NODE'
           import fs from 'node:fs';
@@ -51,7 +57,7 @@ jobs:
           const release = event.release ?? {};
           const tagName = isRelease ? release.tag_name : `v${env.INPUT_VERSION}`;
           const distTag = 'latest';
-          const mode = isRelease ? 'publish' : 'dry-run';
+          const mode = isRelease || env.INPUT_PUBLISH === 'true' ? 'publish' : 'dry-run';
 
           if (isRelease && release.prerelease) {
             throw new Error('Refusing to publish a GitHub prerelease to the npm latest dist-tag');
@@ -97,8 +103,11 @@ jobs:
         run: npm run version:check
 
       - name: Verify release tag matches latest
-        if: ${{ github.event_name == 'release' }}
+        if: ${{ env.MODE == 'publish' }}
+        env:
+          GH_TOKEN: ${{ github.token }}
         run: |
+          gh release view "$RELEASE_TAG" >/dev/null
           git fetch origin latest --depth=1
           release_commit="$(git rev-parse HEAD)"
           latest_commit="$(git rev-parse origin/latest)"
@@ -119,5 +128,5 @@ jobs:
           echo "npm publish dry run passed for ${VERSION} with npm dist-tag ${DIST_TAG}."
 
       - name: Publish to npm
-        if: ${{ github.event_name == 'release' && env.MODE == 'publish' }}
+        if: ${{ env.MODE == 'publish' }}
         run: npm publish --access public --provenance --tag "$DIST_TAG"
