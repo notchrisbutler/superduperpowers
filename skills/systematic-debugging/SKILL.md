@@ -27,6 +27,8 @@ Use this skill when the user asks for debugging/diagnosis/root-cause analysis, t
 
 Do not auto-trigger this skill for every small bug report or obvious localized fix. If the issue might need root-cause work but the user asked for quick flow or No SuperDuperPowers, ask whether to switch to systematic debugging.
 
+Keep user-facing debugging updates concise: state the evidence being gathered, the next investigation step, and any information needed from the user. Do not append internal process summaries or review notes unless the user asks for the reasoning or a final incident/debugging report.
+
 ## Agent Dispatch
 
 When named agents are available and the issue is complex, intermittent, multi-component, or already had failed fixes, dispatch `debugging-investigator` before implementation. Give it symptoms, reproduction notes, logs/errors, relevant files, recent changes, and compact profile summary. The investigator is read-only.

@@ -15,9 +15,13 @@ SuperDuperPowers is opt-in by default. `superpowers`, `Superpowers`, `SuperPower
 
 User instructions always win over this workflow. If the user asks for quick work, no process, no TDD, or no docs, honor that unless safety or correctness requires a brief escalation.
 
+## User-Facing Output
+
+Keep user-facing messages focused on results, next action, and the one decision or question needed now. Do not include internal route justifications, workflow notes, or lists of what SuperDuperPowers did not do unless the user asks for process detail, the information affects safety, or you are reporting final verification/branch status.
+
 ## Architecture Boundary
 
-Skills are the canonical, harness-neutral workflow source. Named agents are thin adapter roles for harnesses that support subagents. Use named agents for role isolation, permissions, parallelism, and independent review; use generic fallback prompts only when named agents are unavailable. Do not turn named agents into workflow owners: the main agent owns todos, route decisions, branch flow, commits, review gates, validation gates, and next-step decisions.
+Skills are the canonical, harness-neutral workflow source. Named agents are thin adapter roles for harnesses that support subagents. Use named agents for role isolation, permissions, parallelism, and independent review; use generic fallback prompts only when named agents are unavailable. Do not turn named agents into workflow owners or nested coordinators: the main agent owns todos, route decisions, subagent dispatch, branch flow, commits, review gates, validation gates, and next-step decisions.
 
 ## Route
 

@@ -86,7 +86,7 @@ Plan docs contain detailed `Task N.M` subtasks. Harness todos stay flat and read
 
 Each visible implementation todo maps to one worker assignment unless adjacent mechanical steps touch the same files and share one obvious validation command. Do not expand every checkbox into a harness todo.
 
-## No Placeholders And Two-Attempt Stop Gate
+## Re-Evaluation And Placeholder Seams
 
 Never write `TBD`, `TODO`, “implement later,” “add appropriate error handling,” “write tests for the above,” “similar to Task N,” undefined types/functions, or steps that describe code changes without showing the code.
 

@@ -13,7 +13,7 @@ If the active harness does not support subagents or worker dispatch, use `execut
 
 **Why subagents:** You delegate work to specialized agents with isolated context. By precisely crafting their instructions and context, you keep them focused while preserving your own context for coordination.
 
-**Core principle:** The main agent owns the todo list and orchestration. Each implementation todo maps to one bounded worker dispatch or a deliberately local coordinator action; workers perform assigned tasks and report back, but they do not plan the rest of the workflow, mutate todos, run review gates, or absorb a whole parent task when it contains multiple dispatchable units.
+**Core principle:** The main agent owns the todo list and orchestration. Each implementation todo maps to one bounded worker dispatch or a deliberately local coordinator action; workers perform assigned tasks and report back, but they do not plan the rest of the workflow, mutate todos, dispatch or coordinate other subagents, run review gates, or absorb a whole parent task when it contains multiple dispatchable units.
 
 ## When to Use
 
@@ -142,7 +142,7 @@ For platforms without named agents, use the matching prompt templates in this sk
 - Complex bug task where root cause is not yet proven: dispatch `debugging-investigator` first. Only dispatch an implementation worker after it reports a supported root-cause hypothesis or the human approves proceeding.
 - Multiple apparently independent task streams: use `parallelization-advisor` before dispatching parallel workers unless the independence is already explicit in the plan.
 
-Implementation workers may edit assigned files but must not commit, mutate todos, spawn their own implementation subagents, or decide the next plan task. The coordinator owns todo state, dependency ordering, worker selection, review, validation gates, and local commits.
+Implementation workers may edit assigned files but must not commit, mutate todos, spawn/dispatch/coordinate any subagents, or decide the next plan task. The coordinator owns todo state, dependency ordering, worker selection, review, validation gates, and local commits.
 
 ## Model Selection
 
@@ -209,7 +209,7 @@ For extended examples/details, read [subagent execution cadence](references/exec
 - Proceed with unfixed full-review issues
 - Dispatch multiple implementation subagents in parallel if they can conflict
 - Make subagents read the plan file; provide full text instead
-- Let subagents mutate todos, choose later tasks, or orchestrate other subagents
+- Let subagents mutate todos, choose later tasks, or spawn/dispatch/coordinate other subagents
 - Skip scene-setting context
 - Ignore subagent questions
 - Let implementer self-review replace required task-scope or final review

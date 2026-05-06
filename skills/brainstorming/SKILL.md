@@ -19,6 +19,8 @@ Use for explicit SuperDuperPowers brainstorming requests and work that clearly n
 
 If the request includes UI, frontend components, page layout, interaction design, visual polish, or screenshots, also use `frontend-design` as a support skill while exploring and writing the spec.
 
+Keep brainstorming replies concise and user-facing: ask the next useful question or present the current design section. Do not append route explanations, review notes, or lists of skipped implementation actions unless the user asks why the workflow chose this route or there is a safety concern.
+
 ## Agent Dispatch
 
 When named agents are available and isolated context helps, dispatch `brainstorming-facilitator` with the user request, compact workflow profile, relevant project context, docs policy, and an explicit “may write approved spec, must not implement code” instruction.

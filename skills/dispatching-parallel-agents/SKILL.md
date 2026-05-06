@@ -15,7 +15,7 @@ When you have multiple unrelated failures (different test files, different subsy
 
 **Core principle:** Dispatch one agent per independent problem domain. Let them work concurrently.
 
-The main agent remains the orchestrator. It owns the visible todo list, dispatch decisions, integration, review routing, validation, and commits. Parallel workers own only their assigned stream and report back; they do not mutate todos, choose later work, or coordinate other workers.
+The main agent remains the orchestrator. It owns the visible todo list, dispatch decisions, integration, review routing, validation, and commits. Parallel workers own only their assigned stream and report back; they do not mutate todos, choose later work, or spawn/dispatch/coordinate other subagents.
 
 ## When to Use
 
@@ -80,7 +80,7 @@ Each agent gets:
 - **Specific scope:** One test file or subsystem
 - **Clear goal:** Make these tests pass
 - **Constraints:** Don't change other code
-- **No orchestration:** Don't update todos, dispatch other agents, or pick follow-up tasks
+- **No orchestration:** Don't update todos, spawn/dispatch/coordinate other subagents, or pick follow-up tasks
 - **Expected output:** Summary of what you found and fixed
 
 ### 3. Dispatch in Parallel

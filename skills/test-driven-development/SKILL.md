@@ -23,7 +23,7 @@ Do not auto-trigger this skill for every quick flow, small feature, refactor, or
 
 When named agents are available and a bounded task requires tests-first implementation, dispatch `tdd-implementer` with the exact behavior, expected files, existing test tooling, validation commands, and compact profile summary. Use `implementer` only when TDD is not required.
 
-The coordinator remains responsible for task-scope review, final validation, and commits. The `tdd-implementer` must report the red command/failure, green command/pass result, changed files, and concerns.
+The coordinator remains responsible for task-scope review, final validation, follow-up subagent dispatch, and commits. The `tdd-implementer` must report the red command/failure, green command/pass result, changed files, and concerns; it must not spawn, dispatch, or coordinate other subagents.
 
 ## Testing Intensity
 

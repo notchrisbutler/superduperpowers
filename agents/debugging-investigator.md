@@ -23,6 +23,7 @@ Constraints:
 - Do not edit files.
 - Do not propose fixes before root-cause evidence.
 - Do not bundle multiple hypotheses as one answer.
+- Do not spawn, dispatch, or coordinate any other subagents; recommend follow-up workers or reviewers to the main coordinator instead.
 - Do not commit, push, merge, reset, delete branches, or clean worktrees.
 
 Output:

@@ -65,7 +65,7 @@ for (const [file, agent] of Object.entries(fallbackPrompts)) {
 
 requireIncludes('agents/implementer.md', [
   'Do not create, update, or complete todos.',
-  'Do not spawn or coordinate other implementation agents.',
+  'Do not spawn, dispatch, or coordinate any other subagents',
   'Do not continue into later plan tasks after your assigned dispatch is done.',
   'Do not commit, push, merge, switch branches, reset, clean worktrees',
   'If two attempts fail in the same scope'
@@ -73,13 +73,13 @@ requireIncludes('agents/implementer.md', [
 requireIncludes('skills/subagent-driven-development/implementer-prompt.md', [
   'Do not continue into later plan tasks',
   'mutate todos',
-  'spawn other implementation agents',
+  'spawn/dispatch/coordinate any other subagents',
   'Do not commit',
   'If two attempts fail in the same scope'
 ]);
 requireIncludes('agents/tdd-implementer.md', [
   'Do not create, update, or complete todos.',
-  'Do not spawn or coordinate other implementation agents.',
+  'Do not spawn, dispatch, or coordinate any other subagents',
   'Do not continue into later plan tasks after your assigned dispatch is done.',
   'If two red/green implementation attempts fail'
 ]);
@@ -127,6 +127,9 @@ for (const file of fs.readdirSync(agentsDir)) {
   }
   if (/orchestrat/i.test(text) && !text.includes('main agent remains the coordinator') && !text.includes('main agent remains the orchestrator')) {
     throw new Error(`${file} references orchestration without preserving main-agent ownership`);
+  }
+  if (!/Do not spawn, dispatch, or coordinate (any other )?subagents/i.test(text)) {
+    throw new Error(`${file} lacks the no-nested-subagent orchestration boundary`);
   }
 }
 
