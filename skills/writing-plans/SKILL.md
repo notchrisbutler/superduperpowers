@@ -9,99 +9,38 @@ metadata:
 
 ## Overview
 
-Write comprehensive implementation plans assuming the engineer has zero context for our codebase or local conventions. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as dependency-ordered parent task scopes with dispatchable subtasks. DRY. YAGNI. Use the workflow profile's testing intensity to scale test requirements. Include local commit steps only at verified implementation task-scope boundaries when workflow commits are enabled by an approved execution workflow.
+Write implementation plans for a skilled developer who has almost no project context. Include exact files, code, tests, docs to inspect, validation commands, dependency ordering, review gates, and execution handoff choices. DRY. YAGNI. Scale validation to the workflow profile's testing intensity. Include local commit steps only at verified implementation task-scope boundaries when workflow commits are enabled by an approved execution workflow.
 
-Assume they are a skilled developer, but know almost nothing about our toolset or problem domain. Assume they don't know good test design very well.
+Announce at start: “I'm using the writing-plans skill to create the implementation plan.”
 
-**Announce at start:** "I'm using the writing-plans skill to create the implementation plan."
+Read live settings and the active workflow profile when available. Inherit docs paths, generated-doc policy, branch policy, workflow commit policy, question policy, and testing intensity unless the profile or user overrides them. If testing intensity is missing before execution handoff, ask and persist: full regression, major behavior only, or existing tests only.
 
-**Context:** Prefer a dedicated worktree when the user wants isolated execution. If the user explicitly directs work to happen on the current branch, write the plan for current-branch execution and do not assume worktree setup or cleanup.
-
-Read live settings and the active workflow profile when available. Inherit docs paths, generated-doc policy, branch policy, workflow commit policy, question policy, and testing intensity from the current JSON/JSONC settings unless the profile or user explicitly overrides them. If no settings/profile tool exists, carry these decisions explicitly in the plan header and execution handoff.
-
-Use `testingIntensity` to scale test requirements. `major-behavior` is the default: plan tests for important behavior and integration points, but avoid exhaustive or obvious tests.
-
-If testing intensity is missing before execution handoff, ask through the active harness's structured question tool and persist the answer before offering execution method choices:
-
-1. Full regression
-2. Major behavior only
-3. Existing tests only
-
-**Save plans to:** `{DOCS_ROOT}/{SDP_DOCS_DIR}/plans/YYYY-MM-DD-<feature-name>.md`
-- (User preferences for plan location override this default)
-- Generated plans follow the live `generatedDocsPolicy`. The default is local-only. Do not commit or force-add the generated plan unless live settings, repo instructions, or the user explicitly require committing approved generated docs.
+Save plans to `{DOCS_ROOT}/{SDP_DOCS_DIR}/plans/YYYY-MM-DD-<feature-name>.md` unless user preferences override. Generated plans follow live `generatedDocsPolicy`; do not commit or force-add them unless settings, repo instructions, or the user explicitly require it.
 
 ## Agent Dispatch
 
-When named agents are available and the plan is substantial, dispatch `plan-writer` with the approved spec, compact workflow profile summary, repo conventions, docs path, generated-doc policy, testing intensity, and execution constraints. The `plan-writer` may write the plan document but must not implement code.
+For substantial plans, dispatch `plan-writer` with the approved spec, compact workflow profile, repo conventions, docs path, generated-doc policy, testing intensity, and execution constraints. It may write the plan document but must not implement code.
 
-Named agents are adapter roles, not workflow sources. Keep plan rules in this skill and use `plan-writer` only to produce or revise the bounded plan artifact. If named agents are unavailable, use the fallback prompt template and preserve this skill's task granularity, review policy, and execution handoff requirements.
-
-After the plan is written, use `plan-reviewer` for broad or high-risk plans, plans with many files, plans that will dispatch multiple workers, or any plan whose execution shape is uncertain. For small plans, inline self-review is enough unless the user or profile requires review.
-
-If `plan-reviewer` returns changes required, update the plan once, then request one focused re-review of the changed scope. If material issues remain, ask the user before execution.
+After the plan is written, use `plan-reviewer` for broad, high-risk, many-file, multi-worker, or uncertain execution shapes. For small plans, inline self-review is enough unless required by the user or profile. If review requires changes, update once, request one focused re-review, then ask the user if material issues remain.
 
 ## Scope Check
 
-If the spec covers multiple independent subsystems, it should have been broken into sub-project specs during brainstorming. If it wasn't, suggest breaking this into separate plans — one per subsystem. Each plan should produce working, testable software on its own.
+If the spec covers multiple independent subsystems, suggest separate plans, one per subsystem. Each plan should produce working, testable software on its own.
 
-If the spec includes UI or frontend work, load `frontend-design` as a support skill and make the frontend validation explicit in the plan. Do not treat visual polish as a vague final pass.
+If the spec includes UI/frontend work, load `frontend-design` as a support skill and make frontend validation explicit; do not treat visual polish as a vague final pass.
 
-## File Structure
+## File Map Requirement
 
-Before defining tasks, map out which files will be created or modified and what each one is responsible for. This is where decomposition decisions get locked in.
+Before tasks, map every file to create/modify/test and each file's responsibility. This locks decomposition decisions.
 
-- Design units with clear boundaries and well-defined interfaces. Each file should have one clear responsibility.
-- You reason best about code you can hold in context at once, and your edits are more reliable when files are focused. Prefer smaller, focused files over large ones that do too much.
-- Files that change together should live together. Split by responsibility, not by technical layer.
-- In existing codebases, follow established patterns. If the codebase uses large files, don't unilaterally restructure - but if a file you're modifying has grown unwieldy, including a split in the plan is reasonable.
-- For frontend work, map existing tokens, component primitives, icons, routes, layout containers, and state patterns before creating new UI. Plan responsive, accessibility, loading, empty, error, and interaction states as first-class tasks.
-
-This structure informs the task decomposition. Each task should produce self-contained changes that make sense independently.
-
-## Dispatchable Task Granularity
-
-Plan in parent task scopes that share one useful validation boundary, but make the executable subtasks small enough for separate worker dispatch. The main agent will own the todo list and hand each dispatchable implementation unit to the appropriate agent.
-
-**Each task should be small enough to execute safely, but not so small that it forces a cold-start review loop for mechanical work:**
-- Good task scope: `Task 1: Login Flow` with test, implementation, and validation subtasks
-- Good dispatch task: `Task 1.1: Write failing login validation tests` routed to `tdd-implementer`
-- Good dispatch task: `Task 1.2: Implement login form behavior` routed to `implementer`
-- Good lite checkpoint: `Task 1.1: Lite review checkpoint` using lite spec/code reviewers as needed
-- Good task-scope review: `Task 1: Full spec review` and `Task 1: Lite code review`
-- Good harness todo: `Task 1.2: Implement login form behavior - dispatch implementer`
-- Good harness todo: `Task 1 Review - validate Task 1, run required reviewers, commit if enabled`
-- Bad harness todo default: separate visible todos for every `Task N.M`, lite checkpoint, and review command
-- Bad harness todo default: one broad `Task 1` todo that hands all of Login Flow to a single implementer
-- Bad review default: full spec review and full code review after every tiny task
-
-Use task-level full review only for high-risk, ambiguous, or cross-cutting work.
-
-## Harness Todo Shape
-
-Plan documents should contain detailed `Task N.M` subtasks that are suitable for bounded worker dispatch. Harness todo lists should stay readable and flat by showing coordinator-owned dispatch and gate decisions:
-
-```markdown
-- Task 0: Execution setup - read plan, classify task scopes, prepare context
-- Task 1.1: <bounded implementation unit> - dispatch <worker role>
-- Task 1.2: <bounded implementation unit> - dispatch <worker role>
-- Task 1 Review: validate Task 1, run required reviewers, commit if enabled
-- Task 2.1: <bounded implementation unit> - dispatch <worker role>
-- Task 2 Review: validate Task 2, run required reviewers, commit if enabled
-- Review: final full-scope spec review, code review, and validation
-- Finalize: finish branch according to current execution mode
-```
-
-Each visible implementation todo should map to one worker assignment, unless several adjacent mechanical steps touch the same files and have one obvious validation command. Parent `Task N Review` todos collect task-scope validation, required reviewers, and coordinator-owned commits. Do not expand every checkbox or mechanical command into a harness todo; expand at worker dispatch, review, validation, dependency, and blocker-resolution boundaries.
-
-`Finalize` means:
-- In a worktree or temporary task branch, integrate back into the parent/source feature branch and clean up according to `finishing-a-development-branch`.
-- On the current branch, ensure verified changes are committed locally and the feature branch is ready for PR.
-- Never push unless the user explicitly requests it.
+- Design units with clear responsibilities, interfaces, and dependency boundaries.
+- Prefer focused files over large files that do too much, while following existing codebase patterns.
+- Split by responsibility and change coupling, not by technical layer alone.
+- For frontend work, map existing tokens, component primitives, icons, routes, layout containers, state patterns, responsive behavior, accessibility, loading, empty, error, and interaction states.
 
 ## Plan Document Header
 
-**Every plan MUST start with this header:**
+Every plan must start with this shape:
 
 ```markdown
 # [Feature Name] Implementation Plan
@@ -117,135 +56,85 @@ Each visible implementation todo should map to one worker assignment, unless sev
 ---
 ```
 
-## Task Structure
+## Dependency-Ordered Tasks
 
-````markdown
-### Task N: [Feature/Validation Boundary]
+Plan parent task scopes around useful validation boundaries. Make executable subtasks small enough for bounded worker dispatch and label them `Task N.M` in dependency order.
 
-**Review policy:** [lite task checkpoints + full task-scope spec review + lite task-scope code review, or full spec/code review for high-risk work]
+Each parent task must include:
+- `**Review policy:** ...` stating lite/full spec and code review expectations.
+- Dispatchable `#### Task N.M: ...` subtasks.
+- Exact file paths for create/modify/test.
+- Concrete steps with code blocks for code changes.
+- Exact validation commands with expected outcomes.
+- A worker stop/report instruction: report changed files and validation; do not continue into later tasks.
+- `#### Task N Review` with task-scope validation, required reviewers, and commit-if-enabled gate.
 
-#### Task N.1: [Component Name]
+For extended examples/details, read [full task template](references/full-task-template.md) when this extra detail is needed.
 
-**Files:**
-- Create: `exact/path/to/file.py`
-- Modify: `exact/path/to/existing.py:123-145`
-- Test: `tests/exact/path/to/test.py`
+## Harness Todo Shape
 
-- [ ] **Step 1: Write the failing test**
+Plan docs contain detailed `Task N.M` subtasks. Harness todos stay flat and readable at worker dispatch, parent review, final review, and finalization boundaries:
 
-```python
-def test_specific_behavior():
-    result = function(input)
-    assert result == expected
+```markdown
+- Task 0: Execution setup - read plan, classify task scopes, prepare context
+- Task 1.1: <bounded implementation unit> - dispatch <worker role>
+- Task 1.2: <bounded implementation unit> - dispatch <worker role>
+- Task 1 Review: validate Task 1, run required reviewers, commit if enabled
+- Review: final full-scope spec review, code review, and validation
+- Finalize: finish branch according to current execution mode
 ```
 
-- [ ] **Step 2: Run test to verify it fails**
+Each visible implementation todo maps to one worker assignment unless adjacent mechanical steps touch the same files and share one obvious validation command. Do not expand every checkbox into a harness todo.
 
-Run: `pytest tests/path/test.py::test_name -v`
-Expected: FAIL with "function not defined"
+## No Placeholders And Two-Attempt Stop Gate
 
-- [ ] **Step 3: Write minimal implementation**
+Never write `TBD`, `TODO`, “implement later,” “add appropriate error handling,” “write tests for the above,” “similar to Task N,” undefined types/functions, or steps that describe code changes without showing the code.
 
-```python
-def function(input):
-    return expected
-```
+Concrete discovery substeps are allowed only when the architecture decision is already made and codebase geography needs one bounded lookup with an exact command/file target, expected output, and how the result feeds the next step.
 
-- [ ] **Step 4: Run test to verify it passes**
+Workers must stop after two failed implementation attempts in the same task scope and report failed approaches and evidence instead of trying a third variant. The coordinator may make light plan/spec updates that preserve the approved design. Major design, dependency, architecture, data-model, security, or product decisions require user escalation. Safe placeholder seams must be explicit, minimal, testable, and must not fake completed behavior.
 
-Run: `pytest tests/path/test.py::test_name -v`
-Expected: PASS
+For extended examples/details, read [placeholder and self-review rules](references/placeholder-and-self-review-rules.md) when this extra detail is needed.
 
-- [ ] **Step 5: Report changed files**
+## Validation Expectations
 
-Report the files changed in this task and whether tests passed. Do not continue into later tasks. The coordinator commits at the parent task boundary only when workflow commits are enabled by the approved execution workflow.
+Every task includes exact commands, expected output, and testing intensity alignment. `major-behavior` is the default: plan tests for important behavior and integration points, but avoid exhaustive or obvious tests. Do not invent new test frameworks or dependencies without explicit approval.
 
-#### Task N Review
+## Self-Review And Plan Review Gate
 
-- [ ] Run full spec review for Task N
-- [ ] Run lite code review for Task N
-- [ ] Run task-scope validation command: `pytest tests/path -v`
-- [ ] Commit Task N implementation changes locally if workflow commits are enabled by the approved execution workflow
-````
+After writing the complete plan, self-review before using any reviewer:
+- Spec coverage: every requirement maps to a task.
+- Placeholder scan: red flags above are absent.
+- Type consistency: names and signatures match across tasks.
+- Execution shape: flat, dependency-ordered harness todos are possible.
+- Loop prevention: repeated-failure and escalation behavior is explicit.
+- Context budget: workers can execute from compact handoffs.
+- Frontend quality when applicable: reuse patterns, states, responsive/accessibility checks, screenshots/manual validation.
 
-## No Placeholders
-
-Every step must contain the actual content an engineer needs. These are **plan failures** — never write them:
-- "TBD", "TODO", "implement later", "fill in details"
-- "Add appropriate error handling" / "add validation" / "handle edge cases"
-- "Write tests for the above" (without actual test code)
-- "Similar to Task N" (repeat the code — the engineer may be reading tasks out of order)
-- Steps that describe what to do without showing how (code blocks required for code steps)
-- References to types, functions, or methods not defined in any task
-
-Concrete discovery substeps are allowed when the architecture decision is already made but codebase geography needs one bounded lookup. They must include the exact command or file-read target, the expected kind of output, and how that output feeds the next step. For example, "Run `rg -n \"401|403|UNAUTHORIZED\" src/notifiers` and use the file containing the existing HTTP error mapping in Step 2" is discovery; "figure out where this goes" is a placeholder.
-
-## Re-Evaluation And Placeholder Seams
-
-Implementation plans must tell workers when to stop trying variants:
-
-- If two implementation attempts fail in the same task scope, the worker reports the failed approaches and evidence instead of trying a third variant.
-- If a light change to the approach preserves the approved design, the coordinator may update the plan/spec note and continue.
-- If the fix requires a major design, dependency, architecture, data-model, security, or product decision, the plan should preserve forward progress by identifying any placeholder seam that can be safely coded while leaving the unresolved decision visible.
-- Placeholder seams must be explicit, minimal, and testable. They are allowed for integration boundaries, feature flags, adapter interfaces, or disabled UI states; they are not allowed to fake completed behavior.
-- The coordinator owns spec/plan updates and user escalation; workers report evidence and stop at their boundary.
-
-## Remember
-- Exact file paths always
-- Complete code in every step — if a step changes code, show the code
-- Exact commands with expected output
-- DRY, YAGNI, testing-intensity-aware validation, and local commits only at verified implementation task-scope boundaries when workflow commits are enabled by the approved execution workflow
-- Parent task scopes and `Task N.M` subtasks belong in plan docs; harness todos should be flat, dispatch-scoped, and ordered by dependency
-- Include an explicit review policy per parent task scope
-
-## Self-Review
-
-After writing the complete plan, look at the spec with fresh eyes and check the plan against it. This is a checklist you run yourself — not a subagent dispatch.
-
-If a `plan-reviewer` agent is used, this self-review still runs first. The reviewer is an independent readiness check, not a replacement for author responsibility.
-
-**1. Spec coverage:** Skim each section/requirement in the spec. Can you point to a task that implements it? List any gaps.
-
-**2. Placeholder scan:** Search your plan for red flags — any of the patterns from the "No Placeholders" section above. Fix them.
-
-**3. Type consistency:** Do the types, method signatures, and property names you used in later tasks match what you defined in earlier tasks? A function called `clearLayers()` in Task 3 but `clearFullLayers()` in Task 7 is a bug.
-
-**4. Execution shape:** Does the plan support flat, dependency-ordered harness todos with labels like `Task 0: Execution setup`, `Task 1.1: <bounded implementation unit> - dispatch <worker role>`, `Task 1 Review: validate Task 1, run required reviewers, commit if enabled`, `Review: final full-scope spec review, code review, and validation`, and `Finalize: finish branch according to current execution mode`? If the plan collapses a parent task into one broad implementer assignment or requires visible todos for every tiny command, fix it.
-
-**5. Loop prevention:** Does the plan define what to do after repeated failed attempts, and whether unresolved major decisions should block, ask the user, or use a safe placeholder seam while independent work continues?
-
-**6. Context budget:** Can each worker execute with a compact handoff rather than the whole conversation? If not, split the task or write a clearer handoff summary into the plan.
-
-**7. Frontend quality when applicable:** Does the plan name existing UI patterns to reuse, visible states to implement, responsive/accessibility checks, and screenshot/manual validation? If it only says "make it polished," fix it.
-
-If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
-
-## Plan Review And Commit Gate
-
-After saving and self-reviewing the plan, ask the user to review it before execution:
+Fix issues inline. Then ask the user to review the saved plan:
 
 > "Plan written to `<path>`. Please review it and let me know if you want changes before execution."
 
-Wait for the user's response. If they request changes, update the plan and re-run self-review. Only proceed to execution handoff once the user approves the written plan.
+Wait for approval. If changes are requested, update the plan and re-run self-review. After approval, re-read live settings, record the approved plan path, and respect generated-doc policy.
 
-After user approval, re-read live settings, then update the workflow profile or explicit handoff context with the approved plan path before offering execution choices. Do not commit or force-add the generated plan unless `generatedDocsPolicy` or explicit user/repo instructions require it. If generated docs are committed, commit only after approval.
+For extended examples/details, read [placeholder and self-review rules](references/placeholder-and-self-review-rules.md) when this extra detail is needed.
 
 ## Execution Handoff
 
-After the user approves the written plan, ask execution method through the active harness's structured question tool:
+After user approval, ask execution method through the active harness's structured question tool:
 
-1. Subagent Driven Development, coordinated from this conversation
-2. Single-Agent Execution, all in the main agent with no subagents
-3. Hold off on implementing for now
+1. Subagent Driven Development, coordinated from this conversation.
+2. Single-Agent Execution, all in the main agent with no subagents.
+3. Hold off on implementing for now.
 
-If the user chooses Hold off, record `executionMethod: hold` and stop cleanly.
+If the user chooses Hold off, record `executionMethod: hold` and stop.
 
-If the user chooses Single-Agent Execution, record `executionMethod: inline`, run branch preflight, use `using-feature-branches` unless current-branch execution was explicitly approved, then invoke `executing-plans`.
+If Single-Agent Execution, record `executionMethod: inline`, run branch preflight, use `using-feature-branches` unless current-branch execution was explicitly approved, then invoke `executing-plans`.
 
-If the user chooses Subagent Driven Development, record `executionMethod: subagent-driven`, then ask execution strategy through the structured question tool:
+If Subagent Driven Development, record `executionMethod: subagent-driven`, then ask execution strategy:
 
-1. User-level worktree route using `using-git-worktrees`
-2. Feature branch route using `using-feature-branches`
-3. Hold off on implementing for now
+1. User-level worktree route using `using-git-worktrees`.
+2. Feature branch route using `using-feature-branches`.
+3. Hold off on implementing for now.
 
-Only invoke execution skills after the profile contains the required execution choices and branch/setup preflight passes.
+Only invoke execution skills after the profile contains required execution choices and branch/setup preflight passes. Never push unless the user explicitly requests it.

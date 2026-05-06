@@ -7,164 +7,89 @@ metadata:
 
 # Brainstorming Ideas Into Designs
 
-Help turn ideas into fully formed designs and specs through natural collaborative dialogue.
-
-Start by understanding the current project context, then ask questions one at a time to refine the idea. Once you understand what you're building, present the design and get user approval.
+Help turn ideas into approved designs and specs through collaborative discovery.
 
 <HARD-GATE>
-Once this skill is intentionally selected, do NOT invoke any implementation skill, write any code, scaffold any project, or take any implementation action until you have presented a design and the user has approved it.
+Once this skill is intentionally selected, do NOT invoke any implementation skill, write code, scaffold a project, or take implementation action until you have presented a design and the user has approved it.
 </HARD-GATE>
 
-## When To Use This Skill
+## When To Use
 
-Use this skill for explicit SuperDuperPowers brainstorming requests and for work that clearly needs design discovery before implementation. Do not use this skill for quick flow, small reviews, wording edits, simple config tweaks, bounded code changes, or no-SuperDuperPowers work unless the user asks for brainstorming.
+Use for explicit SuperDuperPowers brainstorming requests and work that clearly needs design discovery before implementation. Do not use for quick flow, small reviews, wording edits, simple config tweaks, bounded code changes, or no-SuperDuperPowers work unless the user asks for brainstorming.
 
 If the request includes UI, frontend components, page layout, interaction design, visual polish, or screenshots, also use `frontend-design` as a support skill while exploring and writing the spec.
 
 ## Agent Dispatch
 
-When the active harness supports named agents and the brainstorming work is large enough to benefit from isolated context, dispatch `brainstorming-facilitator` with:
+When named agents are available and isolated context helps, dispatch `brainstorming-facilitator` with the user request, compact workflow profile, relevant project context, docs policy, and an explicit “may write approved spec, must not implement code” instruction.
 
-- Current user request and constraints
-- Compact workflow profile summary
-- Relevant project context and file paths already discovered
-- Required docs root and generated-doc policy
-- Explicit instruction that it may write the approved spec but must not implement code
+Keep direct collaboration in the main session when the design is small, the user is actively answering questions, or dispatch would obscure approval gates.
 
-Keep direct user collaboration in the main session when the design is small, the user is actively answering questions, or subagent dispatch would obscure the approval gates. Whether done inline or by `brainstorming-facilitator`, the next workflow step after approval is always `writing-plans`.
+## Required Flow
 
-## Checklist
+Create and complete tasks in this order when this skill is selected:
 
-When this skill is selected, create a task for each of these items and complete them in order:
+1. Read compact workflow context with `sdp_settings`/`sdp_profile` only when needed for unknown docs, branch, commit, question, or test policy.
+2. Explore current project context: files, docs, recent commits, existing patterns.
+3. Ask clarifying questions one topic at a time until ambiguity is low enough to write a useful spec.
+4. Propose 2-3 approaches with trade-offs and a recommendation grounded in project evidence or explicit assumptions.
+5. Present the design in sections scaled to complexity and get user approval after each section.
+6. Write the approved design to `{DOCS_ROOT}/{SDP_DOCS_DIR}/specs/YYYY-MM-DD-<topic>-design.md` unless user preferences override.
+7. Self-review the spec for placeholders, contradictions, scope, ambiguity, and frontend quality when applicable; fix issues inline.
+8. Ask the user to review the written spec and wait for approval.
+9. Record the approved spec path in the workflow profile or explicit handoff context.
+10. Transition to `writing-plans`; do not invoke implementation skills from brainstorming.
 
-1. **Read compact workflow context** — use `sdp_settings` and `sdp_profile` only when needed to capture unknown route, docs policy, runtime defaults, branch policy, generated-doc commit policy, workflow commit policy, question policy, or testing intensity
-2. **Explore project context** — check files, docs, recent commits
-3. **Ask clarifying questions** — use the active harness's question tool when available, one topic at a time, until ambiguity is low enough to write a useful spec
-4. **Propose 2-3 approaches** — with trade-offs and your recommendation
-5. **Present design** — in sections scaled to their complexity, get user approval after each section
-6. **Write design doc** — save to `{DOCS_ROOT}/superduperpowers/specs/YYYY-MM-DD-<topic>-design.md`
-7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
-8. **User reviews written spec** — ask user to review the spec file before proceeding
-9. **Record approved spec in profile** — update the workflow profile or explicit handoff context with the approved spec path
-10. **Transition to implementation** — invoke writing-plans skill to create implementation plan
+For extended examples/details, read [brainstorming flow details](references/brainstorming-flow-details.md) when this extra detail is needed.
 
-## Process Flow
+## Discovery Rules
 
-```dot
-digraph brainstorming {
-    "Explore project context" [shape=box];
-    "Ask clarifying questions" [shape=box];
-    "Propose 2-3 approaches" [shape=box];
-    "Present design sections" [shape=box];
-    "User approves design?" [shape=diamond];
-    "Write design doc" [shape=box];
-    "Spec self-review\n(fix inline)" [shape=box];
-    "User reviews spec?" [shape=diamond];
-    "Record approved spec\nin profile" [shape=box];
-    "Invoke writing-plans skill" [shape=doublecircle];
+- Assess scope before detailed questions. If the request spans independent subsystems, decompose into sub-projects and brainstorm the first sub-project through its own spec → plan → implementation cycle.
+- Ask only one question per message. Prefer multiple choice when possible, but use open-ended questions when needed.
+- Focus on purpose, constraints, success criteria, data flow, error handling, testing, and operational boundaries.
+- For frontend work, inspect current design system, component library, CSS variables/tokens, typography, spacing, assets, routes, page structure, and comparable screens before proposing visual changes.
 
-    "Explore project context" -> "Ask clarifying questions";
-    "Ask clarifying questions" -> "Propose 2-3 approaches";
-    "Propose 2-3 approaches" -> "Present design sections";
-    "Present design sections" -> "User approves design?";
-    "User approves design?" -> "Present design sections" [label="no, revise"];
-    "User approves design?" -> "Write design doc" [label="yes"];
-    "Write design doc" -> "Spec self-review\n(fix inline)";
-    "Spec self-review\n(fix inline)" -> "User reviews spec?";
-    "User reviews spec?" -> "Write design doc" [label="changes requested"];
-    "User reviews spec?" -> "Record approved spec\nin profile" [label="approved"];
-    "Record approved spec\nin profile" -> "Invoke writing-plans skill";
-}
-```
+## Approach And Design Rules
 
-**The terminal state is invoking writing-plans.** `frontend-design` may support UI discovery and spec writing, but the ONLY next workflow skill after approved brainstorming is `writing-plans`. Do NOT invoke implementation skills from brainstorming.
+- Always propose 2-3 approaches before settling.
+- Lead with your recommendation and reasoning.
+- If evidence is thin, say what is unknown before recommending.
+- If deferring work, identify a concrete successor artifact or task. If no successor exists, ask whether to add the work to this spec or create a follow-up artifact.
+- Design for small units with clear responsibilities, interfaces, dependencies, and test boundaries.
+- In existing codebases, follow established patterns and include only targeted improvements that serve the current goal.
 
-## The Process
+## Design Approval Gate
 
-**Understanding the idea:**
-
-- Check out the current project state first (files, docs, recent commits)
-- Before asking detailed questions, assess scope: if the request describes multiple independent subsystems (e.g., "build a platform with chat, file storage, billing, and analytics"), flag this immediately. Don't spend questions refining details of a project that needs to be decomposed first.
-- If the project is too large for a single spec, help the user decompose into sub-projects: what are the independent pieces, how do they relate, what order should they be built? Then brainstorm the first sub-project through the normal design flow. Each sub-project gets its own spec → plan → implementation cycle.
-- For appropriately-scoped projects, ask questions one at a time to refine the idea
-- Prefer multiple choice questions when possible, but open-ended is fine too
-- Only one question per message - if a topic needs more exploration, break it into multiple questions
-- Focus on understanding: purpose, constraints, success criteria
-- For frontend work, inspect the current design system, component library, CSS variables/tokens, typography, spacing, assets, route/page structure, and comparable screens before proposing visual changes.
-
-**Exploring approaches:**
-
-- Propose 2-3 different approaches with trade-offs
-- Ground each option in evidence from the request, current project context, codebase patterns, docs, or explicit assumptions. If the evidence is thin, say what is unknown before recommending.
-- Present options conversationally with your recommendation and reasoning
-- Lead with your recommended option and explain why
-
-**Deferring scope:**
-
-If you propose deferring any requirement, follow-up task, or integration point, identify the concrete successor before treating it as out of scope. Verify the successor exists when practical by checking the issue tracker, plan/spec backlog, or codebase references. If no concrete successor exists, state that the work will stay latent without one and ask whether to add it to this spec or create a follow-up artifact. Do not use vague handoffs like "later", "when this flow comes through", or "someone will pick this up" without a verified successor.
-
-**Presenting the design:**
-
-- Once you believe you understand what you're building, present the design
-- Scale each section to its complexity: a few sentences if straightforward, up to 200-300 words if nuanced
-- Ask after each section whether it looks right so far
-- Cover: architecture, components, data flow, error handling, testing
+When presenting the design:
+- Cover architecture, components, data flow, error handling, and testing.
 - For frontend work, also cover information hierarchy, responsive behavior, interaction states, accessibility, real asset/data usage, and anti-generic visual constraints from `frontend-design`.
-- Be ready to go back and clarify if something doesn't make sense
+- Ask after each section whether it looks right so far.
+- Revise until the user approves the design before writing the spec.
 
-**Design for isolation and clarity:**
+## Spec Review And User Review Gate
 
-- Break the system into smaller units that each have one clear purpose, communicate through well-defined interfaces, and can be understood and tested independently
-- For each unit, you should be able to answer: what does it do, how do you use it, and what does it depend on?
-- Can someone understand what a unit does without reading its internals? Can you change the internals without breaking consumers? If not, the boundaries need work.
-- Smaller, well-bounded units are also easier for you to work with - you reason better about code you can hold in context at once, and your edits are more reliable when files are focused. When a file grows large, that's often a signal that it's doing too much.
+After writing the spec:
+- Scan for `TBD`, `TODO`, incomplete sections, vague requirements, contradictions, scope problems, and ambiguous requirements.
+- For frontend specs, verify existing UI patterns, responsive/accessibility requirements, interaction states, visual assets, and what to avoid are named.
+- Fix issues inline.
 
-**Working in existing codebases:**
-
-- Explore the current structure before proposing changes. Follow existing patterns.
-- Where existing code has problems that affect the work (e.g., a file that's grown too large, unclear boundaries, tangled responsibilities), include targeted improvements as part of the design - the way a good developer improves code they're working in.
-- Don't propose unrelated refactoring. Stay focused on what serves the current goal.
-
-## After the Design
-
-**Documentation:**
-
-- Write the validated design (spec) to `{DOCS_ROOT}/{SDP_DOCS_DIR}/specs/YYYY-MM-DD-<topic>-design.md`
-  - (User preferences for spec location override this default)
-- Generated specs follow the live `generatedDocsPolicy`. The default is local-only. Do not commit or force-add the generated spec unless live settings, repo instructions, or the user explicitly require committing approved generated docs.
-
-**Spec Self-Review:**
-After writing the spec document, look at it with fresh eyes:
-
-1. **Placeholder scan:** Any "TBD", "TODO", incomplete sections, or vague requirements? Fix them.
-2. **Internal consistency:** Do any sections contradict each other? Does the architecture match the feature descriptions?
-3. **Scope check:** Is this focused enough for a single implementation plan, or does it need decomposition?
-4. **Ambiguity check:** Could any requirement be interpreted two different ways? If so, pick one and make it explicit.
-5. **Frontend check when applicable:** Does the spec name the existing UI patterns to reuse, responsive/accessibility requirements, interaction states, visual assets, and what to avoid so the result does not look generic or disconnected from the product?
-
-Fix any issues inline. No need to re-review — just fix and move on.
-
-**User Review Gate:**
-After the spec review loop passes, ask the user to review the written spec before proceeding:
+Then ask:
 
 > "Spec written to `<path>`. Please review it and let me know if you want to make any changes before we start writing out the implementation plan."
 
-Wait for the user's response. If they request changes, make them and re-run the spec review loop. Only proceed once the user approves.
+Wait for the user's response. If they request changes, update the spec and re-run self-review. Only proceed after approval.
 
-**Generated-Doc Policy Gate:**
-After the user approves the written spec, re-read live settings, then update the workflow profile or explicit handoff context with the spec path. Do not commit or force-add the generated spec unless `generatedDocsPolicy` or explicit user/repo instructions require it. If generated docs are committed, commit only after approval.
+After approval, re-read live settings, record the spec path, and respect generated-doc policy. Do not commit or force-add generated specs unless live settings, repo instructions, or the user explicitly require it.
 
-**Implementation:**
+## Transition
 
-- Invoke the writing-plans skill to create a detailed implementation plan
-- When execution begins, replace brainstorming todos with the executor's compact, dependency-ordered task list. Preserve detailed `Task N.M` subtasks in the plan/spec, but use visible harness todos like `Task 0: Execution setup`, `Task 1: <goal>`, `Review`, and `Finalize`; do not create nested or overly expanded todos.
-- Do NOT invoke any other skill. writing-plans is the next step.
+The only next workflow skill after approved brainstorming is `writing-plans`. When execution begins later, replace brainstorming todos with the executor's compact, dependency-ordered task list; do not carry nested brainstorming todos into implementation.
 
 ## Key Principles
 
-- **One question at a time** - Don't overwhelm with multiple questions
-- **Multiple choice preferred** - Easier to answer than open-ended when possible
-- **YAGNI ruthlessly** - Remove unnecessary features from all designs
-- **Explore alternatives** - Always propose 2-3 approaches before settling
-- **Incremental validation** - Present design, get approval before moving on
-- **Be flexible** - Go back and clarify when something doesn't make sense
+- One question at a time.
+- Multiple choice preferred when practical.
+- YAGNI ruthlessly.
+- Explore alternatives.
+- Get incremental approval.
+- Be flexible and clarify when something does not make sense.

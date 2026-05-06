@@ -31,16 +31,7 @@ Before execution, read live settings and the workflow profile. Run branch prefli
 
 Build the harness todo list flat and dependency ordered. Use one visible todo per bounded implementation unit, parent task review gate, final review, and finalize step:
 
-```markdown
-- Task 0: Execution setup - read plan, classify task scopes, prepare context
-- Task 1.1: <bounded implementation unit> - execute locally or dispatch if available
-- Task 1.2: <bounded implementation unit> - execute locally or dispatch if available
-- Task 1 Review: validate Task 1, run required reviewers, commit if enabled
-- Task 2.1: <bounded implementation unit> - execute locally or dispatch if available
-- Task 2 Review: validate Task 2, run required reviewers, commit if enabled
-- Review: final full-scope spec review, code review, and validation
-- Finalize: finish branch according to current execution mode
-```
+`Task 0` covers setup/context, `Task N.M` covers one bounded implementation unit, `Task N Review` covers task-scope validation/review/commit-if-enabled, `Review` covers final full-scope review and validation, and `Finalize` finishes branch handling.
 
 For each coordinator todo:
 1. Mark as in_progress immediately before starting that todo
@@ -52,9 +43,13 @@ For each coordinator todo:
 
 Do not create nested todos. Do not use `Group N` in harness todos. Do not collapse a parent task into one broad implementation todo when it contains multiple dispatchable units. Do not expand every checkbox or mechanical command into separate visible todos unless one is a real worker dispatch, dependency boundary, review/validation gate, high-risk checkpoint, or blocker-resolution step.
 
+For extended examples/details, read [execution cadence examples](references/execution-cadence.md) when this extra detail is needed.
+
 At each parent task boundary, run validation and only the review required by the plan, live settings, or risk. Reserve full code review for high-risk task scopes, escalations from lite code review, and the final full task-set review.
 
-When workflow commits are enabled by the approved execution workflow, commit locally after each parent `Task N Review` todo only after task-scope validation and required reviews pass. In worktree or temporary task-branch execution, keep commits on the temporary branch and let finishing-a-development-branch handle integration back to the parent/source branch. Ordinary sessions must not commit unasked. Do not push unless the user explicitly requests it.
+When workflow commits are enabled by the approved execution workflow, commit locally after each parent `Task N Review` todo only after task-scope validation and required reviews pass. In worktree or temporary task-branch execution, keep commits on the temporary branch and let `finishing-a-development-branch` handle integration. Ordinary sessions must not commit unasked. Do not push unless the user explicitly requests it.
+
+For extended examples/details, read [commit cadence details](references/execution-cadence.md) when this extra detail is needed.
 
 For inline task execution, apply the same worker-role boundaries locally: use `test-driven-development` for TDD-required subtasks, use `systematic-debugging` before fixing unclear bugs, and use `dispatching-parallel-agents` only to plan safe delegation if the harness later gains subagents. Do not collapse review feedback handling into informal agreement; use `receiving-spec-review` and `receiving-code-review` when findings return.
 
@@ -78,6 +73,8 @@ After all tasks complete and verified:
 - Announce: "I'm using the finishing-a-development-branch skill to complete this work."
 - **REQUIRED SUB-SKILL:** Use `finishing-a-development-branch`
 - Follow that skill to verify tests, present options, execute choice
+
+For extended examples/details, read [finalization handoff details](references/execution-cadence.md) when this extra detail is needed.
 
 ## When to Stop and Ask for Help
 
