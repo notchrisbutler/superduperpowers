@@ -173,10 +173,11 @@ You MUST complete each phase before proceeding to the next.
 
 1. **Create Failing Test Case**
    - Simplest possible reproduction
-   - Automated test if possible
-   - One-off test script if no framework
+   - Automated test in existing project tooling when possible
+   - With `major-behavior` testing intensity, cover the major regression or integration point without adding exhaustive tests
+   - If no suitable tooling exists, stop and ask before creating a one-off script or adding any framework/dependency
    - MUST have before fixing
-   - Use the `superpowers:test-driven-development` skill for writing proper failing tests
+   - Use the `test-driven-development` skill for writing proper failing tests
 
 2. **Implement Single Fix**
    - Address the root cause identified
@@ -287,8 +288,8 @@ These techniques are part of systematic debugging and available in this director
 - **`condition-based-waiting.md`** - Replace arbitrary timeouts with condition polling
 
 **Related skills:**
-- **superpowers:test-driven-development** - For creating failing test case (Phase 4, Step 1)
-- **superpowers:verification-before-completion** - Verify fix worked before claiming success
+- **test-driven-development** - For creating failing test case (Phase 4, Step 1)
+- **verification-before-completion** - Verify fix worked before claiming success
 
 ## Real-World Impact
 

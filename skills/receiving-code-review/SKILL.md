@@ -98,7 +98,7 @@ IF conflicts with the user's prior decisions:
   Stop and discuss with the user first
 ```
 
-**the user's rule:** "External feedback - be skeptical, but check carefully"
+**Review principle:** "External feedback - be skeptical, but check carefully"
 
 ## YAGNI Check for "Professional" Features
 
@@ -110,7 +110,7 @@ IF reviewer suggests "implementing properly":
   IF used: Then implement properly
 ```
 
-**the user's rule:** "You and reviewer both report to me. If we don't need this feature, don't add it."
+**Review principle:** "The agent and reviewer both serve the user. If the product does not need this feature, do not add it."
 
 ## Implementation Order
 

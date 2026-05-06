@@ -50,13 +50,15 @@ TDD remains strict when selected: write the test first, watch it fail, then impl
 NO PRODUCTION CODE WITHOUT A FAILING TEST FIRST
 ```
 
-Write code before the test? Delete it. Start over.
+Write code before the test? If it is only your own current-task implementation and no user or other-agent changes are mixed in, delete it and start over.
 
-**No exceptions:**
+If the working tree includes user changes, other-agent changes, or unrelated work, stop and ask before deleting, reverting, or rewriting anything.
+
+**No exceptions for your own current-task implementation:**
 - Don't keep it as "reference"
 - Don't "adapt" it while writing tests
 - Don't look at it
-- Delete means delete
+- Delete means delete only for work you created in this TDD task and can safely isolate
 
 Implement fresh from tests. Period.
 
@@ -71,15 +73,15 @@ Check for project signals such as:
 
 Use the project's existing test module, suite, command, and style when they are clear.
 
-If no test tooling exists, or you are unsure which module/suite/command the user wants, **STOP and ask the user how to proceed** before creating tests or choosing tools.
+If no test tooling exists, or you are unsure which module/suite/command the user wants, **STOP and ask the user how to proceed** before creating tests or choosing tools. Do not add a new test framework, dependency, or local script without explicit approval.
 
 Offer concrete options when possible:
 - Add to the existing formal suite
-- Create a local-only spot-check script for the logic
+- Create an approved local-only spot-check script for the logic
 - Use a broader validation command
 - Defer automated test setup and get explicit permission for a manual check
 
-Never unilaterally introduce a test framework, create a new suite, or decide between local spot checks and full-suite validation.
+Never unilaterally introduce a test framework, dependency, create a new suite, or decide between local spot checks and full-suite validation.
 
 ## Red-Green-Refactor
 
@@ -301,7 +303,7 @@ Tests-first force edge case discovery before implementing. Tests-after verify yo
 | "Tests after achieve same goals" | Tests-after = "what does this do?" Tests-first = "what should this do?" |
 | "Already manually tested" | Ad-hoc ≠ systematic. No record, can't re-run. |
 | "Deleting X hours is wasteful" | Sunk cost fallacy. Keeping unverified code is technical debt. |
-| "Keep as reference, write tests first" | You'll adapt it. That's testing after. Delete means delete. |
+| "Keep as reference, write tests first" | You'll adapt it. That's testing after. Delete your own current-task implementation only when it is safe to isolate. |
 | "Need to explore first" | Fine. Throw away exploration, start with TDD. |
 | "Test hard = design unclear" | Listen to test. Hard to test = hard to use. |
 | "TDD will slow me down" | TDD faster than debugging. Pragmatic = test-first. |
@@ -326,7 +328,7 @@ Tests-first force edge case discovery before implementing. Tests-after verify yo
 - "I'll just pick Jest/Vitest/pytest for them"
 - "A quick local script is good enough" without user approval
 
-**All of these mean: Delete code. Start over with TDD.**
+**All of these mean: stop using the non-TDD implementation. Delete and start over only for your own current-task changes when they can be safely isolated. If user changes, other-agent changes, or unrelated work are mixed in, stop and ask before deleting or rewriting anything.**
 
 ## Example: Bug Fix
 
@@ -369,7 +371,7 @@ Extract validation for multiple fields if needed.
 
 Before marking work complete:
 
-- [ ] New tests match the profile's testing intensity.
+- [ ] New tests match the profile's testing intensity; for `major-behavior`, cover major behavior and integration points without exhaustive or obvious tests.
 - [ ] Watched each test fail before implementing
 - [ ] Each test failed for expected reason (feature missing, not typo)
 - [ ] Wrote minimal code to pass each test
@@ -378,7 +380,7 @@ Before marking work complete:
 - [ ] Tests use real code (mocks only if unavoidable)
 - [ ] Edge cases and errors covered
 
-Can't check all boxes? You skipped TDD. Start over.
+Can't check all boxes? You skipped TDD. Start over only within your own current-task implementation, or stop and ask if changes are mixed with user or other-agent work.
 
 ## When Stuck
 

@@ -17,9 +17,9 @@ Git worktrees create isolated workspaces sharing the same repository, allowing w
 
 ## Directory Selection Process
 
-Default to the active harness's user-level SuperDuperPowers worktree root. For the included OpenCode adapter, this is `{OPENCODE_CONFIG_DIR}/superduperpowers/worktrees/{projectKey}/`.
+Default to the active harness's user-level SuperDuperPowers worktree root when the harness exposes one. Otherwise choose a user-level directory outside the project and record it in the workflow profile.
 
-Do not use a project-local OpenCode worktree directory by default. Because the default is outside the project, do not add project `.gitignore` or `.ignore` entries for default worktrees.
+Do not use a project-local worktree directory by default. Because the default is outside the project, do not add project `.gitignore` or `.ignore` entries for default worktrees.
 
 If the user or repo instructions specify a directory, use that directory after checking whether it is project-local or external. Ask only when repo instructions conflict or the directed location is unsafe/unclear.
 
@@ -33,7 +33,7 @@ Before creating worktrees, run branch preflight. Use the active harness's branch
 
 ## Custom Project-Local Safety
 
-If the user explicitly chooses a project-local worktree root, add that custom root to `.gitignore` and add a matching `!` entry to `.ignore` before creating it. This custom-path rule does not apply to the default user-level OpenCode worktree root.
+If the user explicitly chooses a project-local worktree root, add that custom root to `.gitignore` and add a matching `!` entry to `.ignore` before creating it. This custom-path rule does not apply to the default user-level harness worktree root.
 
 After updating ignore files for a custom project-local root, verify the custom root is ignored:
 
@@ -69,7 +69,7 @@ When work in one or more worktrees is complete, stop and ask the user how to pro
 Default recommendation:
 
 - Merge completed worktree branches into the parent/source feature branch they were spawned from.
-- Commit verified merge results locally when workflow commits are enabled; otherwise confirm before committing the parent/source feature branch if the merge creates new uncommitted changes.
+- Commit verified merge results locally only when workflow commits are enabled by the approved execution workflow; otherwise confirm before committing the parent/source feature branch if the merge creates new uncommitted changes.
 - Do not push unless the user explicitly directs you to push.
 - Do not merge to `main`, `master`, or the default branch unless that branch was the explicit parent/source branch or the user chooses it.
 
@@ -78,7 +78,7 @@ Default recommendation:
 Never:
 
 - Create worktrees directly from `main`, `master`, or the detected default branch unless explicitly approved.
-- Use a project-local default worktree root for the included OpenCode adapter.
+- Use a project-local default worktree root when a safe user-level harness root is available.
 - Add project ignore-file entries for default user-level worktrees.
 - Skip branch preflight.
 - Proceed with failing baseline tests without asking.

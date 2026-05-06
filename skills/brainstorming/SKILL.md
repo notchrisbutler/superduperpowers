@@ -77,7 +77,7 @@ digraph brainstorming {
 }
 ```
 
-**The terminal state is invoking writing-plans.** Do NOT invoke frontend-design, mcp-builder, or any other implementation skill. The ONLY skill you invoke after brainstorming is writing-plans.
+**The terminal state is invoking writing-plans.** `frontend-design` may support UI discovery and spec writing, but the ONLY next workflow skill after approved brainstorming is `writing-plans`. Do NOT invoke implementation skills from brainstorming.
 
 ## The Process
 
@@ -129,9 +129,8 @@ If you propose deferring any requirement, follow-up task, or integration point, 
 
 **Documentation:**
 
-- Write the validated design (spec) to `{DOCS_ROOT}/superduperpowers/specs/YYYY-MM-DD-<topic>-design.md`
+- Write the validated design (spec) to `{DOCS_ROOT}/{SDP_DOCS_DIR}/specs/YYYY-MM-DD-<topic>-design.md`
   - (User preferences for spec location override this default)
-- Use elements-of-style:writing-clearly-and-concisely skill if available
 - Generated specs follow the live `generatedDocsPolicy`. The default is local-only. Do not commit or force-add the generated spec unless live settings, repo instructions, or the user explicitly require committing approved generated docs.
 
 **Spec Self-Review:**

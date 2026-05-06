@@ -7,7 +7,7 @@ metadata:
 
 # Subagent-Driven Development
 
-Execute implementation plans with subagents while keeping the main session as the orchestrator, using coordinator-owned dispatch todos, proportional review at meaningful task boundaries, and local commits after verified task scopes when workflow commits are enabled.
+Execute implementation plans with subagents while keeping the main session as the orchestrator, using coordinator-owned dispatch todos, proportional review at meaningful task boundaries, and local commits only after verified implementation task scopes when workflow commits are enabled by the approved execution workflow.
 
 If the active harness does not support subagents or worker dispatch, use `executing-plans` in the main session and preserve the same flat coordinator-owned todo boundaries.
 
@@ -68,10 +68,10 @@ If you stay inline, preserve the same bounded `Task N.M` todo boundaries and rev
 9. Execute each todo in dependency order, dispatching the named worker/reviewer for that todo when it is not coordinator-local.
 10. For each parent `Task N`, complete its dispatchable `Task N.M` implementation todos, lite checkpoints, task-scope validation, and required reviews.
 11. Run task-scope review at parent task boundaries only when the plan, live settings, or risk calls for it; otherwise rely on dispatch validation plus the final full reviews.
-12. Commit the verified parent task scope locally when workflow commits are enabled.
+12. Commit the verified parent task scope locally only when workflow commits are enabled by the approved execution workflow.
 13. Run final full implementation review and validation across all tasks.
-14. Commit verified remaining changes locally when workflow commits are enabled.
-15. Invoke `superpowers:finishing-a-development-branch`, preserving whether execution happened on the current branch or in a temporary worktree/task branch.
+14. Commit verified remaining implementation changes locally only when workflow commits are enabled by the approved execution workflow.
+15. Invoke `finishing-a-development-branch`, preserving whether execution happened on the current branch or in a temporary worktree/task branch.
 
 Subagents honor the profile's testing intensity. For `major-behavior`, they test important behavior and integration points without creating exhaustive or obvious tests.
 
@@ -133,7 +133,7 @@ Review loop budget: after a reviewer reports issues, group the findings, fix the
 
 ## Commit Cadence
 
-When workflow commits are enabled, the coordinator commits locally after each parent task scope passes its required reviews and validation. This is the normal feature-branch cadence: small, reviewable commits for each verified task scope, then a final commit for any verified remaining changes.
+When workflow commits are enabled by the approved execution workflow, the coordinator commits locally after each parent task scope passes its required reviews and validation. This creates small, reviewable commits for each verified implementation task scope, then a final commit for any verified remaining implementation changes. Ordinary sessions must not commit unasked.
 
 Implementer subagents do not commit directly. They report changed files and verification results; the coordinator reviews the aggregate diff, writes the commit message, and commits only after the task boundary is clean. In worktree or temporary task-branch execution, keep commits on that branch and let finishing-a-development-branch handle integration back to the parent/source branch. Do not push unless the user explicitly requests it.
 
@@ -254,18 +254,18 @@ Finalize: invoke finishing-a-development-branch
 ## Integration
 
 **Required workflow skills:**
-- **superpowers:writing-plans** - Creates the plan this skill executes
-- **superpowers:using-feature-branches** - Required setup for feature-branch execution before dispatch
-- **superpowers:using-git-worktrees** - Required setup for worktree execution before dispatch
-- **superpowers:requesting-spec-review** - Spec compliance review routing for lite and full spec reviews
-- **superpowers:requesting-code-review** - Code review guidance for full code reviews
-- **superpowers:receiving-spec-review** - Required when spec-review feedback returns findings
-- **superpowers:receiving-code-review** - Required when code-review feedback returns findings
-- **superpowers:dispatching-parallel-agents** - Use when task streams can safely run concurrently
-- **superpowers:finishing-a-development-branch** - Complete development after all tasks
+- **writing-plans** - Creates the plan this skill executes
+- **using-feature-branches** - Required setup for feature-branch execution before dispatch
+- **using-git-worktrees** - Required setup for worktree execution before dispatch
+- **requesting-spec-review** - Spec compliance review routing for lite and full spec reviews
+- **requesting-code-review** - Code review guidance for full code reviews
+- **receiving-spec-review** - Required when spec-review feedback returns findings
+- **receiving-code-review** - Required when code-review feedback returns findings
+- **dispatching-parallel-agents** - Use when task streams can safely run concurrently
+- **finishing-a-development-branch** - Complete development after all tasks
 
 **Subagents should use:**
-- **superpowers:test-driven-development** - Subagents follow TDD for implementation tasks when the plan requires it
+- **test-driven-development** - Subagents follow TDD for implementation tasks when the plan requires it
 
 **Alternative workflow:**
-- **superpowers:executing-plans** - Use for inline execution instead of subagent-driven execution
+- **executing-plans** - Use for inline execution instead of subagent-driven execution

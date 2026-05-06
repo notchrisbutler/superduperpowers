@@ -9,7 +9,7 @@ metadata:
 
 ## Overview
 
-Write comprehensive implementation plans assuming the engineer has zero context for our codebase or local conventions. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as dependency-ordered parent task scopes with dispatchable subtasks. DRY. YAGNI. Use the workflow profile's testing intensity to scale test requirements. Include local commit steps at verified implementation task-scope boundaries when workflow commits are enabled.
+Write comprehensive implementation plans assuming the engineer has zero context for our codebase or local conventions. Document everything they need to know: which files to touch for each task, code, testing, docs they might need to check, how to test it. Give them the whole plan as dependency-ordered parent task scopes with dispatchable subtasks. DRY. YAGNI. Use the workflow profile's testing intensity to scale test requirements. Include local commit steps only at verified implementation task-scope boundaries when workflow commits are enabled by an approved execution workflow.
 
 Assume they are a skilled developer, but know almost nothing about our toolset or problem domain. Assume they don't know good test design very well.
 
@@ -106,7 +106,7 @@ Each visible implementation todo should map to one worker assignment, unless sev
 ```markdown
 # [Feature Name] Implementation Plan
 
-> **For agentic workers:** REQUIRED SUB-SKILL: Use superpowers:subagent-driven-development (recommended) or superpowers:executing-plans to implement this plan. The main agent is the coordinator: it owns todos, dispatches each bounded `Task N.M` implementation unit to the appropriate worker, runs reviews/validation, and decides the next step from worker reports. Steps use checkbox (`- [ ]`) syntax for plan tracking; harness todos should stay flat and dispatch-scoped, with parent `Task N Review` gates plus final `Review` and `Finalize`.
+> **For agentic workers:** REQUIRED SUB-SKILL: Use `subagent-driven-development` (recommended) or `executing-plans` to implement this plan. The main agent is the coordinator: it owns todos, dispatches each bounded `Task N.M` implementation unit to the appropriate worker, runs reviews/validation, and decides the next step from worker reports. Steps use checkbox (`- [ ]`) syntax for plan tracking; harness todos should stay flat and dispatch-scoped, with parent `Task N Review` gates plus final `Review` and `Finalize`.
 
 **Goal:** [One sentence describing what this builds]
 
@@ -158,14 +158,14 @@ Expected: PASS
 
 - [ ] **Step 5: Report changed files**
 
-Report the files changed in this task and whether tests passed. Do not continue into later tasks. The coordinator commits at the parent task boundary when workflow commits are enabled.
+Report the files changed in this task and whether tests passed. Do not continue into later tasks. The coordinator commits at the parent task boundary only when workflow commits are enabled by the approved execution workflow.
 
 #### Task N Review
 
 - [ ] Run full spec review for Task N
 - [ ] Run lite code review for Task N
 - [ ] Run task-scope validation command: `pytest tests/path -v`
-- [ ] Commit Task N changes locally if workflow commits are enabled
+- [ ] Commit Task N implementation changes locally if workflow commits are enabled by the approved execution workflow
 ````
 
 ## No Placeholders
@@ -194,7 +194,7 @@ Implementation plans must tell workers when to stop trying variants:
 - Exact file paths always
 - Complete code in every step — if a step changes code, show the code
 - Exact commands with expected output
-- DRY, YAGNI, testing-intensity-aware validation, and local commits at verified implementation task-scope boundaries when workflow commits are enabled
+- DRY, YAGNI, testing-intensity-aware validation, and local commits only at verified implementation task-scope boundaries when workflow commits are enabled by the approved execution workflow
 - Parent task scopes and `Task N.M` subtasks belong in plan docs; harness todos should be flat, dispatch-scoped, and ordered by dependency
 - Include an explicit review policy per parent task scope
 

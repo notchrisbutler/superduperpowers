@@ -11,7 +11,7 @@ metadata:
 
 Guide completion of development work by choosing the correct local context before presenting next-step options.
 
-**Core principle:** Verify tests -> commit verified local work when workflow commits are enabled -> identify durable branch vs temporary worktree branch -> present local-first options -> execute choice.
+**Core principle:** Verify tests -> commit verified local implementation work only when workflow commits are enabled by an approved execution workflow -> identify durable branch vs temporary worktree branch -> present local-first options -> execute choice.
 
 **Announce at start:** "I'm using the finishing-a-development-branch skill to complete this work."
 
@@ -43,7 +43,7 @@ Stop. Don't proceed to Step 2.
 
 ### Step 2: Commit Verified Local Work
 
-If workflow commits are enabled and verified changes remain uncommitted, create a local commit before presenting completion options. This preserves the early-and-often workflow on feature branches and gives worktree merges a concrete commit boundary.
+If workflow commits are enabled by the approved execution workflow and verified implementation changes remain uncommitted, create a local commit before presenting completion options. This preserves the approved implementation workflow on feature branches and gives worktree merges a concrete commit boundary. Ordinary sessions must not commit unasked.
 
 Do not commit unrelated user changes, ignored secret files, or generated files that should stay local. If unrelated changes are mixed with completed work and cannot be safely separated, stop and ask the user how to proceed. Do not push unless the user explicitly requests it.
 
@@ -88,7 +88,7 @@ Which option?
 
 Use only when finishing from a worktree or temporary task branch. Merge back into the parent/source branch the temporary branch was spawned from, unless the user explicitly selected a different local target.
 
-If finishing from a durable feature branch, do not merge anywhere. If workflow commits are enabled and verified changes remain, commit locally before reporting readiness. Leave push/PR creation to the user unless they explicitly request it.
+If finishing from a durable feature branch, do not merge anywhere. If workflow commits are enabled by the approved execution workflow and verified implementation changes remain, commit locally before reporting readiness. Leave push/PR creation to the user unless they explicitly request it.
 
 ```bash
 # Switch to target local branch
@@ -164,12 +164,9 @@ Then: Cleanup worktree or temporary branch only if one exists (Step 6)
 
 **For Option 3:** keep worktrees and branches.
 
-Check if in worktree:
-```bash
-git worktree list | grep $(git branch --show-current)
-```
+Use the workflow profile or active harness branch/worktree context to identify any worktree path. Do not rely on brittle shell pipelines to infer worktree state.
 
-If yes:
+If a worktree path is recorded and cleanup is approved:
 ```bash
 git worktree remove <worktree-path>
 ```
@@ -191,7 +188,7 @@ git worktree remove <worktree-path>
 
 **Leaving verified workflow changes uncommitted**
 - **Problem:** Feature branches lose the intended checkpoint history and worktree merges lack clean boundaries
-- **Fix:** When workflow commits are enabled, commit verified local work before completion options
+- **Fix:** When workflow commits are enabled by the approved execution workflow, commit verified local implementation work before completion options
 
 **Open-ended questions**
 - **Problem:** "What should I do next?" → ambiguous
@@ -226,7 +223,7 @@ git worktree remove <worktree-path>
 
 **Always:**
 - Verify tests before offering options
-- Commit verified local work before completion options when workflow commits are enabled
+- Commit verified local implementation work before completion options only when workflow commits are enabled by the approved execution workflow
 - Identify whether work is on a durable branch or temporary worktree/task branch before presenting options
 - Present exactly 4 options when a decision is needed
 - Get typed confirmation for Option 4
