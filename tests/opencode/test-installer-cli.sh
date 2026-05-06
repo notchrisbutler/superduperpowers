@@ -70,7 +70,7 @@ if (packageJson.bin?.superduperpowers !== "./bin/superduperpowers.js") {
 }
 const firstLine = fs.readFileSync(path.join(packageRoot, "bin/superduperpowers.js"), "utf8").split(/\r?\n/, 1)[0];
 if (firstLine !== "#!/usr/bin/env node") throw new Error(`unexpected binary shebang: ${firstLine}`);
-for (const dir of ["defaults", "templates", "bin", "installer"]) {
+for (const dir of ["defaults", "bin", "installer", "installer/templates"]) {
   if (!fs.existsSync(path.join(packageRoot, dir))) throw new Error(`setup did not copy ${dir}/ into package layout`);
 }
 const pack = JSON.parse(require("child_process").execFileSync("npm", ["pack", "--dry-run", "--json"], { cwd: packageRoot, encoding: "utf8" }))[0];
@@ -79,8 +79,8 @@ for (const file of [
   "bin/superduperpowers.js",
   "installer/cli.js",
   "installer/settings.js",
-  "defaults/superduperpowers.config.jsonc",
-  "templates/superduperpowers.settings.jsonc",
+  "defaults/superduperpowers.jsonc",
+  "installer/templates/superduperpowers.settings.jsonc",
 ]) {
   if (!packed.has(file)) throw new Error(`npm pack would omit ${file}`);
 }
@@ -224,7 +224,7 @@ cat > "$project_uninstall/opencode.json" <<'JSON'
 }
 JSON
 mkdir -p "$project_uninstall/.opencode"
-cp "$SUPERPOWERS_DIR/templates/superduperpowers.settings.jsonc" "$project_uninstall/.opencode/superduperpowers.jsonc"
+cp "$SUPERPOWERS_DIR/installer/templates/superduperpowers.settings.jsonc" "$project_uninstall/.opencode/superduperpowers.jsonc"
 run_cli "$project_uninstall" "$config_uninstall" uninstall --repo >"$OUTPUT_DIR/uninstall.out"
 assert_json_expr "$project_uninstall/opencode.json" 'data.theme === "kept" && data.plugin.includes("other-plugin") && data.plugin.some((entry) => entry.includes("git+https://github.com")) && !data.plugin.includes("superduperpowers")'
 assert_file_exists "$project_uninstall/.opencode/superduperpowers.jsonc"

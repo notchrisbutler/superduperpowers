@@ -98,7 +98,7 @@ tests/opencode/run-tests.sh --test test-installer-cli.sh
 npm pack --dry-run
 ```
 
-Confirm the dry-run package contents include `bin/`, `installer/`, `defaults/`, and `templates/` alongside the existing `skills/`, `agents/`, docs, and `.opencode/plugins/` OpenCode plugin files.
+Confirm the dry-run package contents include `bin/`, `installer/`, and `defaults/` alongside the existing `skills/`, `agents/`, docs, and `.opencode/plugins/` OpenCode plugin files.
 
 When changing `agents/`, fallback prompts, or skill routing language, confirm `test-agent-skill-drift.sh` stays green. It verifies that skills remain canonical, named agents stay thin adapter roles, fallback prompts name their canonical agent, writable/read-only expectations stay aligned, and the context-budget check still passes.
 

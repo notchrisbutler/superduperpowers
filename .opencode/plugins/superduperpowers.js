@@ -41,7 +41,7 @@ export const SuperpowersPlugin = async ({ client, directory, worktree } = {}) =>
     pluginFile: fileURLToPath(import.meta.url),
     skillsDir: superpowersSkillsDir,
     agentsDir: superpowersAgentsDir,
-    defaultSettingsPath: path.resolve(__dirname, '../../defaults/superduperpowers.config.jsonc')
+    defaultSettingsPath: path.resolve(__dirname, '../../defaults/superduperpowers.jsonc')
   };
 
   return {

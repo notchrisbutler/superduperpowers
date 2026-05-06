@@ -30,8 +30,7 @@ mkdir -p "$SUPERPOWERS_DIR"
 cp -r "$REPO_ROOT/skills" "$SUPERPOWERS_DIR/"
 cp -r "$REPO_ROOT/agents" "$SUPERPOWERS_DIR/"
 cp "$REPO_ROOT/package.json" "$SUPERPOWERS_DIR/package.json"
-cp "$REPO_ROOT/superduperpowers.config.jsonc" "$SUPERPOWERS_DIR/superduperpowers.config.jsonc"
-for package_dir in defaults templates bin installer; do
+for package_dir in defaults bin installer; do
     if [ -d "$REPO_ROOT/$package_dir" ]; then
         cp -R "$REPO_ROOT/$package_dir" "$SUPERPOWERS_DIR/"
     fi

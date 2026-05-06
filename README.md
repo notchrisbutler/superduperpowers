@@ -67,7 +67,7 @@ If the CLI cannot update your environment, run `/sdp-status` for diagnostics and
 ## Features
 
 - Opt-in SuperDuperPowers routing with full flow, quick flow, and no-SuperDuperPowers modes
-- Live JSON/JSONC settings through `superduperpowers.config.jsonc`, project overrides, and compact `sdp_settings` summaries
+- Live JSON/JSONC settings through `superduperpowers.jsonc`, project overrides, and compact `sdp_settings` summaries
 - Workflow profile tools for route, docs, execution, branch, and testing-intensity decisions; compact summaries are used by default, full JSON is available on demand
 - User-level OpenCode runtime state and default worktrees under `{OPENCODE_CONFIG_DIR}/superduperpowers/`
 - OpenCode TUI commands: `/sdp`, `/superduperpowers`, `/superpowers`, `/brainstorm`, `/quick-flow`, `/write-plan`, `/execute-plan`, `/sdp-status`, `/sdp-profile`, `/sdp-setup`, `/sdp-init`, and `/sdp-cleanup`
@@ -119,9 +119,20 @@ Execution workflows stop and re-evaluate after repeated failed attempts in the s
 
 ## Live Settings
 
-The packaged defaults live in `defaults/superduperpowers.config.jsonc`. OpenCode sessions can also read user overrides from `{OPENCODE_CONFIG_DIR}/superduperpowers/settings.jsonc` and project overrides from `superduperpowers.jsonc`, `superduperpowers.config.jsonc`, or `.opencode/superduperpowers.jsonc`. Project settings override global settings. Agents should call `sdp_settings` only when a workflow decision depends on live settings or settings may have changed.
+The packaged defaults live in `defaults/superduperpowers.jsonc`. OpenCode sessions can also read user overrides from `{OPENCODE_CONFIG_DIR}/superduperpowers/settings.jsonc` and project overrides from `superduperpowers.jsonc`, `superduperpowers.config.jsonc`, or `.opencode/superduperpowers.jsonc`. Project settings override global settings. Agents should call `sdp_settings` only when a workflow decision depends on live settings or settings may have changed.
 
 `skills/using-superpowers/SKILL.md` is the source of truth for routing details.
+
+---
+
+## Latest Release Verification
+
+The release workflow updates this block during the version bump. The final npm tarball hashes are published by the registry after publish; verify them with npm instead of trusting a self-referential hash embedded in this packaged README.
+
+- Version: `2026.0506.5`
+- GitHub tag: `v2026.0506.5`
+- npm package: `superduperpowers@2026.0506.5`
+- Verify npm integrity: `npm view superduperpowers@2026.0506.5 dist.integrity dist.shasum`
 
 ---
 

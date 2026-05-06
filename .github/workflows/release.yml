@@ -158,6 +158,7 @@ jobs:
             echo "Expected version ${VERSION}, but version:next produced ${actual_version}."
             exit 1
           fi
+          npm run readme:release-verification
           git status --short
           git -c user.name="github-actions[bot]" -c user.email="41898282+github-actions[bot]@users.noreply.github.com" commit -am "Bump version for ${RELEASE_TAG}"
           git push origin HEAD:main

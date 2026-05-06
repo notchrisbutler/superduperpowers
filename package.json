@@ -15,7 +15,8 @@
     "context:check": "node scripts/context-budget.mjs --check",
     "version:next": "scripts/bump-version.sh --next",
     "version:check": "scripts/bump-version.sh --check",
-    "version:audit": "scripts/bump-version.sh --audit"
+    "version:audit": "scripts/bump-version.sh --audit",
+    "readme:release-verification": "node scripts/update-readme-release-verification.mjs"
   },
   "dependencies": {
     "@opencode-ai/plugin": "1.14.30"
@@ -29,7 +30,6 @@
     "bin/",
     "installer/",
     "defaults/",
-    "templates/",
     "docs/publishing.md",
     "docs/testing.md",
     "docs/workflow-map.md",

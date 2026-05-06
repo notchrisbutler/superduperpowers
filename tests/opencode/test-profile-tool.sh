@@ -28,7 +28,7 @@ const context = {
 const settingsResult = JSON.parse(await settingsTool.execute({ operation: 'get' }, context));
 if (!settingsResult.ok) throw new Error(`settings failed: ${JSON.stringify(settingsResult)}`);
 if (settingsResult.settings.workflow.defaultDocsRoot !== 'docs') throw new Error('default docs root missing from live settings');
-if (!settingsResult.sources.some((source) => source.type === 'package-default' && source.path.endsWith('defaults/superduperpowers.config.jsonc'))) {
+if (!settingsResult.sources.some((source) => source.type === 'package-default' && source.path.endsWith('defaults/superduperpowers.jsonc'))) {
   throw new Error(`settings did not load packaged defaults from defaults/: ${JSON.stringify(settingsResult.sources)}`);
 }
 

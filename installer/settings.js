@@ -5,7 +5,7 @@ import { parseOpenCodeConfig } from './opencode-config.js';
 
 const installerDir = path.dirname(fileURLToPath(import.meta.url));
 const packageRoot = path.resolve(installerDir, '..');
-const templatePath = path.join(packageRoot, 'templates', 'superduperpowers.settings.jsonc');
+const templatePath = path.join(packageRoot, 'installer', 'templates', 'superduperpowers.settings.jsonc');
 
 export function projectSettingsPath(projectRoot) {
   return path.join(projectRoot, '.opencode', 'superduperpowers.jsonc');

@@ -43,3 +43,11 @@ The old separate publish workflow was removed. Package dry-run validation now li
 Release documentation now describes changelog-only release preparation on `main` and workflow-owned version generation. The finishing-branch guidance tells agents not to invent or insert the next version in `CHANGELOG.md`; the restricted release workflow is responsible for choosing and committing it.
 
 Workflow policy tests now guard the new shape so future changes do not reintroduce downstream publish dispatches or changelog version requirements.
+
+## Repo Organization Cleanup
+
+- The packaged default settings file is now `defaults/superduperpowers.jsonc`, with the older `superduperpowers.config.jsonc` shape retained only as a supported project override name.
+- The installer template now lives under `installer/templates/`, keeping installer-owned setup files out of the repository root package surface.
+- Duplicate root settings/template files and the top-level `templates/` package entry were removed from the npm package contents.
+- `README.md` now includes release verification metadata that the release workflow refreshes during the version bump.
+- The README verification section points users to `npm view superduperpowers@VERSION dist.integrity dist.shasum` so package hashes come from the npm registry instead of a self-invalidating hash embedded in the packaged README.

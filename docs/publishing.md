@@ -63,7 +63,7 @@ tests/opencode/run-tests.sh --test test-installer-cli.sh
 npm pack --dry-run
 ```
 
-Confirm the dry-run package contents include the CLI and installer support directories (`bin/`, `installer/`, `defaults/`, and `templates/`) alongside the existing `skills/`, `agents/`, docs, and `.opencode/plugins/` OpenCode plugin files.
+Confirm the dry-run package contents include the CLI and installer support directories (`bin/`, `installer/`, and `defaults/`) alongside the existing `skills/`, `agents/`, docs, and `.opencode/plugins/` OpenCode plugin files.
 
 ## Install Strings
 

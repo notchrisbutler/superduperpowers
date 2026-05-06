@@ -11,12 +11,12 @@ const SDP_DEFAULT_RETENTION_DAYS = 7;
 const SDP_DOC_ROOT_CANDIDATES = ['docs', 'documents', 'documentation', '.docs', '.documents', '.documentation'];
 const SDP_DOCS_DIR = 'superduperpowers';
 const SDP_SETTINGS_FILE_CANDIDATES = [
-  'superduperpowers.config.jsonc',
-  'superduperpowers.config.json',
   'superduperpowers.jsonc',
   'superduperpowers.json',
-  '.opencode/superduperpowers.json',
-  '.opencode/superduperpowers.jsonc'
+  'superduperpowers.config.jsonc',
+  'superduperpowers.config.json',
+  '.opencode/superduperpowers.jsonc',
+  '.opencode/superduperpowers.json'
 ];
 const SDP_USER_SETTINGS_FILE_CANDIDATES = [
   'superduperpowers/config.jsonc',
@@ -192,8 +192,8 @@ const readJsoncFile = (filePath) => {
 const settingsSourcesFor = ({ configDir, packageInfo = {}, directory }) => {
   const sources = [];
   const packageRoot = packageInfo.packageRoot || path.resolve(path.dirname(fileURLSafe(packageInfo.pluginFile || '')), '../..');
-  const defaultSettingsPath = packageInfo.defaultSettingsPath || path.join(packageRoot, 'defaults', 'superduperpowers.config.jsonc');
-  const fallbackSettingsPath = path.join(packageRoot, 'superduperpowers.config.jsonc');
+  const defaultSettingsPath = packageInfo.defaultSettingsPath || path.join(packageRoot, 'defaults', 'superduperpowers.jsonc');
+  const fallbackSettingsPath = path.join(packageRoot, 'defaults', 'superduperpowers.config.jsonc');
   if (defaultSettingsPath && fileExists(path.resolve(defaultSettingsPath))) {
     sources.push({ type: 'package-default', path: defaultSettingsPath });
   } else if (fallbackSettingsPath) {
@@ -888,7 +888,7 @@ const createSettingsTool = (configDir, packageInfo) => tool({
 const projectConfigPathFor = (directory) => path.join(path.resolve(directory || process.cwd()), '.opencode', 'superduperpowers.jsonc');
 
 const readProjectConfigTemplate = (packageInfo) => {
-  const sourcePath = packageInfo.defaultSettingsPath || path.join(packageInfo.packageRoot || process.cwd(), 'superduperpowers.config.jsonc');
+  const sourcePath = packageInfo.defaultSettingsPath || path.join(packageInfo.packageRoot || process.cwd(), 'defaults/superduperpowers.jsonc');
   const content = readTextSafe(sourcePath);
   if (content) return { sourcePath, content };
   return {

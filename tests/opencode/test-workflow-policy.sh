@@ -104,7 +104,7 @@ import path from 'path';
 
 const root = process.env.REPO_ROOT;
 const superpowersDir = process.env.SUPERPOWERS_DIR;
-const roots = ['AGENTS.md', 'README.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'package.json', 'superduperpowers.config.jsonc', '.opencode/INSTALL.md', '.github', 'scripts', 'skills', 'agents', 'bin', 'installer', 'defaults', 'templates'];
+const roots = ['AGENTS.md', 'README.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'package.json', '.opencode/INSTALL.md', '.github', 'scripts', 'skills', 'agents', 'bin', 'installer', 'defaults'];
 const allow = new Set(['ACKNOWLEDGEMENTS.md']);
 const generatedDocsPrefix = `docs${path.sep}superduperpowers${path.sep}`;
 const vendorPattern = /Anthropic|OpenAI|Claude|GPT/i;
@@ -140,7 +140,7 @@ const output = execFileSync('npm', ['pack', '--dry-run', '--json'], { cwd: root,
 const packed = JSON.parse(output)[0].files.map((entry) => entry.path);
 const includes = (file) => packed.includes(file) || packed.some((entry) => entry.startsWith(`${file.replace(/\/$/, '')}/`));
 const required = [
-  'agents', 'skills', 'bin', 'installer', 'defaults', 'templates',
+  'agents', 'skills', 'bin', 'installer', 'installer/templates', 'defaults',
   '.opencode/plugins/superduperpowers.js', '.opencode/plugins/superduperpowers',
   '.opencode/INSTALL.md', 'docs/publishing.md', 'docs/testing.md', 'docs/workflow-map.md', 'docs/wiki',
   'scripts/context-budget.mjs', 'README.md', 'LICENSE', 'SECURITY.md', 'CONTRIBUTING.md', 'ACKNOWLEDGEMENTS.md', 'package.json'
@@ -256,6 +256,12 @@ if (/RELEASE_TOKEN|x-access-token/.test(releaseWorkflow)) {
 }
 if (!/name:\s*Publish npm package/.test(releaseWorkflow) || !/npm publish --access public --provenance --tag latest/.test(releaseWorkflow)) {
   throw new Error('release workflow must include the npm publish job after GitHub Release creation');
+}
+if (!/npm run readme:release-verification/.test(releaseWorkflow)) {
+  throw new Error('release workflow must update README release verification metadata before committing the version bump');
+}
+if (!/update-readme-release-verification\.mjs/.test(JSON.stringify(JSON.parse(fs.readFileSync(path.join(root, 'package.json'), 'utf8')).scripts))) {
+  throw new Error('package scripts must expose README release verification updater');
 }
 NODE
 
@@ -436,7 +442,7 @@ if ! grep -q "question" "$plans_skill" || ! grep -q "execution strategy" "$plans
   exit 1
 fi
 
-if grep -q '"reviewEachChunk": true' "$REPO_ROOT/superduperpowers.config.jsonc"; then
+if grep -q '"reviewEachChunk": true' "$REPO_ROOT/defaults/superduperpowers.jsonc"; then
   echo "  [FAIL] default full workflow still reviews every chunk"
   exit 1
 fi

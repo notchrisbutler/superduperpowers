@@ -107,7 +107,7 @@ Bundled agents do not need to be copied into a project. The plugin registers the
 
 ## Live Settings
 
-The packaged defaults live in `defaults/superduperpowers.config.jsonc`. Override them per user with `{OPENCODE_CONFIG_DIR}/superduperpowers/settings.jsonc` and per project with `superduperpowers.jsonc`, `superduperpowers.config.jsonc`, or `.opencode/superduperpowers.jsonc`. Project settings override global settings.
+The packaged defaults live in `defaults/superduperpowers.jsonc`. Override them per user with `{OPENCODE_CONFIG_DIR}/superduperpowers/settings.jsonc` and per project with `superduperpowers.jsonc`, `superduperpowers.config.jsonc`, or `.opencode/superduperpowers.jsonc`. Project settings override global settings.
 
 Agents read these settings through `sdp_settings`; they are intentionally live, so changes made after a session starts can be picked up when a workflow decision depends on them.
 
@@ -147,7 +147,7 @@ tests/opencode/run-tests.sh --test test-installer-cli.sh
 npm pack --dry-run
 ```
 
-Expected: the installer CLI test passes, and the dry-run package contents include `bin/`, `installer/`, `defaults/`, and `templates/` alongside the existing `skills/`, `agents/`, docs, and `.opencode/plugins/` OpenCode plugin files.
+Expected: the installer CLI test passes, and the dry-run package contents include `bin/`, `installer/`, and `defaults/` alongside the existing `skills/`, `agents/`, docs, and `.opencode/plugins/` OpenCode plugin files.
 
 Skill discovery and bootstrap prompt:
 
