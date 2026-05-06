@@ -442,27 +442,20 @@ if grep -q "one visible todo per parent task\|execute Task 1.1-1.N\|one visible 
   exit 1
 fi
 
-profile_summary=$(REPO_ROOT="$REPO_ROOT" node --input-type=module <<'NODE'
+REPO_ROOT="$REPO_ROOT" node --input-type=module <<'NODE'
+import fs from 'fs';
 import path from 'path';
-import { pathToFileURL } from 'url';
+
 const root = process.env.REPO_ROOT;
-const { profileSummaryText } = await import(pathToFileURL(path.join(root, '.opencode/plugins/superduperpowers/sdp-tools.js')));
-console.log(profileSummaryText({
-  route: 'quick-implementation',
-  sdpDocsRoot: 'docs/superduperpowers',
-  executionStrategy: null,
-  executionMethod: null,
-  testingIntensity: 'major-behavior',
-  branchPolicy: 'prefer-feature-branch',
-  workflowCommitPolicy: 'implementation-commits-only',
-  generatedDocsPolicy: 'local-only',
-  runtimeRoot: '/very/long/runtime/path/that/should/not/be/in/summary'
-}));
+const tools = fs.readFileSync(path.join(root, '.opencode/plugins/superduperpowers/sdp-tools.js'), 'utf8');
+const match = tools.match(/export const profileSummaryText = \(profile\) => `([\s\S]*?)`;/);
+if (!match) throw new Error('profileSummaryText export not found');
+const template = match[1];
+if (template.includes('runtimeRoot')) throw new Error('profile summary leaks runtimeRoot');
+if (template.includes('worktreePath') || template.includes('originalWorkspace')) throw new Error('profile summary leaks bulky path state');
+for (const required of ['route=', 'docs=', 'execution=', 'testingIntensity=', 'branch=', 'commits=', 'generatedDocs=']) {
+  if (!template.includes(required)) throw new Error(`profile summary missing compact field: ${required}`);
+}
 NODE
-)
-if grep -q "runtimeRoot\|/very/long/runtime" <<< "$profile_summary"; then
-  echo "  [FAIL] profile summary leaks bulky runtime path state"
-  exit 1
-fi
 
 echo "=== Workflow policy text tests passed ==="
