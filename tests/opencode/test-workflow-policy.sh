@@ -194,7 +194,7 @@ git -C "$REPO_ROOT" fetch --no-tags origin main:refs/remotes/origin/main latest:
   echo "  [FAIL] release gate test requires origin/main and origin/latest to be fetchable"
   exit 1
 }
-GITHUB_EVENT_NAME=workflow_dispatch GITHUB_EVENT_PATH="$release_dispatch_event" node "$REPO_ROOT/scripts/release-gate.mjs" --mode release
+GITHUB_ACTIONS= GITHUB_EVENT_NAME=workflow_dispatch GITHUB_EVENT_PATH="$release_dispatch_event" node "$REPO_ROOT/scripts/release-gate.mjs" --mode release
 
 if [ ! -f "$REPO_ROOT/.github/workflows/release.yml" ]; then
   echo "  [FAIL] .github/workflows/release.yml is missing"
