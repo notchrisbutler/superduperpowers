@@ -1,6 +1,6 @@
 # Publishing
 
-SuperDuperPowers publishes through GitHub Releases. A restricted manual release workflow promotes the prepared `main` branch to the protected `latest` published-state branch, creates a GitHub Release from `CHANGELOG.md`, and lets `.github/workflows/publish.yml` publish the matching npm version to the `latest` dist-tag for the `superduperpowers` package.
+SuperDuperPowers publishes through a restricted manual release workflow. The workflow validates `main`, computes the next calendar version, commits that version back to `main`, fast-forwards the protected `latest` published-state branch, creates a GitHub Release from `CHANGELOG.md`, and publishes the matching npm version to the `latest` dist-tag for the `superduperpowers` package.
 
 OpenCode installs should use the npm package by default. GitHub `main` repository installs are fallback/nightly sources for power users who intentionally want repository-head behavior and can tolerate unreleased bugs. No PRs should target `latest`; it is promoted only by the restricted manual release workflow.
 
@@ -16,17 +16,15 @@ GitHub Releases are the active release history. Tags use zero-padded `MMDD`, for
 
 The release and publish gates reject tags outside this format and reject GitHub prereleases because every automated publish updates npm `latest`. The protected npm trusted-publishing environment should allow only the `latest` branch and `v*` tags; it should not allow `main` directly.
 
-## Local Version Bump
+## Release Preparation
 
-Before running the restricted release workflow, prepare `main` through the normal PR/CI path. Version and changelog updates are release-prep work on `main`; the release workflow takes `main` as-is and does not bump versions, rewrite changelogs, commit, or push `main`:
+Before running the restricted release workflow, prepare `main` through the normal PR/CI path. The release-prep PR should update `CHANGELOG.md` with the release notes, but it should not need to mention the next version because the workflow computes that version:
 
 ```bash
-scripts/bump-version.sh --next
-scripts/bump-version.sh --check
-scripts/bump-version.sh --audit
-git add package.json README.md CHANGELOG.md
-VERSION=$(node -p "require('./package.json').version")
-git commit -m "Prepare release ${VERSION}"
+git diff latest...main
+# update CHANGELOG.md to describe the unreleased changes
+git add CHANGELOG.md
+git commit -m "Update changelog for release"
 ```
 
 The first release on a date uses `YYYY.MMDD.0`. Additional releases on the same date increment the final numeric segment, for example `YYYY.MMDD.1` and `YYYY.MMDD.2`.
@@ -45,15 +43,16 @@ Run the restricted manual release workflow after `main` is release-prepared and 
 ```text
 Source: main
 Promotes: latest by fast-forward only
-Tag: vYYYY.MMDD.N
+Version/tag: computed by npm run version:next
 Release body: CHANGELOG.md
+Publishes: npm latest from latest
 ```
 
-`CHANGELOG.md` is the GitHub Release body source. The release gate requires `main` as the source, a valid `YYYY.MMDD.N` package version, computed tag `vYYYY.MMDD.N`, a non-empty `CHANGELOG.md`, an existing `latest` branch, and proof that `main` is not behind `latest`.
+`CHANGELOG.md` is the GitHub Release body source. The release gate requires `main` as the source, a non-empty `CHANGELOG.md`, an existing `latest` branch, and proof that `main` is not behind `latest`.
 
-The release workflow validates `main`, fast-forwards `latest` to the validated commit, verifies `origin/latest` exactly equals that commit, and then creates the GitHub Release. It does not run `npm run version:next`, rewrite `CHANGELOG.md`, commit, push `main`, or open PRs into `latest`.
+The release workflow validates `main`, runs `npm run version:next`, verifies the computed tag is unused, commits the version bump to `main`, fast-forwards `latest` to that commit, verifies `origin/latest` exactly equals the release commit, creates the GitHub Release from `latest`, and publishes npm from `latest`. It does not rewrite `CHANGELOG.md` or open PRs into `latest`.
 
-Publishing uses the protected GitHub `npm` environment and npm trusted publishing. The package already exists on npm, so configure trusted publishing for repository `notchrisbutler/superduperpowers`, workflow file `publish.yml`, and environment `npm`. `.github/workflows/publish.yml` publishes only non-prerelease GitHub Releases whose `vYYYY.MMDD.N` tag matches `package.json` and whose tag commit equals `origin/latest`; manual dispatch is dry-run validation only and cannot publish npm.
+Publishing uses the protected GitHub `npm` environment and npm trusted publishing. The package already exists on npm, so configure trusted publishing for repository `notchrisbutler/superduperpowers`, workflow file `release.yml`, and environment `npm`. There is no separate publish workflow; `Release latest` owns npm publishing end-to-end.
 
 ## Package Verification
 

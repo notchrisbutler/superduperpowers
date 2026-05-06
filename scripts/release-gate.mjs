@@ -46,18 +46,6 @@ function gitOk(args) {
   }
 }
 
-function escapeRegExp(value) {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-}
-
-function releaseMentionRegex(value) {
-  return new RegExp(`(^|[^0-9A-Za-z.])${escapeRegExp(value)}([^0-9A-Za-z.]|$)`);
-}
-
-function changelogMentionsRelease(changelog, version, tag) {
-  return releaseMentionRegex(version).test(changelog) || releaseMentionRegex(tag).test(changelog);
-}
-
 function validProjectVersion(version) {
   const match = /^([0-9]{4})\.([0-9]{2})([0-9]{2})\.([0-9]+)$/.exec(version);
   if (!match) return false;
@@ -198,10 +186,6 @@ function runReleaseMode() {
   if (!mainRef) fail('main branch is required before release promotion');
 
   const pkg = packageMetadata();
-  const tag = `v${pkg.version}`;
-  if (!/^v[0-9]{4}\.[0-9]{4}\.[0-9]+$/.test(tag)) fail(`computed tag is invalid: ${tag}`);
-  if (tagExists(tag)) fail(`computed release tag already exists: ${tag}`);
-  if (releaseExists(tag)) fail(`GitHub Release already exists: ${tag}`);
 
   const latestVersion = showPackageVersionAtRef(latestRef);
   if (compareVersions(pkg.version, latestVersion) < 0) {
@@ -212,10 +196,6 @@ function runReleaseMode() {
   if (!fs.existsSync(changelogPath) || fs.readFileSync(changelogPath, 'utf8').trim().length === 0) {
     fail('CHANGELOG.md must exist and be non-empty as release-prep evidence on main');
   }
-  const changelog = fs.readFileSync(changelogPath, 'utf8');
-  if (!changelogMentionsRelease(changelog, pkg.version, tag)) {
-    fail(`CHANGELOG.md must mention package version ${pkg.version} or release tag ${tag}`);
-  }
 
   if (!gitOk(['merge-base', '--is-ancestor', latestRef, mainRef])) {
     const latestSha = git(['rev-parse', latestRef]);
@@ -223,7 +203,7 @@ function runReleaseMode() {
     fail(`main is behind or diverged from latest; cannot verify fast-forward release (${latestRef}=${latestSha}, ${mainRef}=${mainSha})`);
   }
 
-  info(`release gate passed for ${sourceRef}; release tag ${tag}; latest can fast-forward from ${latestRef} to ${mainRef}`);
+  info(`release gate passed for ${sourceRef}; latest can fast-forward from ${latestRef} to ${mainRef}`);
 }
 
 const modeIndex = process.argv.indexOf('--mode');

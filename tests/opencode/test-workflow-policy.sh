@@ -216,61 +216,50 @@ const root = process.env.REPO_ROOT;
 const bumpVersion = fs.readFileSync(path.join(root, 'scripts/bump-version.sh'), 'utf8');
 const releaseGate = fs.readFileSync(path.join(root, 'scripts/release-gate.mjs'), 'utf8');
 const releaseWorkflow = fs.readFileSync(path.join(root, '.github/workflows/release.yml'), 'utf8');
-const publishWorkflow = fs.readFileSync(path.join(root, '.github/workflows/publish.yml'), 'utf8');
 
 if (/tag --list "\$\{today\}\.\*"/.test(bumpVersion) || /tag --list "\$today\.\*"/.test(bumpVersion)) {
   throw new Error('version:next must not include raw same-day YYYY.MMDD.N tags when computing the next vYYYY.MMDD.N release suffix');
 }
 
 if (!/showPackageVersionAtRef|gitShowPackageJson|compareVersions/.test(releaseGate) || !/latest.*version|version.*latest/s.test(releaseGate)) {
-  throw new Error('release gate must compare package.json version on main against latest before promotion');
+  throw new Error('release gate must ensure package.json on main is not lower than latest before promotion');
 }
-if (!/show:package\.json|git show|origin\/latest:package\.json|latest:package\.json/.test(releaseWorkflow) || !/main.*latest|latest.*main/s.test(releaseWorkflow)) {
-  throw new Error('release workflow must compare main package version against latest before promotion');
+if (!/npm run version:next/.test(releaseWorkflow) || !/commit -am "Bump version for \$\{RELEASE_TAG\}"/.test(releaseWorkflow) || !/git push origin HEAD:main/.test(releaseWorkflow)) {
+  throw new Error('release workflow must compute the next version, commit it, and push main before promotion');
 }
 
 if (!/tagExists|releaseExists|gh release view|git.*rev-parse.*refs\/tags|git.*show-ref.*tags/.test(releaseGate)) {
   throw new Error('release gate must reject an already-existing computed release tag or GitHub Release');
 }
-if (!/gh release view|git .*show-ref.*tags|git .*rev-parse.*refs\/tags/.test(releaseWorkflow)) {
-  throw new Error('release workflow must fail before promotion when the tag or GitHub Release already exists');
+if (!/gh release view|git show-ref --tags/.test(releaseWorkflow)) {
+  throw new Error('release workflow must fail before promotion when the computed tag or GitHub Release already exists');
 }
 
-if (!/CHANGELOG\.md[\s\S]*(pkg\.version|tag|releaseTag)|changelog[\s\S]*(pkg\.version|tag|releaseTag)/.test(releaseGate)) {
-  throw new Error('release gate must verify CHANGELOG.md mentions the exact package version or derived release tag');
-}
-if (/changelog\.includes\((pkg\.version|tag)\)/.test(releaseGate) || !/changelogMentionsRelease|releaseMentionRegex|escapeRegExp/.test(releaseGate)) {
-  throw new Error('release gate CHANGELOG validation must use exact token boundaries rather than substring matching');
-}
-if (!/GITHUB_ACTIONS[\s\S]*(GH_TOKEN|GITHUB_TOKEN)|(GH_TOKEN|GITHUB_TOKEN)[\s\S]*GITHUB_ACTIONS/.test(releaseGate)) {
-  throw new Error('release gate must fail closed in GitHub Actions when no GitHub token is available for release existence checks');
+if (!/CHANGELOG\.md must exist and be non-empty/.test(releaseWorkflow) || /CHANGELOG\.md must mention|changelogMentionsRelease\(changelog/.test(releaseGate) || /CHANGELOG\.md must mention/.test(releaseWorkflow)) {
+  throw new Error('release prep CHANGELOG.md must be required but must not need to mention the workflow-generated version');
 }
 
-const validationStep = releaseWorkflow.match(/- name: Validate release source and tag[\s\S]*?(?=\n\s*- name:|\n\s*$)/)?.[0] ?? '';
-if (!/GH_TOKEN:\s*\$\{\{ github\.token \}\}/.test(validationStep)) {
-  throw new Error('release workflow validation step must pass GH_TOKEN before checking existing GitHub Releases and running release-gate');
-}
-if (/grep -Fq "\$version" CHANGELOG\.md|grep -Fq "\$release_tag" CHANGELOG\.md/.test(validationStep) || !/node --input-type=module[\s\S]*CHANGELOG\.md[\s\S]*(version|releaseTag)/.test(validationStep)) {
-  throw new Error('release workflow CHANGELOG validation must use exact token boundaries rather than substring matching');
+const validationStep = releaseWorkflow.match(/- name: Validate release source[\s\S]*?(?=\n\s*- name:|\n\s*$)/)?.[0] ?? '';
+if (/GH_TOKEN:|gh release view|git show-ref --tags/.test(validationStep)) {
+  throw new Error('release source validation must run before computing the next tag and must not require token/tag checks');
 }
 
-if (!/daysInMonth|Date\(|validCalendar|validProjectVersion/.test(bumpVersion) || !/daysInMonth|Date\(|validCalendar|validProjectVersion/.test(releaseGate) || !/days_in_month|case "\$month"|Date\(/.test(releaseWorkflow)) {
+if (!/daysInMonth|Date\(|validCalendar|validProjectVersion/.test(bumpVersion) || !/daysInMonth|Date\(|validCalendar|validProjectVersion/.test(releaseGate) || !/npm run version:check/.test(releaseWorkflow)) {
   throw new Error('release gates/scripts/workflows must reject impossible MMDD dates, including invalid month/day ranges');
 }
 
-if (!/gh workflow run publish\.yml[\s\S]*publish=true/.test(releaseWorkflow)) {
-  throw new Error('release workflow must explicitly dispatch npm publish after creating a GitHub Release because GITHUB_TOKEN-created releases do not trigger release workflows');
+if (/gh workflow run publish\.yml|actions:\s*write|secrets\.RELEASE_TOKEN/.test(releaseWorkflow)) {
+  throw new Error('release workflow must publish npm directly instead of dispatching publish.yml or depending on RELEASE_TOKEN-triggered downstream workflows');
 }
-if (!/permissions:[\s\S]*actions:\s*write/.test(releaseWorkflow)) {
-  throw new Error('release workflow must grant actions: write so gh workflow run can dispatch npm publish');
-}
-if (!/publish:[\s\S]*type:\s*boolean/.test(publishWorkflow) || !/env\.MODE == 'publish'/.test(publishWorkflow)) {
-  throw new Error('publish workflow must preserve manual dry-runs while allowing explicit manual publish dispatches');
-}
-if (!/gh release view "\$RELEASE_TAG"/.test(publishWorkflow) || !/origin\/latest/.test(publishWorkflow)) {
-  throw new Error('manual publish dispatch must verify the GitHub Release exists and matches latest before npm publish');
+if (!/name:\s*Publish npm package/.test(releaseWorkflow) || !/npm publish --access public --provenance --tag latest/.test(releaseWorkflow)) {
+  throw new Error('release workflow must include the npm publish job after GitHub Release creation');
 }
 NODE
+
+if [ -f "$REPO_ROOT/.github/workflows/publish.yml" ]; then
+  echo "  [FAIL] publish.yml must not exist; Release latest owns npm publishing"
+  exit 1
+fi
 
 release_workflow="$REPO_ROOT/.github/workflows/release.yml"
 if [ -f "$release_workflow" ]; then
@@ -306,8 +295,8 @@ if [ -f "$release_workflow" ]; then
     echo "  [FAIL] release workflow must run the validation suite before publishing"
     exit 1
   fi
-  if grep -q "npm run version:next\|version:next\|CHANGELOG.*>\|changelog.*rewrite\|rewrite.*changelog\|git commit\|git push.*main\|git push origin main" "$release_workflow"; then
-    echo "  [FAIL] release workflow must not bump versions, rewrite changelog, commit, or push main"
+  if grep -q "CHANGELOG.*>\|changelog.*rewrite\|rewrite.*changelog" "$release_workflow"; then
+    echo "  [FAIL] release workflow must not rewrite changelog content"
     exit 1
   fi
   if grep -qi "pull_request\|repository_dispatch\|workflow_run" "$release_workflow"; then
