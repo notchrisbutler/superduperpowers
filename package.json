@@ -1,6 +1,6 @@
 {
   "name": "superduperpowers",
-  "version": "2026.0506.4",
+  "version": "2026.0506.5",
   "type": "module",
   "main": ".opencode/plugins/superduperpowers.js",
   "bin": {
