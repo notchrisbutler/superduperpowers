@@ -248,8 +248,11 @@ if (!/daysInMonth|Date\(|validCalendar|validProjectVersion/.test(bumpVersion) ||
   throw new Error('release gates/scripts/workflows must reject impossible MMDD dates, including invalid month/day ranges');
 }
 
-if (/gh workflow run publish\.yml|actions:\s*write|secrets\.RELEASE_TOKEN/.test(releaseWorkflow)) {
-  throw new Error('release workflow must publish npm directly instead of dispatching publish.yml or depending on RELEASE_TOKEN-triggered downstream workflows');
+if (/gh workflow run publish\.yml|actions:\s*write/.test(releaseWorkflow)) {
+  throw new Error('release workflow must publish npm directly instead of dispatching publish.yml');
+}
+if (!/secrets\.RELEASE_TOKEN/.test(releaseWorkflow) || !/RELEASE_TOKEN secret is required to push the release version commit to protected main/.test(releaseWorkflow)) {
+  throw new Error('release workflow must use RELEASE_TOKEN for the protected main version-bump push');
 }
 if (!/name:\s*Publish npm package/.test(releaseWorkflow) || !/npm publish --access public --provenance --tag latest/.test(releaseWorkflow)) {
   throw new Error('release workflow must include the npm publish job after GitHub Release creation');
