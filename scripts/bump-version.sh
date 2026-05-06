@@ -106,7 +106,10 @@ update_readme_badge() {
   [[ -f "$readme" ]] || return 0
 
   local tmp="${readme}.tmp"
-  sed -E "s#version-[0-9]{4}\.[0-9]+\.[0-9]+(--[0-9]+|--alpha\.[0-9]+)?-purple\.svg#version-$(badge_version "$version")-purple.svg#g" "$readme" > "$tmp"
+  sed -E \
+    -e "s#version-[0-9]{4}\.[0-9]+\.[0-9]+(--[0-9]+|--alpha\.[0-9]+)?-purple\.svg#version-$(badge_version "$version")-purple.svg#g" \
+    -e "s#https://github\.com/notchrisbutler/superduperpowers/releases(/tag/v[0-9]{4}\.[0-9]+\.[0-9]+(--[0-9]+|--alpha\.[0-9]+)?)?#https://github.com/notchrisbutler/superduperpowers/releases/tag/v${version}#g" \
+    "$readme" > "$tmp"
   mv "$tmp" "$readme"
 }
 
