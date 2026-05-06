@@ -1,6 +1,9 @@
 name: Publish package
 
 on:
+  release:
+    types:
+      - published
   workflow_dispatch:
     inputs:
       version:
@@ -14,7 +17,6 @@ on:
         type: choice
         options:
           - latest
-          - prerelease
       mode:
         description: "Use dry-run to validate without publishing"
         required: true
@@ -28,7 +30,7 @@ permissions:
   id-token: write
 
 concurrency:
-  group: npm-publish-${{ inputs.version }}
+  group: npm-publish-${{ github.event.release.tag_name || inputs.version }}
   cancel-in-progress: false
 
 jobs:
@@ -45,9 +47,12 @@ jobs:
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
+          package-manager-cache: false
 
       - name: Resolve release metadata
         env:
+          EVENT_NAME: ${{ github.event_name }}
+          EVENT_PATH: ${{ github.event_path }}
           INPUT_VERSION: ${{ inputs.version }}
           INPUT_DIST_TAG: ${{ inputs.dist_tag }}
           INPUT_MODE: ${{ inputs.mode }}
@@ -57,24 +62,28 @@ jobs:
           import process from 'node:process';
 
           const env = process.env;
-          const version = env.INPUT_VERSION;
-          const distTag = env.INPUT_DIST_TAG;
-          const mode = env.INPUT_MODE;
+          const event = JSON.parse(fs.readFileSync(env.EVENT_PATH, 'utf8'));
+          const isRelease = env.EVENT_NAME === 'release';
+          const version = isRelease ? event.release?.tag_name : env.INPUT_VERSION;
+          const distTag = isRelease ? 'latest' : env.INPUT_DIST_TAG;
+          const mode = isRelease ? 'publish' : env.INPUT_MODE;
+
+          if (isRelease && event.release?.prerelease) {
+            throw new Error('Refusing to publish a GitHub prerelease to the npm latest dist-tag');
+          }
 
           if (!/^\d+\.\d+\.\d+(?:-[1-9]\d*)?$/.test(version)) {
             throw new Error(`Version must be YYYY.M.D or YYYY.M.D-N: ${version}`);
           }
-          if (!['latest', 'prerelease'].includes(distTag)) {
+          if (distTag !== 'latest') {
             throw new Error(`Unsupported npm dist-tag: ${distTag}`);
           }
           if (!['dry-run', 'publish'].includes(mode)) {
             throw new Error(`Unsupported mode: ${mode}`);
           }
 
-          fs.appendFileSync(env.GITHUB_ENV, `VERSION=${version}\nDIST_TAG=${distTag}\nMODE=${mode}\nRELEASE_TAG=${version}\nRELEASE_TITLE=${version}\n`);
+          fs.appendFileSync(env.GITHUB_ENV, `VERSION=${version}\nDIST_TAG=${distTag}\nMODE=${mode}\n`);
           console.log(`version=${version}`);
-          console.log(`release_tag=${version}`);
-          console.log(`release_title=${version}`);
           console.log(`dist_tag=${distTag}`);
           console.log(`mode=${mode}`);
           NODE
@@ -86,13 +95,13 @@ jobs:
           import process from 'node:process';
 
           const pkg = JSON.parse(fs.readFileSync('package.json', 'utf8'));
-          if (pkg.name !== '@notchrisbutler/superduperpowers') {
+          if (pkg.name !== 'superduperpowers') {
             throw new Error(`Unexpected package name: ${pkg.name}`);
           }
           if (pkg.private) {
             throw new Error('package.json must not be private for npm publishing');
           }
-          if (pkg.repository?.url !== 'https://github.com/notchrisbutler/superduperpowers') {
+          if (pkg.repository?.url !== 'git+https://github.com/notchrisbutler/superduperpowers.git') {
             throw new Error(`Unexpected repository.url: ${pkg.repository?.url}`);
           }
           if (pkg.version !== process.env.VERSION) {
@@ -100,15 +109,24 @@ jobs:
           }
           NODE
 
+      - name: Check version metadata
+        run: npm run version:check
+
+      - name: Validate package contents
+        run: npm pack --dry-run
+
       - name: Dry run npm publish
         run: npm publish --access public --provenance --tag "$DIST_TAG" --dry-run
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Stop after dry run
-        if: ${{ inputs.mode == 'dry-run' }}
+        if: ${{ env.MODE == 'dry-run' }}
         run: |
           echo "npm publish dry run passed for ${VERSION} with npm dist-tag ${DIST_TAG}."
-          echo "Use GitHub Release tag ${RELEASE_TAG} and title ${RELEASE_TITLE}."
 
       - name: Publish to npm
-        if: ${{ inputs.mode == 'publish' }}
+        if: ${{ env.MODE == 'publish' }}
         run: npm publish --access public --provenance --tag "$DIST_TAG"
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
