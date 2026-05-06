@@ -136,7 +136,7 @@ Quick-flow prompt:
 Using SuperDuperPowers quick flow, make a small README wording improvement.
 ```
 
-Expected: the agent gathers lightweight context, makes the bounded change, runs targeted validation when practical, and avoids full brainstorming, TDD, and planning unless the task escalates.
+Expected: the agent gathers lightweight context, makes the bounded change, runs targeted validation when practical, and avoids full brainstorming, TDD, and planning unless the task escalates. If a bounded attempt fails repeatedly, it should stop and re-evaluate instead of cycling through variants.
 
 No-SuperDuperPowers prompt:
 

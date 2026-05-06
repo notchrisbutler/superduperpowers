@@ -18,6 +18,8 @@ Once this skill is intentionally selected, do NOT invoke any implementation skil
 
 Use this skill for explicit SuperDuperPowers brainstorming requests and for work that clearly needs design discovery before implementation. Do not use this skill for quick flow, small reviews, wording edits, simple config tweaks, bounded code changes, or no-SuperDuperPowers work unless the user asks for brainstorming.
 
+If the request includes UI, frontend components, page layout, interaction design, visual polish, or screenshots, also use `frontend-design` as a support skill while exploring and writing the spec.
+
 ## Agent Dispatch
 
 When the active harness supports named agents and the brainstorming work is large enough to benefit from isolated context, dispatch `brainstorming-facilitator` with:
@@ -87,6 +89,7 @@ digraph brainstorming {
 - Prefer multiple choice questions when possible, but open-ended is fine too
 - Only one question per message - if a topic needs more exploration, break it into multiple questions
 - Focus on understanding: purpose, constraints, success criteria
+- For frontend work, inspect the current design system, component library, CSS variables/tokens, typography, spacing, assets, route/page structure, and comparable screens before proposing visual changes.
 
 **Exploring approaches:**
 
@@ -100,6 +103,7 @@ digraph brainstorming {
 - Scale each section to its complexity: a few sentences if straightforward, up to 200-300 words if nuanced
 - Ask after each section whether it looks right so far
 - Cover: architecture, components, data flow, error handling, testing
+- For frontend work, also cover information hierarchy, responsive behavior, interaction states, accessibility, real asset/data usage, and anti-generic visual constraints from `frontend-design`.
 - Be ready to go back and clarify if something doesn't make sense
 
 **Design for isolation and clarity:**
@@ -131,6 +135,7 @@ After writing the spec document, look at it with fresh eyes:
 2. **Internal consistency:** Do any sections contradict each other? Does the architecture match the feature descriptions?
 3. **Scope check:** Is this focused enough for a single implementation plan, or does it need decomposition?
 4. **Ambiguity check:** Could any requirement be interpreted two different ways? If so, pick one and make it explicit.
+5. **Frontend check when applicable:** Does the spec name the existing UI patterns to reuse, responsive/accessibility requirements, interaction states, visual assets, and what to avoid so the result does not look generic or disconnected from the product?
 
 Fix any issues inline. No need to re-review — just fix and move on.
 

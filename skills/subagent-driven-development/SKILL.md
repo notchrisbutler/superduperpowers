@@ -72,6 +72,16 @@ If you stay inline, preserve the same bounded `Task N.M` todo boundaries and rev
 
 Subagents honor the profile's testing intensity. For `major-behavior`, they test important behavior and integration points without creating exhaustive or obvious tests.
 
+## Context Handoffs
+
+Workers should receive compact, task-specific context:
+
+- Stable workflow rules come from skills and agent definitions, not repeated prose in every prompt.
+- Include the assigned `Task N.M`, relevant acceptance criteria, exact file ownership, validation commands, recent failure evidence, and known constraints.
+- Include focused excerpts or file paths with line references instead of whole files when possible.
+- Keep variable task data after stable instructions so repeated prompt prefixes remain cache-friendly.
+- Do not pass the whole conversation unless the worker genuinely needs it to avoid a wrong implementation.
+
 ## Todo Status Discipline
 
 Keep the coordinator-owned harness todo list current throughout orchestration:
@@ -166,6 +176,16 @@ Implementer subagents report one of four statuses. Handle each appropriately:
 2. If the task requires more reasoning, re-dispatch with a more capable model
 3. If the task is too large, break it into smaller pieces
 4. If the plan itself is wrong, escalate to the human
+
+## Re-Evaluation Gates
+
+If a worker reports two failed implementation attempts in the same assigned scope, stop that scope and re-evaluate:
+
+- Light adjustment that preserves the approved spec: update the plan/spec note and continue with the revised approach.
+- Major design, dependency, architecture, data-model, security, or product decision: do not decide silently. Ask the user, or code a minimal placeholder seam and complete independent tasks that remain valid.
+- Tool/file-discovery failure repeated twice: change tactics or ask for targeted context rather than repeating the same search.
+
+When a worker returns `NEEDS_CONTEXT`, provide only the missing context needed for its assigned scope. When a worker returns `BLOCKED`, do not ask the same worker to keep trying without a changed plan, new evidence, smaller task, or clarified decision.
 
 **Never** ignore an escalation or force the same model to retry without changes.
 

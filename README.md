@@ -3,7 +3,7 @@
 **OpenCode-first skills and workflow agents for deliberate coding workflows**
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/version-2026.5.5--3-purple.svg)](https://github.com/notchrisbutler/superduperpowers/releases)
+[![Version](https://img.shields.io/badge/version-2026.5.6-purple.svg)](https://github.com/notchrisbutler/superduperpowers/releases)
 [![OpenCode](https://img.shields.io/badge/OpenCode-plugin-111827.svg)](.opencode/INSTALL.md)
 
 SuperDuperPowers gives coding agents a practical workflow toolkit: brainstorm when the work is ambiguous, write plans when the scope is real, execute in grouped phases, review at meaningful checkpoints, and verify before claiming success.
@@ -54,6 +54,7 @@ After the first launch, run `/sdp-status` to confirm the plugin loaded and `/sdp
 - Legacy `superpowers.js` shim and duplicate-load warnings are reported through `sdp_doctor` and `/sdp-status`
 - Project-local generated specs and plans under `{DOCS_ROOT}/superduperpowers/`, local-only by default and configurable through live settings
 - Brainstorming, planning, TDD, debugging, verification, and branch-finishing skills
+- Frontend design guidance for responsive, accessible, codebase-native UI work that avoids generic AI-looking visual defaults
 - Coordinator-owned execution with flat, dependency-ordered dispatch todos that stay readable in agent harnesses
 - Named workflow agents as thin OpenCode adapter roles for review, planning, implementation, TDD, debugging, and safe parallelization
 - Local-first finishing flow that prepares PR commands without pushing unless explicitly requested
@@ -91,6 +92,8 @@ Available full-flow workflows include brainstorming, planning, execution, TDD, d
 Skills remain the canonical harness-neutral workflow sources. Named workflow agents provide role isolation and OpenCode permissions where available; generic fallback prompts are compatibility paths for harnesses without named-agent support.
 
 Generated SuperDuperPowers specs and plans are local-only by default unless live settings or explicit user/repo instructions enable committing approved generated docs. Implementation workflows can still use local commits for verified implementation task scopes and final verified implementation changes. Pushes and PR creation require explicit user instruction.
+
+Execution workflows stop and re-evaluate after repeated failed attempts in the same scope. Small approach corrections can be recorded in the plan/spec and continued; major design, dependency, architecture, data-model, security, or product decisions require user direction or an explicit placeholder seam while independent work continues.
 
 ## Live Settings
 

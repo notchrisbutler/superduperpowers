@@ -44,6 +44,8 @@ If `plan-reviewer` returns changes required, update the plan once, then request 
 
 If the spec covers multiple independent subsystems, it should have been broken into sub-project specs during brainstorming. If it wasn't, suggest breaking this into separate plans — one per subsystem. Each plan should produce working, testable software on its own.
 
+If the spec includes UI or frontend work, load `frontend-design` as a support skill and make the frontend validation explicit in the plan. Do not treat visual polish as a vague final pass.
+
 ## File Structure
 
 Before defining tasks, map out which files will be created or modified and what each one is responsible for. This is where decomposition decisions get locked in.
@@ -52,6 +54,7 @@ Before defining tasks, map out which files will be created or modified and what 
 - You reason best about code you can hold in context at once, and your edits are more reliable when files are focused. Prefer smaller, focused files over large ones that do too much.
 - Files that change together should live together. Split by responsibility, not by technical layer.
 - In existing codebases, follow established patterns. If the codebase uses large files, don't unilaterally restructure - but if a file you're modifying has grown unwieldy, including a split in the plan is reasonable.
+- For frontend work, map existing tokens, component primitives, icons, routes, layout containers, and state patterns before creating new UI. Plan responsive, accessibility, loading, empty, error, and interaction states as first-class tasks.
 
 This structure informs the task decomposition. Each task should produce self-contained changes that make sense independently.
 
@@ -174,6 +177,16 @@ Every step must contain the actual content an engineer needs. These are **plan f
 - Steps that describe what to do without showing how (code blocks required for code steps)
 - References to types, functions, or methods not defined in any task
 
+## Re-Evaluation And Placeholder Seams
+
+Implementation plans must tell workers when to stop trying variants:
+
+- If two implementation attempts fail in the same task scope, the worker reports the failed approaches and evidence instead of trying a third variant.
+- If a light change to the approach preserves the approved design, the coordinator may update the plan/spec note and continue.
+- If the fix requires a major design, dependency, architecture, data-model, security, or product decision, the plan should preserve forward progress by identifying any placeholder seam that can be safely coded while leaving the unresolved decision visible.
+- Placeholder seams must be explicit, minimal, and testable. They are allowed for integration boundaries, feature flags, adapter interfaces, or disabled UI states; they are not allowed to fake completed behavior.
+- The coordinator owns spec/plan updates and user escalation; workers report evidence and stop at their boundary.
+
 ## Remember
 - Exact file paths always
 - Complete code in every step — if a step changes code, show the code
@@ -195,6 +208,12 @@ If a `plan-reviewer` agent is used, this self-review still runs first. The revie
 **3. Type consistency:** Do the types, method signatures, and property names you used in later tasks match what you defined in earlier tasks? A function called `clearLayers()` in Task 3 but `clearFullLayers()` in Task 7 is a bug.
 
 **4. Execution shape:** Does the plan support flat, dependency-ordered harness todos with labels like `Task 0: Execution setup`, `Task 1.1: <bounded implementation unit> - dispatch <worker role>`, `Task 1 Review: validate Task 1, run required reviewers, commit if enabled`, `Review: final full-scope spec review, code review, and validation`, and `Finalize: finish branch according to current execution mode`? If the plan collapses a parent task into one broad implementer assignment or requires visible todos for every tiny command, fix it.
+
+**5. Loop prevention:** Does the plan define what to do after repeated failed attempts, and whether unresolved major decisions should block, ask the user, or use a safe placeholder seam while independent work continues?
+
+**6. Context budget:** Can each worker execute with a compact handoff rather than the whole conversation? If not, split the task or write a clearer handoff summary into the plan.
+
+**7. Frontend quality when applicable:** Does the plan name existing UI patterns to reuse, visible states to implement, responsive/accessibility checks, and screenshot/manual validation? If it only says "make it polished," fix it.
 
 If you find issues, fix them inline. No need to re-review — just fix and move on. If you find a spec requirement with no task, add the task.
 

@@ -20,6 +20,9 @@ Responsibilities:
 5. Scale testing to the profile's testing intensity.
 6. Ensure harness todos can stay flat and coordinator-owned: setup, one visible todo per bounded worker dispatch, parent task review gates, final review, finalize.
 7. Self-review for spec coverage, placeholders, type/name consistency, execution shape, and unrequested scope.
+8. For frontend work, include existing UI patterns to reuse, responsive/accessibility checks, interaction states, and visual validation.
+9. Include re-evaluation gates for repeated failed attempts and identify safe placeholder seams for unresolved major decisions when independent work can continue.
+10. Keep worker handoffs compact: task, acceptance criteria, file ownership, evidence, and validation commands.
 
 Constraints:
 
@@ -27,6 +30,7 @@ Constraints:
 - Do not dispatch implementation agents.
 - Do not commit, push, merge, reset, delete branches, or clean worktrees.
 - Do not invent test frameworks or dependencies without explicit approval in the plan.
+- Do not write plans that rely on repeated trial-and-error without a stop point.
 
 Output:
 

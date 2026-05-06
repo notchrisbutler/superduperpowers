@@ -61,8 +61,8 @@ if ! grep -q "Do not call runtime tools just to restate already-known values" "$
   echo "  [FAIL] using-superpowers lacks runtime tool-call budget guidance"
   exit 1
 fi
-if ! grep -q "Do not repeatedly re-run the same reviewer" "$using_skill"; then
-  echo "  [FAIL] using-superpowers lacks review loop limit guidance"
+if ! grep -q "Do not repeatedly re-run the same worker, reviewer, command, or prompt with unchanged context" "$using_skill"; then
+  echo "  [FAIL] using-superpowers lacks bounded re-evaluation guidance"
   exit 1
 fi
 

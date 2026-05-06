@@ -191,11 +191,12 @@ You MUST complete each phase before proceeding to the next.
 4. **If Fix Doesn't Work**
    - STOP
    - Count: How many fixes have you tried?
-   - If < 3: Return to Phase 1, re-analyze with new information
-   - **If ≥ 3: STOP and question the architecture (step 5 below)**
-   - DON'T attempt Fix #4 without architectural discussion
+   - If this was the first failed fix: Return to Phase 1, re-analyze with the new evidence, and state the new hypothesis before changing code again
+   - If this was the second failed fix in the same scope: STOP and re-evaluate the approach against the plan/spec before changing code again
+   - **If ≥ 2 failed fixes require a major design, dependency, architecture, data-model, security, or product decision: use step 5 below before any further implementation**
+   - DON'T attempt a third variant without a changed plan, new evidence, or explicit user direction
 
-5. **If 3+ Fixes Failed: Question Architecture**
+5. **If Repeated Fixes Failed: Question Architecture**
 
    **Pattern indicating architectural problem:**
    - Each fix reveals new shared state/coupling/problem in different place
@@ -210,6 +211,8 @@ You MUST complete each phase before proceeding to the next.
    **Discuss with the user before attempting more fixes**
 
    This is NOT a failed hypothesis - this is a wrong architecture.
+
+   If independent work remains valid, preserve progress by adding a minimal placeholder seam only when it is explicit, disabled or fallback-backed, and does not pretend the blocked behavior works. Finish the independent work, then report exactly what decision is left.
 
 ## Red Flags - STOP and Follow Process
 

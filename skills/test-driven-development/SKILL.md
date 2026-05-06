@@ -216,6 +216,8 @@ Confirm:
 
 **Test fails?** Fix code, not test.
 
+If two implementation attempts fail for the same test without producing a new supported hypothesis, stop and re-evaluate the design or task boundary. Do not keep alternating between test edits and production edits. Report the failed attempts, the evidence, and whether the next step needs a plan/spec update or user decision.
+
 **Other tests fail?** Fix now.
 
 ### REFACTOR - Clean Up
@@ -386,6 +388,7 @@ Can't check all boxes? You skipped TDD. Start over.
 | Test too complicated | Design too complicated. Simplify interface. |
 | Must mock everything | Code too coupled. Use dependency injection. |
 | Test setup huge | Extract helpers. Still complex? Simplify design. |
+| Same test still fails after two implementation attempts | Stop. Re-evaluate the design, plan, or task boundary before changing code again. |
 
 ## Debugging Integration
 

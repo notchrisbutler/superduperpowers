@@ -22,6 +22,8 @@ Generic worker or implementation subagent:
 
     [Scene-setting: where this fits, dependencies, architectural context]
 
+    Keep context compact. Use the provided task, acceptance criteria, focused excerpts, and file paths; do not reconstruct the whole conversation unless the coordinator explicitly included it because it is required.
+
     ## Workflow Profile Summary
 
     [Paste compact SuperDuperPowers profile summary here: route, generated-doc policy, execution method, execution strategy, branch policy, testing intensity, docs path, runtime/worktree path when relevant]
@@ -53,6 +55,8 @@ Generic worker or implementation subagent:
     **While you work:** If you encounter something unexpected or unclear, **ask questions**.
     It's always OK to pause and clarify. Don't guess or make assumptions.
 
+    If one implementation attempt fails, capture the evidence and try at most one revised approach with a different hypothesis. If two attempts fail in the same scope, stop and report BLOCKED with the failed approaches and evidence. Do not keep cycling through variants.
+
     ## Code Organization
 
     You reason best about code you can hold in context at once, and your edits are more
@@ -73,10 +77,12 @@ Generic worker or implementation subagent:
 
     **STOP and escalate when:**
     - The task requires architectural decisions with multiple valid approaches
+    - The task requires a major design, dependency, data-model, security, or product decision
     - You need to understand code beyond what was provided and can't find clarity
     - You feel uncertain about whether your approach is correct
     - The task involves restructuring existing code in ways the plan didn't anticipate
     - You've been reading file after file trying to understand the system without progress
+    - Two implementation attempts failed in the same task scope
 
     **How to escalate:** Report back with status BLOCKED or NEEDS_CONTEXT. Describe
     specifically what you're stuck on, what you've tried, and what kind of help you need.
@@ -114,6 +120,7 @@ Generic worker or implementation subagent:
     When done, report:
     - **Status:** DONE | DONE_WITH_CONCERNS | BLOCKED | NEEDS_CONTEXT
     - What you implemented (or what you attempted, if blocked)
+    - Failed attempts and evidence, if blocked or concerned
     - What you tested and test results
     - Files changed
     - Self-review findings (if any)

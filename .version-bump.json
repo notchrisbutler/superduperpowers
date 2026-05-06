@@ -6,6 +6,7 @@
     "exclude": [
       "docs/superpowers",
       "docs/publishing.md",
+      "docs/release-notes.md",
       "node_modules",
       ".git",
       ".version-bump.json",

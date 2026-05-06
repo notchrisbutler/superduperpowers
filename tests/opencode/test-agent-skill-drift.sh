@@ -67,18 +67,21 @@ requireIncludes('agents/implementer.md', [
   'Do not create, update, or complete todos.',
   'Do not spawn or coordinate other implementation agents.',
   'Do not continue into later plan tasks after your assigned dispatch is done.',
-  'Do not commit, push, merge, switch branches, reset, clean worktrees'
+  'Do not commit, push, merge, switch branches, reset, clean worktrees',
+  'If two attempts fail in the same scope'
 ]);
 requireIncludes('skills/subagent-driven-development/implementer-prompt.md', [
   'Do not continue into later plan tasks',
   'mutate todos',
   'spawn other implementation agents',
-  'Do not commit'
+  'Do not commit',
+  'If two attempts fail in the same scope'
 ]);
 requireIncludes('agents/tdd-implementer.md', [
   'Do not create, update, or complete todos.',
   'Do not spawn or coordinate other implementation agents.',
-  'Do not continue into later plan tasks after your assigned dispatch is done.'
+  'Do not continue into later plan tasks after your assigned dispatch is done.',
+  'If two red/green implementation attempts fail'
 ]);
 requireIncludes('agents/spec-reviewer.md', [
   'Review independently.',
@@ -97,6 +100,21 @@ requireIncludes('skills/requesting-code-review/code-reviewer.md', [
   'Critical',
   'Important',
   'Production Readiness'
+]);
+requireIncludes('skills/using-superpowers/SKILL.md', [
+  '## Context Discipline',
+  '## Re-Evaluation Gates',
+  'frontend-design'
+]);
+requireIncludes('skills/frontend-design/SKILL.md', [
+  'Anti-Generic UI Rules',
+  'Accessibility And Responsiveness',
+  'Re-Evaluation Gate'
+]);
+requireIncludes('skills/writing-plans/SKILL.md', [
+  '## Re-Evaluation And Placeholder Seams',
+  'Context budget',
+  'Frontend quality when applicable'
 ]);
 
 const agentsDir = path.join(root, 'agents');

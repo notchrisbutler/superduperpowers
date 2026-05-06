@@ -57,6 +57,15 @@ When workflow commits are enabled, commit locally after each parent `Task N Revi
 
 For inline task execution, apply the same worker-role boundaries locally: use `test-driven-development` for TDD-required subtasks, use `systematic-debugging` before fixing unclear bugs, and use `dispatching-parallel-agents` only to plan safe delegation if the harness later gains subagents. Do not collapse review feedback handling into informal agreement; use `receiving-spec-review` and `receiving-code-review` when findings return.
 
+## Context Discipline
+
+Keep execution context compact:
+
+- Re-read the approved plan and relevant files, not the entire brainstorming transcript.
+- Carry forward decisions as short evidence-backed notes with paths, commands, and acceptance criteria.
+- Keep stable workflow rules in skills; put only task-specific facts in prompts or handoffs.
+- For large plans, checkpoint what changed at each parent task boundary so later work does not depend on memory.
+
 ### Step 3: Complete Development
 
 After all tasks complete and verified:
@@ -76,14 +85,19 @@ After all tasks complete and verified:
 - Plan has critical gaps preventing starting
 - You don't understand an instruction
 - Verification fails repeatedly
+- Two implementation attempts fail in the same task scope without a new hypothesis
+- The next fix would require a major design, dependency, architecture, data-model, security, or product decision
 
 **Ask for clarification rather than guessing.**
+
+If the unresolved issue is a major decision but other planned work is independent, create a minimal placeholder seam only when it is explicit, disabled or safely fallback-backed, and does not fake completed behavior. Finish the independent work that remains valid, then report the blocked decision and exact follow-up tasks.
 
 ## When to Revisit Earlier Steps
 
 **Return to Review (Step 1) when:**
 - Partner updates the plan based on your feedback
 - Fundamental approach needs rethinking
+- Repeated failures show the plan/spec assumption is wrong
 
 **Don't force through blockers** - stop and ask.
 
