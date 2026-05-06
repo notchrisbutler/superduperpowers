@@ -10,7 +10,7 @@ import fs from 'fs';
 import os from 'os';
 import { fileURLToPath } from 'url';
 import { autoRepairRuntimeState, createSdpTools, getRuntimePaths, loadEffectiveSettings, profileSummaryText, readProfileJsonSafe, settingsSummaryText, validateRuntimePathContainment } from './superduperpowers/sdp-tools.js';
-import { getBootstrapContent, registerBundledConfig } from './superduperpowers/sdp-registration.js';
+import { buildTuiCommands, getBootstrapContent, registerBundledConfig } from './superduperpowers/sdp-registration.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -127,3 +127,16 @@ export const SuperpowersPlugin = async ({ client, directory, worktree } = {}) =>
     }
   };
 };
+
+export const SuperpowersTuiPlugin = async (api = {}) => {
+  if (typeof api.command?.register !== 'function') return {};
+
+  api.command.register(() => buildTuiCommands({
+    client: api.client,
+    workspace: api.workspace
+  }));
+
+  return {};
+};
+
+export const tui = SuperpowersTuiPlugin;

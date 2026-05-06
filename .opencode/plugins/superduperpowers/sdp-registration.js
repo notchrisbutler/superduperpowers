@@ -69,9 +69,13 @@ export const SDP_COMMANDS = Object.freeze({
     description: 'Summarize the active SuperDuperPowers workflow profile',
     template: 'Run sdp_profile with operation "summary" and summarize the active SuperDuperPowers workflow profile.'
   },
+  'sdp-setup': {
+    description: 'Set up project-local SuperDuperPowers defaults',
+    template: 'This is a SuperDuperPowers setup command, not a workflow routing request. Run sdp_init with operation "apply" to create .opencode/superduperpowers.jsonc if missing, then summarize the result and next steps. Do not ask for a SuperDuperPowers route unless setup cannot proceed without it.'
+  },
   'sdp-init': {
     description: 'Initialize project-local SuperDuperPowers config',
-    template: 'Run sdp_init with operation "apply" to create .opencode/superduperpowers.jsonc if missing, then summarize the result and next steps.'
+    template: 'This is a SuperDuperPowers init command, not a workflow routing request. Run sdp_init with operation "apply" to create .opencode/superduperpowers.jsonc if missing, then summarize the result and next steps. Do not ask for a SuperDuperPowers route unless init cannot proceed without it.'
   },
   'sdp-cleanup': {
     description: 'Inspect stale SuperDuperPowers runtime state',
@@ -80,6 +84,24 @@ export const SDP_COMMANDS = Object.freeze({
 });
 
 export const expectedCommandNames = () => Object.keys(SDP_COMMANDS);
+
+export const buildTuiCommands = ({ client, workspace } = {}) => {
+  const submitCommandPrompt = async (command) => {
+    const workspaceID = typeof workspace?.current === 'function' ? workspace.current() : undefined;
+    const text = command.template.replaceAll('$ARGUMENTS', '').trim();
+    await client?.tui?.appendPrompt?.({ workspace: workspaceID, text });
+    await client?.tui?.submitPrompt?.({ workspace: workspaceID });
+  };
+
+  return Object.entries(SDP_COMMANDS).map(([name, command]) => ({
+    title: `/${name}`,
+    value: `superduperpowers.${name}`,
+    description: command.description,
+    category: 'SuperDuperPowers',
+    slash: { name },
+    onSelect: () => submitCommandPrompt(command)
+  }));
+};
 
 export const loadBundledAgents = (agentsDir) => {
   if (!fs.existsSync(agentsDir)) return {};

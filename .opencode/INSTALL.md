@@ -84,7 +84,7 @@ Agents read these settings through `sdp_settings`; they are intentionally live, 
 
 ## Registered Commands
 
-The plugin registers OpenCode TUI slash commands through `config.command`; no command files need to be copied.
+The plugin registers OpenCode slash commands through `config.command` and the TUI plugin command API; no command files need to be copied.
 
 - `/sdp` - main SuperDuperPowers entrypoint.
 - `/superduperpowers` - primary readable alias behavior for `/sdp`.
@@ -95,6 +95,7 @@ The plugin registers OpenCode TUI slash commands through `config.command`; no co
 - `/execute-plan` - execute an approved plan after execution choices are recorded.
 - `/sdp-status` - run read-only diagnostics through `sdp_doctor`.
 - `/sdp-profile` - summarize the active workflow profile.
+- `/sdp-setup` - create `.opencode/superduperpowers.jsonc` if project-local defaults are missing.
 - `/sdp-init` - create `.opencode/superduperpowers.jsonc` if project-local defaults are missing.
 - `/sdp-cleanup` - inspect stale runtime state and clean only after confirmation unless cleanup was explicitly requested.
 
