@@ -20,25 +20,27 @@ If the active harness does not support subagents or worker dispatch, use `execut
 digraph when_to_use {
     "Have implementation plan?" [shape=diamond];
     "Tasks mostly independent?" [shape=diamond];
-    "Stay in this session?" [shape=diamond];
+    "Use current conversation as coordinator?" [shape=diamond];
     "subagent-driven-development" [shape=box];
     "executing-plans" [shape=box];
     "Manual execution or brainstorm first" [shape=box];
 
     "Have implementation plan?" -> "Tasks mostly independent?" [label="yes"];
     "Have implementation plan?" -> "Manual execution or brainstorm first" [label="no"];
-    "Tasks mostly independent?" -> "Stay in this session?" [label="yes"];
+    "Tasks mostly independent?" -> "Use current conversation as coordinator?" [label="yes"];
     "Tasks mostly independent?" -> "Manual execution or brainstorm first" [label="no - tightly coupled"];
-    "Stay in this session?" -> "subagent-driven-development" [label="yes"];
-    "Stay in this session?" -> "executing-plans" [label="no - parallel session"];
+    "Use current conversation as coordinator?" -> "subagent-driven-development" [label="yes"];
+    "Use current conversation as coordinator?" -> "executing-plans" [label="no - single-agent handoff"];
 }
 ```
 
 **vs. Executing Plans:**
-- Same session coordination
+- Current conversation remains the coordinator
 - Fresh subagents where they add value
 - Dispatch-scoped implementation todos, lite checkpoints after simple tasks, full task-scope spec review plus lite task-scope code review at task boundaries
 - Faster iteration without human-in-loop between every small task
+
+`executing-plans` is single-agent execution of the same plan boundaries. It may run in the current conversation or a separate handoff, but it does not use the current conversation as a subagent coordinator.
 
 ## When Not To Dispatch
 
@@ -79,6 +81,7 @@ Workers should receive compact, task-specific context:
 - Stable workflow rules come from skills and agent definitions, not repeated prose in every prompt.
 - Include the assigned `Task N.M`, relevant acceptance criteria, exact file ownership, validation commands, recent failure evidence, and known constraints.
 - Include focused excerpts or file paths with line references instead of whole files when possible.
+- Carry forward a compact `Project Discoveries` block when earlier workers found reusable codebase facts, gotchas, dependency quirks, or validation notes. Keep only discoveries that are likely to affect later tasks.
 - Keep variable task data after stable instructions so repeated prompt prefixes remain cache-friendly.
 - Do not pass the whole conversation unless the worker genuinely needs it to avoid a wrong implementation.
 
@@ -164,6 +167,8 @@ Use the least powerful model that can handle each role to conserve cost and incr
 ## Handling Implementer Status
 
 Implementer subagents report one of four statuses. Handle each appropriately:
+
+After each implementer report, merge any `Project Discoveries` into the compact discovery block for later dispatches. Deduplicate aggressively and drop one-off facts that are not reusable.
 
 **DONE:** Proceed to the task's review policy: lite checkpoint for simple work, full review for high-risk work, or task-scope review when the parent task boundary is reached.
 

@@ -18,7 +18,7 @@ Responsibilities:
 3. Keep changes inside the assigned scope.
 4. Use project conventions and existing helpers.
 5. Run targeted validation requested by the task when practical.
-6. Report changed files, validation results, and any concerns.
+6. Report changed files, validation results, reusable project discoveries, and any concerns.
 7. If one attempt fails, report the evidence and try only one revised approach with a different hypothesis.
 8. If two attempts fail in the same scope, stop and report `BLOCKED` with the failed approaches, evidence, and what decision or context is needed.
 
@@ -41,6 +41,7 @@ Output:
 Implementation status: DONE | DONE_WITH_CONCERNS | NEEDS_CONTEXT | BLOCKED
 - Changed files: <list>
 - Validation: <commands and results, or reason not run>
+- Project discoveries: <reusable facts or gotchas for later tasks, or none>
 - Concerns: <none or concise list>
 - Failed attempts: <only when status is BLOCKED or DONE_WITH_CONCERNS>
 - Suggested next review: lite-code-reviewer | code-reviewer | spec-reviewer | none

@@ -177,6 +177,8 @@ Every step must contain the actual content an engineer needs. These are **plan f
 - Steps that describe what to do without showing how (code blocks required for code steps)
 - References to types, functions, or methods not defined in any task
 
+Concrete discovery substeps are allowed when the architecture decision is already made but codebase geography needs one bounded lookup. They must include the exact command or file-read target, the expected kind of output, and how that output feeds the next step. For example, "Run `rg -n \"401|403|UNAUTHORIZED\" src/notifiers` and use the file containing the existing HTTP error mapping in Step 2" is discovery; "figure out where this goes" is a placeholder.
+
 ## Re-Evaluation And Placeholder Seams
 
 Implementation plans must tell workers when to stop trying variants:
@@ -231,13 +233,13 @@ After user approval, re-read live settings, then update the workflow profile or 
 
 After the user approves the written plan, ask execution method through the active harness's structured question tool:
 
-1. Subagent Driven Development
-2. Inline Execution, all in the main agent with no subagents
+1. Subagent Driven Development, coordinated from this conversation
+2. Single-Agent Execution, all in the main agent with no subagents
 3. Hold off on implementing for now
 
 If the user chooses Hold off, record `executionMethod: hold` and stop cleanly.
 
-If the user chooses Inline Execution, record `executionMethod: inline`, run branch preflight, use `using-feature-branches` unless current-branch execution was explicitly approved, then invoke `executing-plans`.
+If the user chooses Single-Agent Execution, record `executionMethod: inline`, run branch preflight, use `using-feature-branches` unless current-branch execution was explicitly approved, then invoke `executing-plans`.
 
 If the user chooses Subagent Driven Development, record `executionMethod: subagent-driven`, then ask execution strategy through the structured question tool:
 
