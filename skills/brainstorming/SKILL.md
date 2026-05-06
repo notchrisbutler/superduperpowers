@@ -94,8 +94,13 @@ digraph brainstorming {
 **Exploring approaches:**
 
 - Propose 2-3 different approaches with trade-offs
+- Ground each option in evidence from the request, current project context, codebase patterns, docs, or explicit assumptions. If the evidence is thin, say what is unknown before recommending.
 - Present options conversationally with your recommendation and reasoning
 - Lead with your recommended option and explain why
+
+**Deferring scope:**
+
+If you propose deferring any requirement, follow-up task, or integration point, identify the concrete successor before treating it as out of scope. Verify the successor exists when practical by checking the issue tracker, plan/spec backlog, or codebase references. If no concrete successor exists, state that the work will stay latent without one and ask whether to add it to this spec or create a follow-up artifact. Do not use vague handoffs like "later", "when this flow comes through", or "someone will pick this up" without a verified successor.
 
 **Presenting the design:**
 

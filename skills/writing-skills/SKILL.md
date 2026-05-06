@@ -91,6 +91,19 @@ skills/
 - Code patterns (< 50 lines)
 - Everything else
 
+## Scripts vs Prose
+
+Use deterministic scripts for repeatable checks, generators, renderers, or migrations that are easier to verify by running than by following prose. Keep judgment-heavy workflow decisions in the skill body.
+
+Create a script when all of these are true:
+- The steps are mechanical and likely to be repeated.
+- The output can be validated with exit codes, files, or stable text.
+- A small script removes more ambiguity than it adds maintenance cost.
+
+Keep prose when the agent must evaluate trade-offs, adapt to project context, or ask the user before choosing a path. Do not add a script just to avoid explaining a decision.
+
+When adding a script, document only its purpose and `--help` or one canonical command in `SKILL.md`; put flags, edge cases, and implementation details in the script help or nearby reference file.
+
 ## SKILL.md Structure
 
 **Frontmatter (YAML):**
@@ -314,7 +327,7 @@ digraph when_flowchart {
 - Linear instructions → Numbered lists
 - Labels without semantic meaning (step1, helper2)
 
-See @graphviz-conventions.dot for graphviz style rules.
+See [graphviz-conventions.dot](graphviz-conventions.dot) for graphviz style rules.
 
 **Visualizing for the user:** Use `render-graphs.js` in this directory to render a skill's flowcharts to SVG:
 ```bash
@@ -554,7 +567,7 @@ Run same scenarios WITH skill. Agent should now comply.
 
 Agent found new rationalization? Add explicit counter. Re-test until bulletproof.
 
-**Testing methodology:** See @testing-skills-with-subagents.md for the complete testing methodology:
+**Testing methodology:** See [testing-skills-with-subagents.md](testing-skills-with-subagents.md) for the complete testing methodology:
 - How to write pressure scenarios
 - Pressure types (time, sunk cost, authority, exhaustion)
 - Plugging holes systematically

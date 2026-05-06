@@ -107,13 +107,17 @@ Then: Cleanup worktree or temporary branch only if one exists (Step 6)
 
 #### Option 2: Prepare PR Summary and Commands
 
-Do not push automatically. Prepare the summary and exact commands for the user to run, unless the user explicitly asks you to push.
+Do not push automatically. Prepare the summary and exact commands for the user to run, unless the user explicitly asks you to push. Check whether the completed work is tracked by GitHub issues or another issue tracker. When a GitHub issue is fully resolved by the branch, include a closing keyword such as `Closes #123`, `Fixes #123`, or `Resolves #123` in the PR body. If the branch only partially addresses an issue, mention it without a closing keyword.
 
 ```bash
 git push -u origin <feature-branch>
 gh pr create --title "<title>" --body "$(cat <<'EOF'
 ## Summary
 <2-3 bullets of what changed>
+
+## Closes
+<!-- Omit this section if no GitHub issue is fully resolved. -->
+Closes #<issue-number>
 
 ## Test Plan
 - [ ] <verification steps>

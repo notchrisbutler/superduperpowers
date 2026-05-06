@@ -24,6 +24,10 @@ Generic worker or implementation subagent:
 
     Keep context compact. Use the provided task, acceptance criteria, focused excerpts, and file paths; do not reconstruct the whole conversation unless the coordinator explicitly included it because it is required.
 
+    ## Project Discoveries
+
+    [Reusable codebase facts, gotchas, dependency quirks, validation notes, or "None yet"]
+
     ## Workflow Profile Summary
 
     [Paste compact SuperDuperPowers profile summary here: route, generated-doc policy, execution method, execution strategy, branch policy, testing intensity, docs path, runtime/worktree path when relevant]
@@ -123,6 +127,7 @@ Generic worker or implementation subagent:
     - Failed attempts and evidence, if blocked or concerned
     - What you tested and test results
     - Files changed
+    - Project discoveries: reusable facts or gotchas later tasks should know, or "None"
     - Self-review findings (if any)
     - Any issues or concerns
 

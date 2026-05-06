@@ -19,14 +19,16 @@ echo "Test pattern: $TEST_PATTERN"
 echo ""
 
 # Get list of test files
-TEST_FILES=$(find . -path "$TEST_PATTERN" | sort)
-TOTAL=$(echo "$TEST_FILES" | wc -l | tr -d ' ')
+TEST_FILES_TMP=$(mktemp)
+trap 'rm -f "$TEST_FILES_TMP"' EXIT
+find . -path "$TEST_PATTERN" | sort > "$TEST_FILES_TMP"
+TOTAL=$(wc -l < "$TEST_FILES_TMP" | tr -d ' ')
 
 echo "Found $TOTAL test files"
 echo ""
 
 COUNT=0
-for TEST_FILE in $TEST_FILES; do
+while IFS= read -r TEST_FILE; do
   COUNT=$((COUNT + 1))
 
   # Skip if pollution already exists
@@ -56,7 +58,7 @@ for TEST_FILE in $TEST_FILES; do
     echo "  cat $TEST_FILE         # Review test code"
     exit 1
   fi
-done
+done < "$TEST_FILES_TMP"
 
 echo ""
 echo "✅ No polluter found - all tests clean!"
