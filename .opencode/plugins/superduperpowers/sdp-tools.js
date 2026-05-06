@@ -1311,7 +1311,7 @@ const createDoctorTool = (configDir, packageInfo, getRegistrationReport) => tool
           ? (globalSettingsExists ? 'project SuperDuperPowers settings exist and override global settings' : 'project-local SuperDuperPowers config exists')
           : (globalSettingsExists
               ? 'global SuperDuperPowers settings exist; project-local settings are optional'
-              : 'no global or project SuperDuperPowers settings found; use /sdp-init as an in-session fallback, or configure OpenCode plugin settings manually until the npx installer is available'));
+              : 'no global or project SuperDuperPowers settings found; run npx superduperpowers --repo for this project or npx superduperpowers --global for user settings; use /sdp-init as an in-session fallback'));
     doctorCheck(
       checks,
       'project-config',

@@ -1,5 +1,11 @@
 #!/usr/bin/env node
 
-console.error('SuperDuperPowers installer is not implemented in this package build yet.');
-console.error('Use OpenCode plugin config { "plugin": ["superduperpowers"] } until the installer implementation lands.');
-process.exit(1);
+import { runCli } from '../installer/cli.js';
+
+process.exitCode = await runCli(process.argv.slice(2), {
+  cwd: process.cwd(),
+  env: process.env,
+  stdin: process.stdin,
+  stdout: process.stdout,
+  stderr: process.stderr,
+});
