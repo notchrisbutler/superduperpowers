@@ -44,6 +44,20 @@ if grep -qi "future npm\|not an npm package\|installed from the GitHub repositor
   exit 1
 fi
 
+REPO_ROOT="$REPO_ROOT" node --input-type=module <<'NODE'
+import fs from 'fs';
+import path from 'path';
+
+const packageJson = JSON.parse(fs.readFileSync(path.join(process.env.REPO_ROOT, 'package.json'), 'utf8'));
+const files = packageJson.files || [];
+if (files.includes('docs/') || files.includes('docs')) {
+  throw new Error('package files must not include the whole docs directory because docs/superduperpowers is local-only');
+}
+for (const required of ['docs/publishing.md', 'docs/testing.md', 'docs/workflow-map.md', 'docs/wiki/']) {
+  if (!files.includes(required)) throw new Error(`package files missing public doc: ${required}`);
+}
+NODE
+
 using_skill="$SUPERPOWERS_DIR/skills/using-superpowers/SKILL.md"
 if ! grep -q "SuperDuperPowers" "$using_skill"; then
   echo "  [FAIL] using-superpowers lacks SuperDuperPowers naming"
