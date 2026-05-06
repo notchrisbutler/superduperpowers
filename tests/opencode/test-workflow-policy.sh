@@ -251,8 +251,8 @@ if (!/daysInMonth|Date\(|validCalendar|validProjectVersion/.test(bumpVersion) ||
 if (/gh workflow run publish\.yml|actions:\s*write/.test(releaseWorkflow)) {
   throw new Error('release workflow must publish npm directly instead of dispatching publish.yml');
 }
-if (!/secrets\.RELEASE_TOKEN/.test(releaseWorkflow) || !/RELEASE_TOKEN secret is required to push the release version commit to protected main/.test(releaseWorkflow)) {
-  throw new Error('release workflow must use RELEASE_TOKEN for the protected main version-bump push');
+if (/RELEASE_TOKEN|x-access-token/.test(releaseWorkflow)) {
+  throw new Error('release workflow must not require RELEASE_TOKEN now that main allows release workflow pushes');
 }
 if (!/name:\s*Publish npm package/.test(releaseWorkflow) || !/npm publish --access public --provenance --tag latest/.test(releaseWorkflow)) {
   throw new Error('release workflow must include the npm publish job after GitHub Release creation');
