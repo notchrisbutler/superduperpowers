@@ -2,18 +2,31 @@
 
 SuperDuperPowers is beta software. Its workflow sources are harness and model agnostic. OpenCode is the first included harness config, installed from the npm package `superduperpowers`.
 
-## npm Package Install
+## CLI Install
 
-Add the plugin to your OpenCode config, typically `opencode.json`:
+From your repository, install or update SuperDuperPowers with the npm CLI package:
 
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "plugin": ["superduperpowers"]
-}
+```bash
+npx superduperpowers
 ```
 
-Start a fresh OpenCode session after changing plugin config so the package is resolved from npm and loaded.
+The CLI writes or updates your OpenCode config. OpenCode still resolves and loads the plugin from npm through:
+
+```json
+"plugin": ["superduperpowers"]
+```
+
+Use these explicit commands when you need a specific action or scope:
+
+```bash
+npx superduperpowers@latest
+npx superduperpowers --repo
+npx superduperpowers --global
+npx superduperpowers uninstall
+npx superduperpowers status
+```
+
+Restart OpenCode after install, update, or uninstall so the package and config are reloaded.
 
 The bare package name follows npm `latest`. Use an explicit version such as `superduperpowers@2026.5.6` only when you want to pin a specific release.
 
@@ -21,23 +34,24 @@ If you previously tested a local shim named `superpowers.js` in your user OpenCo
 
 See GitHub Releases for release notes and active release history. npm `latest` is the stable OpenCode install path.
 
-## First Run
+## First Run Verification
 
-After OpenCode starts, run:
+After restarting OpenCode, run:
 
 ```text
 /sdp-status
 ```
 
-Expected: the agent runs `sdp_doctor`, reports the SuperDuperPowers tools, commands, bundled skills, and workflow agents, and warns if project-local setup is still missing.
+Expected: the agent runs `sdp_doctor`, reports the SuperDuperPowers tools, commands, bundled skills, workflow agents, and active settings sources.
 
-Then run:
+If diagnostics show missing or damaged project-local settings and the CLI cannot repair them, use the fallback slash commands:
 
 ```text
+/sdp-setup
 /sdp-init
 ```
 
-Expected: the agent creates `.opencode/superduperpowers.jsonc` if it does not already exist. This is explicit rather than automatic so installing the plugin does not mutate projects without user intent.
+Expected: the agent creates `.opencode/superduperpowers.jsonc` if it does not already exist. These are fallback/repair commands, not the primary first-run setup path.
 
 For a quick usage check, run:
 
@@ -51,7 +65,7 @@ Expected: the agent stays lightweight and does not enter full brainstorming, pla
 
 OpenCode documents package plugin loading through the `plugin` config option, and resolved plugin dependencies are cached under `~/.cache/opencode/node_modules/`.
 
-If OpenCode keeps loading an older package copy, remove the cached SuperDuperPowers package directory under `~/.cache/opencode/node_modules/` and restart OpenCode. For the stable install path, OpenCode should resolve the npm package named `superduperpowers`. If you use a GitHub or local checkout source, update that source and restart OpenCode.
+If OpenCode keeps loading an older package copy, run `npx superduperpowers@latest`, remove the cached SuperDuperPowers package directory under `~/.cache/opencode/node_modules/` if needed, and restart OpenCode. For the stable install path, OpenCode should resolve the npm package named `superduperpowers`. If you use a GitHub or local checkout source, update that source and restart OpenCode.
 
 ## GitHub Fallback And Nightly Install
 
@@ -93,7 +107,7 @@ Bundled agents do not need to be copied into a project. The plugin registers the
 
 ## Live Settings
 
-The packaged defaults live in `superduperpowers.config.jsonc`. Override them per project with `superduperpowers.jsonc`, `superduperpowers.config.jsonc`, or `.opencode/superduperpowers.jsonc`, and per user with `{OPENCODE_CONFIG_DIR}/superduperpowers/settings.jsonc`.
+The packaged defaults live in `defaults/superduperpowers.config.jsonc`. Override them per user with `{OPENCODE_CONFIG_DIR}/superduperpowers/settings.jsonc` and per project with `superduperpowers.jsonc`, `superduperpowers.config.jsonc`, or `.opencode/superduperpowers.jsonc`. Project settings override global settings.
 
 Agents read these settings through `sdp_settings`; they are intentionally live, so changes made after a session starts can be picked up when a workflow decision depends on them.
 
@@ -110,8 +124,8 @@ The plugin registers OpenCode slash commands through `config.command` and the TU
 - `/execute-plan` - execute an approved plan after execution choices are recorded.
 - `/sdp-status` - run read-only diagnostics through `sdp_doctor`.
 - `/sdp-profile` - summarize the active workflow profile.
-- `/sdp-setup` - create `.opencode/superduperpowers.jsonc` if project-local defaults are missing.
-- `/sdp-init` - create `.opencode/superduperpowers.jsonc` if project-local defaults are missing.
+- `/sdp-setup` - fallback/repair command to create `.opencode/superduperpowers.jsonc` if project-local settings are missing.
+- `/sdp-init` - fallback/repair command to create `.opencode/superduperpowers.jsonc` if project-local settings are missing.
 - `/sdp-cleanup` - inspect stale runtime state and clean only after confirmation unless cleanup was explicitly requested.
 
 `/sdp-cleanup` follows OpenCode session presence first: if the matching OpenCode session is gone, the same-ID SuperDuperPowers state can be removed. If OpenCode session presence cannot be checked, stale means the SDP state directory has not been updated or reactivated in the configured retention window. The default and maximum retention window is 7 days.
@@ -125,6 +139,15 @@ Automatic repair never edits `opencode.json`, project files, generated specs/pla
 ## Verify
 
 Start a fresh OpenCode session and test these prompts.
+
+For package/release verification from a repository checkout, run:
+
+```bash
+tests/opencode/run-tests.sh --test test-installer-cli.sh
+npm pack --dry-run
+```
+
+Expected: the installer CLI test passes, and the dry-run package contents include `bin/`, `installer/`, `defaults/`, and `templates/` alongside the existing `skills/`, `agents/`, docs, and `.opencode/plugins/` OpenCode plugin files.
 
 Skill discovery and bootstrap prompt:
 

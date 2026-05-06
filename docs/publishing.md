@@ -54,9 +54,28 @@ Use `docs/superduperpowers/other/release-notes.md` as the release body when prep
 
 Publishing uses the protected GitHub `npm` environment and npm trusted publishing. The package already exists on npm, so configure trusted publishing for repository `notchrisbutler/superduperpowers`, workflow file `publish.yml`, and environment `npm`.
 
+## Package Verification
+
+Before publishing, verify the installer tests and package dry-run output:
+
+```bash
+tests/opencode/run-tests.sh --test test-installer-cli.sh
+npm pack --dry-run
+```
+
+Confirm the dry-run package contents include the CLI and installer support directories (`bin/`, `installer/`, `defaults/`, and `templates/`) alongside the existing `skills/`, `agents/`, docs, and `.opencode/plugins/` OpenCode plugin files.
+
 ## Install Strings
 
-Recommended install:
+The primary setup path is the npm CLI installer:
+
+```bash
+npx superduperpowers
+```
+
+The installer configures OpenCode to load the npm package:
+
+Recommended plugin entry after install:
 
 ```json
 {

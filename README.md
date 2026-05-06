@@ -16,14 +16,25 @@ This project is built from Jesse Vincent's [obra/superpowers](https://github.com
 
 SuperDuperPowers is beta software. The workflow core is intended to stay harness and model agnostic. The first included harness config is for OpenCode, installed from npm.
 
-Add the plugin to your OpenCode config, typically `opencode.json`:
+Install or update the OpenCode config from your repository:
 
-```json
-{
-  "$schema": "https://opencode.ai/config.json",
-  "plugin": ["superduperpowers"]
-}
+```bash
+npx superduperpowers
 ```
+
+The CLI writes or updates the OpenCode plugin config for you. OpenCode still loads SuperDuperPowers from npm through `plugin: ["superduperpowers"]`; restart OpenCode after install, update, or uninstall so the package and config are reloaded, then run `/sdp-status` to verify the plugin loaded.
+
+Useful CLI commands:
+
+```bash
+npx superduperpowers@latest
+npx superduperpowers --repo
+npx superduperpowers --global
+npx superduperpowers uninstall
+npx superduperpowers status
+```
+
+Project settings override global settings. Use repo install for project-local defaults and global install for user-wide defaults.
 
 See [GitHub Releases](https://github.com/notchrisbutler/superduperpowers/releases) for release notes and active release history. Published releases are available on npm as [`superduperpowers`](https://www.npmjs.com/package/superduperpowers).
 
@@ -49,7 +60,7 @@ For local checkout development, use a `git+file` source:
 
 See [OpenCode Install](.opencode/INSTALL.md) for the included setup and verification prompts.
 
-After the first launch, run `/sdp-status` to confirm the plugin loaded and `/sdp-setup` or `/sdp-init` to create `.opencode/superduperpowers.jsonc` for project-local defaults.
+If the CLI cannot update your environment, run `/sdp-status` for diagnostics and use `/sdp-setup` or `/sdp-init` as fallback/repair commands to create `.opencode/superduperpowers.jsonc` for project-local settings.
 
 ---
 
@@ -78,7 +89,7 @@ After the first launch, run `/sdp-status` to confirm the plugin loaded and `/sdp
 
 | Guide | Description |
 |-------|-------------|
-| [OpenCode Install](.opencode/INSTALL.md) | Included OpenCode plugin setup and routing verification prompts |
+| [OpenCode Install](.opencode/INSTALL.md) | CLI-first OpenCode plugin setup and routing verification prompts |
 | [Workflow Map](docs/workflow-map.md) | Current SDP routes, skill categories, agent roles, and registration constraints |
 | [Wiki](docs/wiki/index.md) | Documentation index |
 | [Testing](docs/testing.md) | Included OpenCode config tests and integration checks |
@@ -108,7 +119,7 @@ Execution workflows stop and re-evaluate after repeated failed attempts in the s
 
 ## Live Settings
 
-The packaged defaults live in `superduperpowers.config.jsonc`. OpenCode sessions can also read project overrides from `superduperpowers.jsonc`, `superduperpowers.config.jsonc`, or `.opencode/superduperpowers.jsonc`, and user overrides from `{OPENCODE_CONFIG_DIR}/superduperpowers/settings.jsonc`. Agents should call `sdp_settings` only when a workflow decision depends on live settings or settings may have changed.
+The packaged defaults live in `defaults/superduperpowers.config.jsonc`. OpenCode sessions can also read user overrides from `{OPENCODE_CONFIG_DIR}/superduperpowers/settings.jsonc` and project overrides from `superduperpowers.jsonc`, `superduperpowers.config.jsonc`, or `.opencode/superduperpowers.jsonc`. Project settings override global settings. Agents should call `sdp_settings` only when a workflow decision depends on live settings or settings may have changed.
 
 `skills/using-superpowers/SKILL.md` is the source of truth for routing details.
 
