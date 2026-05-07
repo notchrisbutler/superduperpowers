@@ -104,9 +104,6 @@ jobs:
       - name: Run agent and skill drift tests
         run: tests/opencode/test-agent-skill-drift.sh
 
-      - name: Run installer CLI tests
-        run: tests/opencode/test-installer-cli.sh
-
       - name: Run OpenCode tests
         run: tests/opencode/run-tests.sh
 

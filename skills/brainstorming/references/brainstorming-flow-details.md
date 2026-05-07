@@ -14,7 +14,7 @@ digraph brainstorming {
     "Write design doc" [shape=box];
     "Spec self-review\n(fix inline)" [shape=box];
     "User reviews spec?" [shape=diamond];
-    "Record approved spec\nin profile" [shape=box];
+    "Record approved spec\nin handoff" [shape=box];
     "Invoke writing-plans skill" [shape=doublecircle];
 
     "Explore project context" -> "Ask clarifying questions";
@@ -26,8 +26,8 @@ digraph brainstorming {
     "Write design doc" -> "Spec self-review\n(fix inline)";
     "Spec self-review\n(fix inline)" -> "User reviews spec?";
     "User reviews spec?" -> "Write design doc" [label="changes requested"];
-    "User reviews spec?" -> "Record approved spec\nin profile" [label="approved"];
-    "Record approved spec\nin profile" -> "Invoke writing-plans skill";
+    "User reviews spec?" -> "Record approved spec\nin handoff" [label="approved"];
+    "Record approved spec\nin handoff" -> "Invoke writing-plans skill";
 }
 ```
 

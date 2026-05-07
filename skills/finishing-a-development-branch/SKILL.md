@@ -37,7 +37,7 @@ When preparing `main` for release promotion to `latest`, treat `CHANGELOG.md` fi
 
 ### Step 3: Determine Completion Context
 
-Determine whether work is already on the user's durable branch or on a temporary worktree/task branch that must be integrated elsewhere. Use the workflow profile or active harness context for execution method, parent/source branch, selected durable branch, and worktree paths. Do not rely on memory or brittle shell pipelines when profile data exists.
+Determine whether work is already on the user's durable branch or on a temporary worktree/task branch that must be integrated elsewhere. Use explicit user instructions, execution handoff summaries, plan notes, and git state for execution method, parent/source branch, selected durable branch, and worktree paths. Do not rely on memory or brittle shell pipelines when handoff data exists.
 
 Integration target priority:
 
@@ -98,7 +98,7 @@ Always:
 - Identify durable branch vs temporary worktree/task branch before presenting options.
 - Commit verified local implementation work only when workflow commits are enabled by an approved execution workflow.
 - Present the 4-option prompt only when a decision is needed.
-- Use profile/harness context for worktree paths and cleanup decisions.
+- Use explicit handoff or plan context for worktree paths and cleanup decisions.
 
 For extended examples/details, read [branch finalization details](references/branch-finalization-details.md) when this extra detail is needed.
 

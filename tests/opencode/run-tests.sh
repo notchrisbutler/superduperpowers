@@ -43,7 +43,8 @@ while [[ $# -gt 0 ]]; do
             echo "  --help, -h         Show this help"
             echo ""
             echo "Tests:"
-            echo "  test-plugin-loading.sh  Verify package/plugin structure"
+            echo "  test-plugin-loading.sh  Verify prompt-first package/plugin structure"
+            echo "  test-workflow-policy.sh Verify workflow packaging and docs policy"
             echo "  test-agent-skill-drift.sh Verify agent/skill architecture drift checks"
             echo "  test-tools.sh           Test native skill tool access (integration)"
             echo "  test-duplicate-skills.sh Test duplicate native skill behavior (integration)"
@@ -60,13 +61,7 @@ done
 # List of tests to run (no external dependencies)
 tests=(
     "test-plugin-loading.sh"
-    "test-profile-tool.sh"
-    "test-doctor-tool.sh"
-    "test-auto-drift-repair.sh"
-    "test-setup-hygiene.sh"
-    "test-branch-context.sh"
     "test-workflow-policy.sh"
-    "test-installer-cli.sh"
     "test-agent-skill-drift.sh"
 )
 

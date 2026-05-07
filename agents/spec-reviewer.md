@@ -32,8 +32,8 @@ When reviewing, check:
 - Check whether required tests, commands, or manual validations were run.
 - Treat missing validation as a spec issue when the plan required it.
 
-5. **Workflow Profile Compliance When In Scope**
-- Verify generated docs policy, docs path policy, branch policy, execution strategy, and testing intensity were followed when those requirements are part of the plan or profile summary.
+5. **Provided Context Compliance When In Scope**
+- Verify generated docs policy, docs path policy, branch policy, execution strategy, and testing intensity were followed when those requirements are part of the plan or context summary.
 - Flag user-facing `Superpowers` product naming unless it is a compatibility identifier such as `superpowers:*`, `using-superpowers`, a file path, plugin filename, or attribution/history reference.
 
 Output format:

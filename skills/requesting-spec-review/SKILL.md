@@ -20,7 +20,7 @@ Choose the cheapest reviewer that matches the risk:
 | Small, mechanical, or low-risk checkpoint | `lite-spec-reviewer` |
 | Requirements ambiguous or files touched are unexpected | `spec-reviewer` |
 | Normal parent task scope with clear requirements and expected files | `lite-spec-reviewer` when useful |
-| Normal parent task scope requiring explicit compliance review by the plan/profile | `spec-reviewer` |
+| Normal parent task scope requiring explicit compliance review by the plan, handoff, or project config | `spec-reviewer` |
 | High-risk task | `spec-reviewer` |
 | Final implementation or pre-merge review | `spec-reviewer` |
 
@@ -35,7 +35,7 @@ If unsure, use `spec-reviewer`.
 3. Use the active harness's subagent or worker-dispatch mechanism with the selected reviewer. If named reviewer agents are unavailable, use the fallback prompt content and run the review as an inline or generic-worker review.
 4. If lite review says `Escalate`, request a full `spec-reviewer` review before proceeding.
 
-Use this skill from `subagent-driven-development` and `executing-plans` at task boundaries only when the plan, live settings, or risk calls for spec review. Final implementation review always uses `spec-reviewer`.
+Use this skill from `subagent-driven-development` and `executing-plans` at task boundaries only when the plan, project config, explicit handoff, or risk calls for spec review. Final implementation review always uses `spec-reviewer`.
 
 ## Prompt Inputs
 
@@ -44,7 +44,7 @@ Use this skill from `subagent-driven-development` and `executing-plans` at task 
 - `EXPECTED_FILES` - files expected to change, if known
 - `VALIDATION` - commands run or explicit reason validation was skipped
 - `CONCERNS` - implementer-reported concerns, skipped work, or unexpected behavior
-- `PROFILE_SUMMARY` - compact workflow profile summary including generated-doc policy, path policy, branch policy, execution strategy, and testing intensity when relevant.
+- `CONTEXT_SUMMARY` - task-relevant generated-doc policy, path policy, branch policy, execution strategy, and testing intensity when relevant.
 
 ## Red Flags
 

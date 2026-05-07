@@ -17,7 +17,7 @@ Use `Task N.M` for bounded implementation units and `Task N Review` for task-sco
 
 ## Review Cadence
 
-At each parent task boundary, run task-scope validation and the least expensive review that matches the plan, live settings, and risk. Reserve full code/spec review for high-risk task scopes, escalations from lite review, plan-required gates, and the final completed task set.
+At each parent task boundary, run task-scope validation and the least expensive review that matches the plan, project config, explicit handoff, and risk. Reserve full code/spec review for high-risk task scopes, escalations from lite review, plan-required gates, and the final completed task set.
 
 If review finds issues, group findings, fix them once, and run one focused re-review of the changed scope. If material issues remain, escalate or ask the user instead of repeating the same review loop.
 

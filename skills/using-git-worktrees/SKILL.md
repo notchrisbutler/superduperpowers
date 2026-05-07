@@ -11,13 +11,13 @@ metadata:
 
 Git worktrees create isolated workspaces sharing the same repository, allowing work on multiple branches simultaneously without switching.
 
-**Core principle:** Use a user-level SuperDuperPowers worktree root by default, create worktrees from a safe parent/source feature branch, and finalize back to that parent/source branch.
+**Core principle:** Use a user-level worktree root outside the project by default, create worktrees from a safe parent/source feature branch, and finalize back to that parent/source branch.
 
 **Announce at start:** "I'm using the using-git-worktrees skill to set up an isolated workspace."
 
 ## Directory Selection Process
 
-Default to the active harness's user-level SuperDuperPowers worktree root when the harness exposes one. Otherwise choose a user-level directory outside the project and record it in the workflow profile.
+Choose a user-level directory outside the project, unless the user, repo instructions, or explicit execution handoff specifies a safe alternative. Record the chosen path in the handoff summary.
 
 Do not use a project-local worktree directory by default. Because the default is outside the project, do not add project `.gitignore` or `.ignore` entries for default worktrees.
 
@@ -25,11 +25,11 @@ If the user or repo instructions specify a directory, use that directory after c
 
 ## Branch Preflight
 
-Before creating worktrees, run branch preflight. Use the active harness's branch-context tool when available.
+Before creating worktrees, run branch preflight using normal git commands or the active harness's standard git helpers when available.
 
 - If currently on `main`, `master`, or the detected default branch, ask for or create a parent/source feature branch before spawning worktrees.
 - If the branch is dirty, behind, detached, missing, or has likely unrelated changes, ask before continuing.
-- Record the complete execution handoff in the workflow profile when available: `executionMethod`, `executionStrategy: worktree`, `parentSourceBranch`, `selectedDurableBranch`, `taskBranch`, `worktreePath`, and original workspace.
+- Record the complete execution handoff in the plan notes or handoff summary: `executionMethod`, `executionStrategy: worktree`, `parentSourceBranch`, `selectedDurableBranch`, `taskBranch`, `worktreePath`, and original workspace.
 
 ## Custom Project-Local Safety
 
@@ -48,7 +48,7 @@ Do not commit ignore-file changes unless the user explicitly asks for a commit.
 1. Identify the repository root, original workspace, selected durable branch, and parent/source branch.
 2. Resolve the worktree path under the selected worktree root and choose the task branch name.
 3. Create a new task branch worktree from the parent/source feature branch.
-4. Store `executionStrategy: worktree`, selected durable branch, parent/source branch, task branch, worktree path, and original workspace in the workflow profile when possible.
+4. Store `executionStrategy: worktree`, selected durable branch, parent/source branch, task branch, worktree path, and original workspace in the handoff summary.
 5. Switch execution to the worktree workspace when the harness supports it.
 6. Run project setup and baseline validation appropriate for the repository.
 

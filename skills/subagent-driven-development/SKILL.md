@@ -58,22 +58,22 @@ If you stay inline, preserve the same bounded `Task N.M` todo boundaries and rev
 ## The Process
 
 1. Read the plan once.
-2. Read the active workflow profile before dispatching implementation work.
-3. If `executionStrategy` is missing, ask the execution-strategy question before dispatching subagents.
+2. Read the explicit execution handoff before dispatching implementation work.
+3. If `executionStrategy` is missing from the handoff, ask the execution-strategy question before dispatching subagents.
 4. After strategy is known, run branch preflight and invoke the selected setup skill before any implementation subagent dispatch: `using-git-worktrees` for `worktree`, `using-feature-branches` for `feature-branch`, or stop if the strategy is `hold`.
-5. Record the resulting branch/worktree context in the workflow profile, including execution method, execution strategy, parent/source branch, selected durable branch, task branch, worktree path, and original workspace when relevant.
-6. Pass a compact profile summary into implementer and reviewer prompts.
+5. Record the resulting branch/worktree context in the plan notes or explicit handoff, including execution method, execution strategy, parent/source branch, selected durable branch, task branch, worktree path, and original workspace when relevant.
+6. Pass task-relevant config, plan/spec paths, validation expectations, and branch/execution context explicitly into implementer and reviewer prompts.
 7. Extract task groups, tasks, dispatchable `Task N.M` units, dependencies, validation commands, review policies, and whether each implementation unit requires `implementer`, `tdd-implementer`, `debugging-investigator`, a reviewer, or coordinator-local work.
 8. Replace any prior planning/brainstorming todos with one flat, coordinator-owned harness todo list.
 9. Execute each todo in dependency order, dispatching the named worker/reviewer for that todo when it is not coordinator-local.
 10. For each parent `Task N`, complete its dispatchable `Task N.M` implementation todos, lite checkpoints, task-scope validation, and required reviews.
-11. Run task-scope review at parent task boundaries only when the plan, live settings, or risk calls for it; otherwise rely on dispatch validation plus the final full reviews.
+11. Run task-scope review at parent task boundaries only when the plan, project config, explicit handoff, or risk calls for it; otherwise rely on dispatch validation plus the final full reviews.
 12. Commit the verified parent task scope locally only when workflow commits are enabled by the approved execution workflow.
 13. Run final full implementation review and validation across all tasks.
 14. Commit verified remaining implementation changes locally only when workflow commits are enabled by the approved execution workflow.
 15. Invoke `finishing-a-development-branch`, preserving whether execution happened on the current branch or in a temporary worktree/task branch.
 
-Subagents honor the profile's testing intensity. For `major-behavior`, they test important behavior and integration points without creating exhaustive or obvious tests.
+Subagents honor the testing intensity provided in their dispatch prompt. For `major-behavior`, they test important behavior and integration points without creating exhaustive or obvious tests.
 
 ## Context Handoffs
 
@@ -137,7 +137,7 @@ For platforms without named agents, use the matching prompt templates in this sk
 
 ## Worker Routing
 
-- Normal implementation task: dispatch `implementer` with the exact task text, expected files, validation commands, compact profile summary, and forbidden branch/git operations.
+- Normal implementation task: dispatch `implementer` with the exact task text, expected files, validation commands, task-relevant spec/plan/config context, and forbidden branch/git operations.
 - Tests-first task, regression fix, or plan-required TDD: dispatch `tdd-implementer` instead of `implementer`.
 - Complex bug task where root cause is not yet proven: dispatch `debugging-investigator` first. Only dispatch an implementation worker after it reports a supported root-cause hypothesis or the human approves proceeding.
 - Multiple apparently independent task streams: use `parallelization-advisor` before dispatching parallel workers unless the independence is already explicit in the plan.

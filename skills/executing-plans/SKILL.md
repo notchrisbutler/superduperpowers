@@ -17,7 +17,7 @@ If the active harness does not support subagents or worker dispatch, use `execut
 
 **Note:** Use `subagent-driven-development` when the user chose same-session subagents and the harness supports them. Use this skill for inline execution, separate-session execution, or harnesses without workable subagent dispatch.
 
-Before execution, read live settings and the workflow profile. Run branch preflight. Prefer feature branches when live settings or the profile say to prefer them, and use the current branch only when the user or profile explicitly approves it. Honor `testingIntensity` exactly as the plan describes.
+Before execution, read the approved plan and explicit execution handoff. Use project-local config only for missing workflow defaults. Run branch preflight. Prefer feature branches when the handoff, plan, project config, or user instructions say to prefer them, and use the current branch only when the user explicitly approves it. Honor `testingIntensity` exactly as the plan describes.
 
 ## The Process
 
@@ -25,9 +25,9 @@ Before execution, read live settings and the workflow profile. Run branch prefli
 1. Read plan file
 2. Review critically - identify any questions or concerns about the plan
 3. If concerns: Raise them with the user before starting
-4. If no concerns: Re-read live settings, determine whether workflow commits are enabled by the approved execution workflow, create a flat, dependency-ordered harness todo list, and proceed
+4. If no concerns: determine from the plan, explicit handoff, and project-local config whether workflow commits are enabled by the approved execution workflow, create a flat, dependency-ordered harness todo list, and proceed
 
-For fresh session resume requests, require an approved plan path before starting execution. Use an explicit plan path first; otherwise read the approved plan path from the workflow profile. If neither exists, stop and ask for the path or route the user back to planning. Do not reconstruct or continue a plan from memory, stale transcript context, or unverified assumptions.
+For fresh session resume requests, require an approved plan path before starting execution. Use an explicit plan path from the user or handoff. If none exists, stop and ask for the path or route the user back to planning. Do not reconstruct or continue a plan from memory, stale transcript context, or unverified assumptions.
 
 ### Step 2: Execute Tasks
 
@@ -47,7 +47,7 @@ Do not create nested todos. Do not use `Group N` in harness todos. Do not collap
 
 For extended examples/details, read [execution cadence examples](references/execution-cadence.md) when this extra detail is needed.
 
-At each parent task boundary, run validation and only the review required by the plan, live settings, or risk. Reserve full code review for high-risk task scopes, escalations from lite code review, and the final full task-set review.
+At each parent task boundary, run validation and only the review required by the plan, project config, explicit handoff, or risk. Reserve full code review for high-risk task scopes, escalations from lite code review, and the final full task-set review.
 
 When workflow commits are enabled by the approved execution workflow, commit locally after each parent `Task N Review` todo only after task-scope validation and required reviews pass. In worktree or temporary task-branch execution, keep commits on the temporary branch and let `finishing-a-development-branch` handle integration. Ordinary sessions must not commit unasked. Do not push unless the user explicitly requests it.
 
@@ -115,7 +115,7 @@ If the unresolved issue is a major decision but other planned work is independen
 ## Integration
 
 **Required workflow skills:**
-- **using-feature-branches** - Default setup for non-worktree inline execution unless the profile records explicit current-branch approval
+- **using-feature-branches** - Default setup for non-worktree inline execution unless explicit current-branch approval is present in the user instruction or execution handoff
 - **using-git-worktrees** - Use before starting when work should be isolated; skip when the user explicitly directs execution on the current branch
 - **writing-plans** - Creates the plan this skill executes
 - **receiving-spec-review** - Evaluate returned spec-review findings before fixing or escalating

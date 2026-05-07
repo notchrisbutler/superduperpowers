@@ -14,18 +14,18 @@ Generic worker or inline fallback prompt:
   prompt: |
     You are doing a lightweight spec checkpoint, not a full audit.
 
-    ## Workflow Profile Summary
-    [PROFILE_SUMMARY: generated-doc policy, path policy, branch policy, execution strategy, and testing intensity when relevant]
+    ## Context Summary
+    [CONTEXT_SUMMARY: generated-doc policy, path policy, branch policy, execution strategy, and testing intensity when relevant]
 
     Check only:
     1. Did the task touch expected files or a clearly justified equivalent?
     2. Does the visible change obviously match the requested task?
     3. Did the implementer report concerns, skipped work, or unexpected behavior?
     4. Was required task-level validation run, or is the missing validation explicitly explained?
-    5. Is there an obvious generated-doc policy, docs path policy, branch policy, execution strategy, testing-intensity, or product naming violation from the workflow profile?
+    5. Is there an obvious generated-doc policy, docs path policy, branch policy, execution strategy, testing-intensity, or product naming violation from the provided context?
 
     Do not expand scope. Do not suggest broad refactors. Escalate to full spec review if the task is not small, requirements are ambiguous,
-    files touched are unexpected, any answer above is concerning, or obvious profile policy is violated.
+    files touched are unexpected, any answer above is concerning, or an obvious provided-context policy is violated.
 
     Report:
     Lite spec checkpoint: Pass | Escalate

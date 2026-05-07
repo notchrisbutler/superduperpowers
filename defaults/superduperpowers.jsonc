@@ -8,8 +8,6 @@
     "defaultRoute": null,
 
     // Generated specs/plans go under <defaultDocsRoot>/superduperpowers/.
-    // Set forceDefaultDocsRoot in an override only if auto-detecting docs/
-    // versus documents/ is undesirable for that project.
     "defaultDocsRoot": "docs",
 
     // Generated docs are local by default. Other value:
@@ -36,25 +34,9 @@
   },
 
   "paths": {
-    // Runtime state stays in the OpenCode config dir, not in projects.
-    "runtimeDir": "superduperpowers",
-
     // Generated workflow docs live under <docs root>/<docsDirName>/.
     "docsDirName": "superduperpowers",
     "specsDirName": "specs",
-    "plansDirName": "plans",
-
-    // User-level worktrees and repair quarantine are owned by this plugin.
-    "worktreesDirName": "worktrees",
-    "stateDirName": "state",
-    "quarantineDirName": "quarantine"
-  },
-
-  "cleanup": {
-    // /sdp-cleanup removes SDP state when the matching OpenCode session is
-    // gone. If OpenCode session presence cannot be checked, stale means this
-    // state directory has not been updated or reactivated in N days. Values
-    // above 7 are capped to 7.
-    "retentionDays": 7
+    "plansDirName": "plans"
   }
 }

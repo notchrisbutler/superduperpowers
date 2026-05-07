@@ -17,7 +17,7 @@ Check:
 2. Tasks are dependency ordered and grouped by useful validation boundaries.
 3. Each code-changing step contains enough concrete detail for a fresh implementer.
 4. Files, commands, expected results, and validation gates are specific.
-5. Review policy is proportional to risk and matches the workflow profile.
+5. Review policy is proportional to risk and matches the provided plan, handoff, and project config context.
 6. Generated-doc policy, branch policy, execution strategy, and testing intensity are reflected when in scope.
 7. The plan avoids placeholders, invented APIs, unrequested features, and over-expanded harness todos.
 
