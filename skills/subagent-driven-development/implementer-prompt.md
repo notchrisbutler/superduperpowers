@@ -28,11 +28,11 @@ Generic worker or implementation subagent:
 
     [Reusable codebase facts, gotchas, dependency quirks, validation notes, or "None yet"]
 
-    ## Workflow Profile Summary
+    ## Workflow/Config Context
 
-    [Paste compact SuperDuperPowers profile summary here: route, generated-doc policy, execution method, execution strategy, branch policy, testing intensity, docs path, runtime/worktree path when relevant]
+    [Paste task-relevant SuperDuperPowers context here: route, generated-doc policy, execution method, execution strategy, branch policy, testing intensity, docs path, and worktree path when relevant]
 
-    Honor `testingIntensity`. For `major-behavior`, test important behavior and integration points without creating exhaustive or obvious tests. Do not ask preference questions during execution unless missing profile data blocks safe work.
+    Honor `testingIntensity`. For `major-behavior`, test important behavior and integration points without creating exhaustive or obvious tests. Do not ask preference questions during execution unless missing handoff data blocks safe work.
 
     ## Before You Begin
 

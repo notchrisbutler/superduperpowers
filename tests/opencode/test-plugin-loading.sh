@@ -80,11 +80,7 @@ if (!mod.SuperpowersTuiPlugin) throw new Error('missing SuperpowersTuiPlugin exp
 if (mod.tui !== mod.SuperpowersTuiPlugin) throw new Error('missing TUI plugin alias export');
 const hooks = await mod.SuperpowersPlugin({});
 if (typeof hooks.config !== 'function') throw new Error('missing config hook');
-if (!hooks.tool?.sdp_settings) throw new Error('missing sdp_settings tool');
-if (!hooks.tool?.sdp_init) throw new Error('missing sdp_init tool');
-if (!hooks.tool?.sdp_profile) throw new Error('missing sdp_profile tool');
-if (!hooks.tool?.sdp_setup_hygiene) throw new Error('missing sdp_setup_hygiene tool');
-if (!hooks.tool?.sdp_branch_context) throw new Error('missing sdp_branch_context tool');
+if (hooks.tool && Object.keys(hooks.tool).some((name) => name.startsWith('sdp_'))) throw new Error('unexpected sdp runtime tools registered');
 console.log(`${pkg.name} main import and hook ok`);
 NODE
 ) || {
@@ -144,16 +140,18 @@ for (const name of writableAgents) {
   if (agent.permission?.todowrite !== 'deny') throw new Error(`${name} can mutate todos`);
 }
 
-const expectedCommands = ['sdp', 'superduperpowers', 'superpowers', 'brainstorm', 'quick-flow', 'write-plan', 'execute-plan', 'sdp-status', 'sdp-profile', 'sdp-setup', 'sdp-init', 'sdp-cleanup'];
+const expectedCommands = ['sdp', 'superduperpowers', 'superpowers', 'brainstorm', 'quick-flow', 'write-plan', 'execute-plan'];
 for (const name of expectedCommands) {
   const command = config.command?.[name];
   if (!command) throw new Error(`missing command ${name}`);
   if (!command.template) throw new Error(`${name} command is missing template`);
   if (!command.description) throw new Error(`${name} command is missing description`);
 }
-if (config.command['sdp-status'].template.includes('sdp_profile cleanup')) throw new Error('sdp-status should use diagnostics, not cleanup');
-if (!config.command['sdp-setup'].template.includes('sdp_init')) throw new Error('sdp-setup should invoke sdp_init');
-if (config.command['sdp-init'].template.includes('workflow routing request. Run sdp_profile')) throw new Error('sdp-init should not route through profile setup');
+const commandNames = Object.keys(config.command || {}).sort();
+if (JSON.stringify(commandNames) !== JSON.stringify([...expectedCommands].sort())) throw new Error(`unexpected command set: ${commandNames.join(', ')}`);
+for (const removed of ['sdp-status', 'sdp-profile', 'sdp-setup', 'sdp-init', 'sdp-cleanup']) {
+  if (config.command?.[removed]) throw new Error(`removed command still registered: ${removed}`);
+}
 if (!config.command.sdp.template.includes('Full Brainstorming')) throw new Error('sdp command does not route choices');
 if (!config.command['quick-flow'].template.includes('Keep the work lightweight')) throw new Error('quick-flow command does not route quick flow');
 if (config.command['sdp-verify']) throw new Error('unexpected sdp-verify command registered');
@@ -227,15 +225,18 @@ const serverSideResult = await SuperpowersTuiPlugin({ client: api.client });
 if (!serverSideResult || Object.keys(serverSideResult).length !== 0) throw new Error('TUI plugin should be inert outside TUI command API');
 const commands = calls[0]();
 const names = commands.map((command) => command.slash?.name).filter(Boolean);
-for (const name of ['sdp-setup', 'sdp-init']) {
+for (const name of ['sdp', 'superduperpowers', 'superpowers', 'brainstorm', 'quick-flow', 'write-plan', 'execute-plan']) {
   if (!names.includes(name)) throw new Error(`missing TUI slash command ${name}`);
 }
-const setup = commands.find((command) => command.slash?.name === 'sdp-setup');
-if (!setup?.description || typeof setup.onSelect !== 'function') throw new Error('sdp-setup TUI command is incomplete');
-await setup.onSelect();
+for (const removed of ['sdp-status', 'sdp-profile', 'sdp-setup', 'sdp-init', 'sdp-cleanup']) {
+  if (names.includes(removed)) throw new Error(`removed TUI slash command still registered: ${removed}`);
+}
+const quickFlow = commands.find((command) => command.slash?.name === 'quick-flow');
+if (!quickFlow?.description || typeof quickFlow.onSelect !== 'function') throw new Error('quick-flow TUI command is incomplete');
+await quickFlow.onSelect();
 if (submitted.length !== 2) throw new Error(`expected append and submit calls, got ${submitted.length}`);
-if (!submitted[0][1].text.includes('sdp_init')) throw new Error('sdp-setup TUI command did not append init prompt');
-if (submitted[0][1].workspace !== 'workspace-1') throw new Error('sdp-setup TUI command did not preserve workspace');
+if (!submitted[0][1].text.includes('Keep the work lightweight')) throw new Error('quick-flow TUI command did not append quick-flow prompt');
+if (submitted[0][1].workspace !== 'workspace-1') throw new Error('quick-flow TUI command did not preserve workspace');
 console.log(names.sort().join('\n'));
 NODE
 echo "  [PASS] TUI slash commands registered"
@@ -269,65 +270,17 @@ const text = output.messages[0].parts.map(part => part.text || '').join('\n');
 const count = (text.match(/You have SuperDuperPowers\./g) || []).length;
 if (count !== 1) throw new Error(`expected one bootstrap injection, got ${count}`);
 if (!text.includes('superduperpowers')) throw new Error('bootstrap is missing superduperpowers alias language');
-if (!text.includes('sdp_profile')) throw new Error('bootstrap is missing workflow profile tool mapping');
-if (!text.includes('sdp_settings')) throw new Error('bootstrap is missing live settings tool mapping');
-if (!text.includes('sdp_init')) throw new Error('bootstrap is missing project init tool mapping');
-if (!text.includes('SuperDuperPowers live settings')) throw new Error('bootstrap is missing live settings summary');
+if (!text.includes('Configuration is manual and project-local')) throw new Error('bootstrap is missing manual configuration guidance');
+for (const removed of ['sdp_profile', 'sdp_settings', 'sdp_init', 'sdp_setup_hygiene', 'sdp_branch_context']) {
+  if (text.includes(removed)) throw new Error(`bootstrap still references removed runtime tool: ${removed}`);
+}
+if (text.includes('SuperDuperPowers live settings')) throw new Error('bootstrap still references live settings summary');
 console.log('bootstrap injected once');
 NODE
 echo "  [PASS] Bootstrap transform injects once"
 
-# Test 12: Verify compaction hook appends context
-echo "Test 12: Checking compaction profile context injection..."
-node --input-type=module <<'NODE'
-import fs from 'fs';
-import path from 'path';
-
-const { SuperpowersPlugin } = await import(process.env.SUPERPOWERS_PLUGIN_FILE);
-const project = path.join(process.env.TEST_HOME, 'test-project');
-const hooks = await SuperpowersPlugin({ directory: project });
-const profileTool = hooks.tool.sdp_profile;
-const context = { sessionID: 'ses_compaction', messageID: 'msg_compaction', directory: project, worktree: project };
-const setResult = JSON.parse(await profileTool.execute({ operation: 'set', profile: { route: 'full-brainstorming' } }, context));
-if (!setResult.ok) throw new Error('profile setup failed');
-
-const output = { context: [] };
-await hooks['experimental.session.compacting']({ sessionID: 'ses_compaction' }, output);
-if (output.context.length !== 1) throw new Error(`expected one compaction context entry, got ${output.context.length}`);
-if (!output.context[0].includes('SuperDuperPowers profile: route=full-brainstorming')) throw new Error('profile summary missing from compaction context');
-if ('messages' in output) throw new Error('compaction hook wrote output.messages');
-fs.writeFileSync(path.join(setResult.profile.stateDir, 'profile.json'), 'null\n');
-const nullOutput = { context: [] };
-await hooks['experimental.session.compacting']({ sessionID: 'ses_compaction' }, nullOutput);
-if (nullOutput.context.length !== 0) throw new Error('compaction should skip non-object profiles');
-fs.writeFileSync(path.join(setResult.profile.stateDir, 'profile.json'), '{not json\n');
-const corruptOutput = { context: [] };
-await hooks['experimental.session.compacting']({ sessionID: 'ses_compaction' }, corruptOutput);
-if (corruptOutput.context.length !== 0) throw new Error('compaction should skip corrupt profiles');
-const externalProfile = path.join(project, 'external-profile.json');
-fs.writeFileSync(externalProfile, JSON.stringify(setResult.profile, null, 2));
-fs.rmSync(path.join(setResult.profile.stateDir, 'profile.json'));
-fs.symlinkSync(externalProfile, path.join(setResult.profile.stateDir, 'profile.json'));
-const symlinkOutput = { context: [] };
-await hooks['experimental.session.compacting']({ sessionID: 'ses_compaction' }, symlinkOutput);
-if (symlinkOutput.context.length !== 0) throw new Error('compaction should skip symlink profiles');
-const externalStateDir = path.join(project, 'external-state-dir');
-fs.mkdirSync(externalStateDir, { recursive: true });
-fs.writeFileSync(path.join(externalStateDir, 'profile.json'), JSON.stringify(setResult.profile, null, 2));
-fs.rmSync(setResult.profile.stateDir, { recursive: true, force: true });
-fs.symlinkSync(externalStateDir, setResult.profile.stateDir, 'dir');
-const stateDirSymlinkOutput = { context: [] };
-await hooks['experimental.session.compacting']({ sessionID: 'ses_compaction' }, stateDirSymlinkOutput);
-if (stateDirSymlinkOutput.context.length !== 0) throw new Error('compaction should skip symlink stateDir');
-const traversalOutput = { context: [] };
-await hooks['experimental.session.compacting']({ sessionID: '../escape' }, traversalOutput);
-if (traversalOutput.context.length !== 0) throw new Error('compaction should skip traversal session ids');
-console.log('compaction context injected');
-NODE
-echo "  [PASS] Compaction hook appends output.context"
-
-# Test 13: Verify personal test skill was created
-echo "Test 13: Checking test fixtures..."
+# Test 12: Verify personal test skill was created
+echo "Test 12: Checking test fixtures..."
 if [ -f "$OPENCODE_CONFIG_DIR/skills/personal-test/SKILL.md" ]; then
     echo "  [PASS] Personal test skill fixture created"
 else

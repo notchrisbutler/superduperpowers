@@ -30,37 +30,11 @@ mkdir -p "$SUPERPOWERS_DIR"
 cp -r "$REPO_ROOT/skills" "$SUPERPOWERS_DIR/"
 cp -r "$REPO_ROOT/agents" "$SUPERPOWERS_DIR/"
 cp "$REPO_ROOT/package.json" "$SUPERPOWERS_DIR/package.json"
-for package_dir in defaults bin installer; do
+for package_dir in defaults; do
     if [ -d "$REPO_ROOT/$package_dir" ]; then
         cp -R "$REPO_ROOT/$package_dir" "$SUPERPOWERS_DIR/"
     fi
 done
-if [ -d "$REPO_ROOT/.opencode/node_modules" ]; then
-    mkdir -p "$SUPERPOWERS_DIR/.opencode"
-    cp -R "$REPO_ROOT/.opencode/node_modules" "$SUPERPOWERS_DIR/.opencode/"
-fi
-if [ -f "$REPO_ROOT/.opencode/package.json" ]; then
-    mkdir -p "$SUPERPOWERS_DIR/.opencode"
-    cp "$REPO_ROOT/.opencode/package.json" "$SUPERPOWERS_DIR/.opencode/package.json"
-fi
-if [ ! -f "$SUPERPOWERS_DIR/.opencode/node_modules/@opencode-ai/plugin/package.json" ]; then
-    mkdir -p "$SUPERPOWERS_DIR/.opencode/node_modules/@opencode-ai/plugin/dist"
-    cat > "$SUPERPOWERS_DIR/.opencode/node_modules/@opencode-ai/plugin/package.json" <<'EOF'
-{"name":"@opencode-ai/plugin","version":"1.14.30","type":"module","exports":{".":"./dist/index.js"}}
-EOF
-    cat > "$SUPERPOWERS_DIR/.opencode/node_modules/@opencode-ai/plugin/dist/index.js" <<'EOF'
-const chain = () => ({ optional: chain, int: chain, positive: chain });
-export function tool(input) { return input; }
-tool.schema = {
-  enum: () => chain(),
-  record: () => chain(),
-  any: () => chain(),
-  number: () => chain(),
-  string: () => chain()
-};
-EOF
-fi
-
 # Install plugin
 mkdir -p "$(dirname "$SUPERPOWERS_PLUGIN_FILE")"
 cp "$REPO_ROOT/.opencode/plugins/superduperpowers.js" "$SUPERPOWERS_PLUGIN_FILE"

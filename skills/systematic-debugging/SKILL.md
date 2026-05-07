@@ -31,7 +31,7 @@ Keep user-facing debugging updates concise: state the evidence being gathered, t
 
 ## Agent Dispatch
 
-When named agents are available and the issue is complex, intermittent, multi-component, or already had failed fixes, dispatch `debugging-investigator` before implementation. Give it symptoms, reproduction notes, logs/errors, relevant files, recent changes, and compact profile summary. The investigator is read-only.
+When named agents are available and the issue is complex, intermittent, multi-component, or already had failed fixes, dispatch `debugging-investigator` before implementation. Give it symptoms, reproduction notes, logs/errors, relevant files, recent changes, and any relevant project config or execution context from the coordinator. The investigator is read-only.
 
 If independent failure domains exist, use `dispatching-parallel-agents` and `parallelization-advisor` before dispatching multiple investigators. Dispatch `implementer` or `tdd-implementer` only after root-cause evidence exists and the smallest fix task is clear.
 

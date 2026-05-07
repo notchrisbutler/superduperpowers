@@ -57,7 +57,7 @@ When in doubt, keep investigation in the main session until the independent doma
 
 This skill is a support action for `subagent-driven-development`, `executing-plans`, and `systematic-debugging`, not a standalone route. Use it when a plan, test failure set, or bug investigation has 2+ candidate work streams and the independence is not already obvious.
 
-When named agents are available, dispatch `parallelization-advisor` first for non-trivial splits. Give it the plan or failure list, expected files, known dependencies, and active profile summary. It returns safe work streams and the recommended worker role for each stream.
+When named agents are available, dispatch `parallelization-advisor` first for non-trivial splits. Give it the plan or failure list, expected files, known dependencies, and any relevant project config or execution context from the coordinator. It returns safe work streams and the recommended worker role for each stream.
 
 After advisor output:
 

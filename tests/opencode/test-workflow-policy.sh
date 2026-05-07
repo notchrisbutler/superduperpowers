@@ -93,6 +93,42 @@ if (offenders.length) {
 }
 NODE
 
+REPO_ROOT="$REPO_ROOT" node --input-type=module <<'NODE'
+import fs from 'fs';
+import path from 'path';
+
+const root = process.env.REPO_ROOT;
+const activeRoots = ['README.md', 'CONTRIBUTING.md', '.opencode/INSTALL.md', 'docs', 'skills', 'agents', 'defaults'];
+const generatedDocsPrefix = `docs${path.sep}superduperpowers${path.sep}`;
+const files = [];
+const walk = (relative) => {
+  if (relative.startsWith(generatedDocsPrefix)) return;
+  const full = path.join(root, relative);
+  if (!fs.existsSync(full)) return;
+  const stat = fs.statSync(full);
+  if (stat.isDirectory()) {
+    for (const entry of fs.readdirSync(full)) walk(path.join(relative, entry));
+    return;
+  }
+  if (/\.(md|mdx|json|jsonc|js|mjs|sh)$/.test(relative)) files.push(relative);
+};
+for (const activeRoot of activeRoots) walk(activeRoot);
+const read = (file) => fs.readFileSync(path.join(root, file), 'utf8');
+const unsupported = files.filter((file) => /superduperpowers\.config\.jsonc?|superduperpowers\.config\.json/.test(read(file)));
+if (unsupported.length) {
+  throw new Error(`active package/docs still mention unsupported config names: ${unsupported.join(', ')}`);
+}
+const npxDocs = files.filter((file) => /npx superduperpowers/.test(read(file)));
+if (npxDocs.length) {
+  throw new Error(`active docs must not document npx superduperpowers installer usage: ${npxDocs.join(', ')}`);
+}
+const docFiles = files.filter((file) => /(^|\/)(README|INSTALL|workflow-map|testing|publishing)\.md$/.test(file) || file.startsWith(`docs${path.sep}`));
+const documented = docFiles.some((file) => /\.opencode\/sdp\.jsonc|sdp\.jsonc/.test(read(file)));
+if (!documented) {
+  throw new Error('active package/docs do not document .opencode/sdp.jsonc or sdp.jsonc config names');
+}
+NODE
+
 if ! grep -R "vYYYY\.\[M\]MDD\.N\|v[0-9][0-9][0-9][0-9]\.\[M\]MDD\.N" "$REPO_ROOT/README.md" "$REPO_ROOT/docs" "$REPO_ROOT/.opencode/INSTALL.md" >/dev/null 2>&1; then
   echo "  [FAIL] release docs do not require vYYYY.[M]MDD.N tags"
   exit 1
@@ -104,7 +140,7 @@ import path from 'path';
 
 const root = process.env.REPO_ROOT;
 const superpowersDir = process.env.SUPERPOWERS_DIR;
-const roots = ['AGENTS.md', 'README.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'package.json', '.opencode/INSTALL.md', '.github', 'scripts', 'skills', 'agents', 'bin', 'installer', 'defaults'];
+const roots = ['AGENTS.md', 'README.md', 'CONTRIBUTING.md', 'CHANGELOG.md', 'package.json', '.opencode/INSTALL.md', '.github', 'scripts', 'skills', 'agents', 'defaults'];
 const allow = new Set(['ACKNOWLEDGEMENTS.md']);
 const generatedDocsPrefix = `docs${path.sep}superduperpowers${path.sep}`;
 const vendorPattern = /Anthropic|OpenAI|Claude|GPT/i;
@@ -140,7 +176,7 @@ const output = execFileSync('npm', ['pack', '--dry-run', '--json'], { cwd: root,
 const packed = JSON.parse(output)[0].files.map((entry) => entry.path);
 const includes = (file) => packed.includes(file) || packed.some((entry) => entry.startsWith(`${file.replace(/\/$/, '')}/`));
 const required = [
-  'agents', 'skills', 'bin', 'installer', 'installer/templates', 'defaults',
+  'agents', 'skills', 'defaults',
   '.opencode/plugins/superduperpowers.js', '.opencode/plugins/superduperpowers',
   '.opencode/INSTALL.md', 'docs/publishing.md', 'docs/testing.md', 'docs/workflow-map.md', 'docs/wiki',
   'scripts/context-budget.mjs', 'README.md', 'LICENSE', 'SECURITY.md', 'CONTRIBUTING.md', 'ACKNOWLEDGEMENTS.md', 'package.json'
@@ -151,7 +187,7 @@ for (const file of required) {
 if (packed.some((file) => file.startsWith('docs/superduperpowers/'))) {
   throw new Error('npm pack dry-run includes generated SuperDuperPowers docs');
 }
-for (const excluded of ['tests/', 'evals/', '.github/', 'docs/superduperpowers/', 'AGENTS.md', 'superduperpowers.config.jsonc']) {
+for (const excluded of ['tests/', 'evals/', '.github/', 'docs/superduperpowers/', 'AGENTS.md', 'bin/', 'installer/', 'superduperpowers.config.jsonc', 'superduperpowers.config.json']) {
   if (packed.some((file) => file.startsWith(excluded))) throw new Error(`npm pack dry-run includes excluded content: ${excluded}`);
 }
 if (packed.some((file) => /anthropic|openai|claude|gpt/i.test(file))) {
@@ -164,6 +200,10 @@ import fs from 'fs';
 import path from 'path';
 
 const packageJson = JSON.parse(fs.readFileSync(path.join(process.env.REPO_ROOT, 'package.json'), 'utf8'));
+const dependencies = packageJson.dependencies || {};
+if (Object.keys(dependencies).length > 0) {
+  throw new Error(`package dependencies must stay empty unless runtime imports require them: ${Object.keys(dependencies).join(', ')}`);
+}
 const files = packageJson.files || [];
 if (files.includes('docs/') || files.includes('docs')) {
   throw new Error('package files must not include the whole docs directory because docs/superduperpowers is local-only');
@@ -171,7 +211,7 @@ if (files.includes('docs/') || files.includes('docs')) {
 for (const required of ['docs/publishing.md', 'docs/testing.md', 'docs/workflow-map.md', 'docs/wiki/']) {
   if (!files.includes(required)) throw new Error(`package files missing public doc: ${required}`);
 }
-for (const excluded of ['AGENTS.md', 'superduperpowers.config.jsonc']) {
+for (const excluded of ['AGENTS.md', 'bin/', 'installer/', 'superduperpowers.config.jsonc', 'superduperpowers.config.json']) {
   if (files.includes(excluded)) throw new Error(`package files must not include local/contributor-only content: ${excluded}`);
 }
 NODE
@@ -331,11 +371,10 @@ if ! grep -qi "rewrite" "$SUPERPOWERS_DIR/skills/finishing-a-development-branch/
 fi
 
 if ! grep -q "fresh session" "$SUPERPOWERS_DIR/skills/executing-plans/SKILL.md" "$SUPERPOWERS_DIR/skills/using-superpowers/SKILL.md" || \
-   ! grep -q "approved plan" "$SUPERPOWERS_DIR/skills/executing-plans/SKILL.md" "$SUPERPOWERS_DIR/skills/using-superpowers/SKILL.md" || \
-   ! grep -q "plan path" "$SUPERPOWERS_DIR/skills/executing-plans/SKILL.md" "$SUPERPOWERS_DIR/skills/using-superpowers/SKILL.md" || \
-   ! grep -q "workflow profile" "$SUPERPOWERS_DIR/skills/executing-plans/SKILL.md" "$SUPERPOWERS_DIR/skills/using-superpowers/SKILL.md" || \
-   ! grep -q "ask.*path\|route.*planning" "$SUPERPOWERS_DIR/skills/executing-plans/SKILL.md" "$SUPERPOWERS_DIR/skills/using-superpowers/SKILL.md" || \
-   ! grep -q "memory" "$SUPERPOWERS_DIR/skills/executing-plans/SKILL.md" "$SUPERPOWERS_DIR/skills/using-superpowers/SKILL.md" || \
+    ! grep -q "approved plan" "$SUPERPOWERS_DIR/skills/executing-plans/SKILL.md" "$SUPERPOWERS_DIR/skills/using-superpowers/SKILL.md" || \
+    ! grep -q "plan path" "$SUPERPOWERS_DIR/skills/executing-plans/SKILL.md" "$SUPERPOWERS_DIR/skills/using-superpowers/SKILL.md" || \
+    ! grep -q "ask.*path\|route.*planning" "$SUPERPOWERS_DIR/skills/executing-plans/SKILL.md" "$SUPERPOWERS_DIR/skills/using-superpowers/SKILL.md" || \
+    ! grep -q "memory" "$SUPERPOWERS_DIR/skills/executing-plans/SKILL.md" "$SUPERPOWERS_DIR/skills/using-superpowers/SKILL.md" || \
    ! grep -q "stop" "$SUPERPOWERS_DIR/skills/executing-plans/SKILL.md" "$SUPERPOWERS_DIR/skills/using-superpowers/SKILL.md"; then
   echo "  [FAIL] execution routing lacks fresh-session approved-plan resume and stop/re-route guidance"
   exit 1
@@ -354,8 +393,8 @@ if ! grep -q "wait for user approval or adjustment before editing files" "$using
   echo "  [FAIL] quick flow lacks approval gate before edits"
   exit 1
 fi
-if ! grep -q "Do not call runtime tools just to restate already-known values" "$using_skill"; then
-  echo "  [FAIL] using-superpowers lacks runtime tool-call budget guidance"
+if ! grep -q "Read project config only when the decision depends on it" "$using_skill"; then
+  echo "  [FAIL] using-superpowers lacks project config read budget guidance"
   exit 1
 fi
 if ! grep -q "Do not repeatedly re-run the same worker, reviewer, command, or prompt with unchanged context" "$using_skill"; then
@@ -464,21 +503,5 @@ if grep -q "one visible todo per parent task\|execute Task 1.1-1.N\|one visible 
   echo "  [FAIL] found stale parent-task todo grouping guidance"
   exit 1
 fi
-
-REPO_ROOT="$REPO_ROOT" node --input-type=module <<'NODE'
-import fs from 'fs';
-import path from 'path';
-
-const root = process.env.REPO_ROOT;
-const tools = fs.readFileSync(path.join(root, '.opencode/plugins/superduperpowers/sdp-tools.js'), 'utf8');
-const match = tools.match(/export const profileSummaryText = \(profile\) => `([\s\S]*?)`;/);
-if (!match) throw new Error('profileSummaryText export not found');
-const template = match[1];
-if (template.includes('runtimeRoot')) throw new Error('profile summary leaks runtimeRoot');
-if (template.includes('worktreePath') || template.includes('originalWorkspace')) throw new Error('profile summary leaks bulky path state');
-for (const required of ['route=', 'docs=', 'execution=', 'testingIntensity=', 'branch=', 'commits=', 'generatedDocs=']) {
-  if (!template.includes(required)) throw new Error(`profile summary missing compact field: ${required}`);
-}
-NODE
 
 echo "=== Workflow policy text tests passed ==="

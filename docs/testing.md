@@ -12,7 +12,7 @@ Run the default included-config test suite from the repository root:
 tests/opencode/run-tests.sh
 ```
 
-The default suite runs checks that do not require an installed OpenCode binary. It verifies plugin structure, profile tools, branch/setup tools, and static workflow policy assumptions that should work in a development checkout.
+The default suite runs checks that do not require an installed OpenCode binary. It verifies plugin structure, packaged prompt sources, and static workflow policy assumptions that should work in a development checkout.
 
 To inspect prompt/context footprint without running the whole suite:
 
@@ -42,10 +42,9 @@ Run one named test when narrowing a failure:
 
 ```bash
 tests/opencode/run-tests.sh --test test-plugin-loading.sh
-tests/opencode/run-tests.sh --test test-installer-cli.sh
 ```
 
-When changing installer behavior, package metadata, or release contents, also verify the npm package file list:
+When changing package metadata or release contents, also verify the npm package file list:
 
 ```bash
 npm pack --dry-run
@@ -58,10 +57,6 @@ tests/opencode/
 ├── run-tests.sh              # Main OpenCode test runner
 ├── setup.sh                  # Shared setup helpers
 ├── test-plugin-loading.sh    # Package and plugin structure checks
-├── test-installer-cli.sh     # Installer CLI, settings, and package layout checks
-├── test-profile-tool.sh       # Workflow profile tool contract checks
-├── test-setup-hygiene.sh      # Generated-doc ignore hygiene checks
-├── test-branch-context.sh     # Read-only branch safety checks
 ├── test-workflow-policy.sh    # Static workflow text policy checks
 ├── test-agent-skill-drift.sh  # Agent/skill adapter drift and context-budget checks
 ├── test-tools.sh              # Integration test for OpenCode skill tools
@@ -89,16 +84,15 @@ Run the integration suite when the change affects runtime OpenCode behavior:
 tests/opencode/run-tests.sh --integration
 ```
 
-Runtime behavior includes skill discovery, the `using-superpowers` bootstrap, reviewer agent registration, custom workflow tools, tool priority handling, and plugin loading inside OpenCode.
+Runtime behavior includes skill discovery, the `using-superpowers` bootstrap, reviewer agent registration, tool priority handling, and plugin loading inside OpenCode.
 
-Package and installer changes should include targeted verification:
+Package changes should include targeted verification:
 
 ```bash
-tests/opencode/run-tests.sh --test test-installer-cli.sh
 npm pack --dry-run
 ```
 
-Confirm the dry-run package contents include `bin/`, `installer/`, and `defaults/` alongside the existing `skills/`, `agents/`, docs, and `.opencode/plugins/` OpenCode plugin files.
+Confirm the dry-run package contents include `defaults/`, `skills/`, `agents/`, docs, and `.opencode/plugins/` OpenCode plugin files.
 
 When changing `agents/`, fallback prompts, or skill routing language, confirm `test-agent-skill-drift.sh` stays green. It verifies that skills remain canonical, named agents stay thin adapter roles, fallback prompts name their canonical agent, writable/read-only expectations stay aligned, and the context-budget check still passes.
 
@@ -111,7 +105,7 @@ Verify these behaviors:
 - Skills from `skills/` are discoverable through the OpenCode `skill` tool.
 - Reviewer agents from `agents/` are available as named OpenCode subagent types.
 - The `using-superpowers` bootstrap is injected once per session.
-- Workflow profile, setup hygiene, branch context, and static policy checks pass without a live OpenCode model.
+- Static policy checks pass without a live OpenCode model.
 - Quick flow stays lightweight for bounded edits.
 - No-SuperDuperPowers requests avoid loading workflow skills.
 

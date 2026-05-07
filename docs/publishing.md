@@ -56,26 +56,17 @@ Publishing uses the protected GitHub `npm` environment and npm trusted publishin
 
 ## Package Verification
 
-Before publishing, verify the installer tests and package dry-run output:
+Before publishing, verify the package dry-run output:
 
 ```bash
-tests/opencode/run-tests.sh --test test-installer-cli.sh
 npm pack --dry-run
 ```
 
-Confirm the dry-run package contents include the CLI and installer support directories (`bin/`, `installer/`, and `defaults/`) alongside the existing `skills/`, `agents/`, docs, and `.opencode/plugins/` OpenCode plugin files.
+Confirm the dry-run package contents include `defaults/`, `skills/`, `agents/`, docs, and `.opencode/plugins/` OpenCode plugin files.
 
 ## Install Strings
 
-The primary setup path is the npm CLI installer:
-
-```bash
-npx superduperpowers
-```
-
-The installer configures OpenCode to load the npm package:
-
-Recommended plugin entry after install:
+The primary setup path is the stable npm package in OpenCode config:
 
 ```json
 {
@@ -90,5 +81,14 @@ Fallback/nightly install from GitHub `main`:
 {
   "$schema": "https://opencode.ai/config.json",
   "plugin": ["superduperpowers@git+https://github.com/notchrisbutler/superduperpowers.git#main"]
+}
+```
+
+Local checkout development install:
+
+```json
+{
+  "$schema": "https://opencode.ai/config.json",
+  "plugin": ["superduperpowers@git+file:///absolute/path/to/superduperpowers"]
 }
 ```

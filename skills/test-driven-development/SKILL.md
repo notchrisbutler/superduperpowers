@@ -21,13 +21,13 @@ Do not auto-trigger this skill for every quick flow, small feature, refactor, or
 
 ## Agent Dispatch
 
-When named agents are available and a bounded task requires tests-first implementation, dispatch `tdd-implementer` with the exact behavior, expected files, existing test tooling, validation commands, and compact profile summary. Use `implementer` only when TDD is not required.
+When named agents are available and a bounded task requires tests-first implementation, dispatch `tdd-implementer` with the exact behavior, expected files, existing test tooling, validation commands, and task-relevant spec/plan/config context. Use `implementer` only when TDD is not required.
 
 The main agent remains the coordinator and owns todos, branch decisions, commits, reviews, validation gates, and next-step routing. The `tdd-implementer` must report the red command/failure, green command/pass result, changed files, and concerns. Do not spawn, dispatch, or coordinate any other subagents from inside a TDD worker; report split, follow-up worker, or reviewer recommendations to the main coordinator, and the main coordinator decides.
 
 ## Testing Intensity
 
-Read testing intensity from the workflow profile when available:
+Read testing intensity from the task prompt, plan, explicit handoff, project-local config, or user instruction when available:
 
 - `full-regression`: cover every important behavior and regression surface.
 - `major-behavior`: cover major behavior and integration points; avoid exhaustive or obvious tests.
@@ -76,7 +76,7 @@ All of these mean: stop using the non-TDD implementation. Delete and restart onl
 
 Before marking work complete:
 
-- [ ] New tests match the profile's testing intensity.
+- [ ] New tests match the selected testing intensity.
 - [ ] Each test was watched failing before implementation.
 - [ ] Each red failure proved the intended missing behavior.
 - [ ] Minimal code made each test pass.

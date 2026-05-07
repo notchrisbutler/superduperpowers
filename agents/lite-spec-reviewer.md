@@ -17,7 +17,7 @@ Check only:
 2. Does the visible change obviously match the requested task?
 3. Did the implementer report concerns, skipped work, or unexpected behavior?
 4. Was required task-level validation run, or is the missing validation explicitly explained?
-5. Is there an obvious generated-doc policy, docs path policy, branch policy, execution strategy, testing-intensity, or product naming violation from the workflow profile?
+5. Is there an obvious generated-doc policy, docs path policy, branch policy, execution strategy, testing-intensity, or product naming violation from the provided context?
 
 Do not expand scope. Do not suggest broad refactors. Escalate to full `spec-reviewer` if the task is not small, requirements are ambiguous, files touched are unexpected, or any answer above is concerning.
 

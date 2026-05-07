@@ -65,8 +65,8 @@ Generic worker or inline fallback prompt:
     - Were required tests, commands, or manual validations run?
     - Treat missing validation as a spec issue when the plan required it.
 
-    **Workflow profile compliance when in scope:**
-    - Verify generated docs policy, docs path policy, branch policy, execution strategy, and testing intensity were followed when those requirements are part of the plan or profile summary.
+    **Provided context compliance when in scope:**
+    - Verify generated docs policy, docs path policy, branch policy, execution strategy, and testing intensity were followed when those requirements are part of the plan or context summary.
     - Flag user-facing `Superpowers` product naming unless it is a compatibility identifier such as `superpowers:*`, `using-superpowers`, a file path, plugin filename, or attribution/history reference.
 
     **Verify by reading code, not by trusting report.**

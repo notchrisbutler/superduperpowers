@@ -73,26 +73,6 @@ export const SDP_COMMANDS = Object.freeze({
   'execute-plan': {
     description: 'Execute an approved SuperDuperPowers plan',
     template: 'Use the active SuperDuperPowers execution workflow to execute the approved plan. Ask for execution method and strategy if they are not already recorded. Arguments: $ARGUMENTS'
-  },
-  'sdp-status': {
-    description: 'Diagnose SuperDuperPowers install and runtime health',
-    template: 'Run the sdp_doctor tool with operation "check" and summarize install/runtime health, warnings, errors, repair history, and recommended next steps.'
-  },
-  'sdp-profile': {
-    description: 'Summarize the active SuperDuperPowers workflow profile',
-    template: 'Run sdp_profile with operation "summary" and summarize the active SuperDuperPowers workflow profile.'
-  },
-  'sdp-setup': {
-    description: 'Set up project-local SuperDuperPowers defaults',
-    template: 'This is a SuperDuperPowers setup command, not a workflow routing request. Run sdp_init with operation "apply" to create .opencode/superduperpowers.jsonc if missing, then summarize the result and next steps. Do not ask for a SuperDuperPowers route unless setup cannot proceed without it.'
-  },
-  'sdp-init': {
-    description: 'Initialize project-local SuperDuperPowers config',
-    template: 'This is a SuperDuperPowers init command, not a workflow routing request. Run sdp_init with operation "apply" to create .opencode/superduperpowers.jsonc if missing, then summarize the result and next steps. Do not ask for a SuperDuperPowers route unless init cannot proceed without it.'
-  },
-  'sdp-cleanup': {
-    description: 'Inspect stale SuperDuperPowers runtime state',
-    template: 'Inspect stale SuperDuperPowers runtime state with sdp_profile cleanup only after confirming whether I want cleanup. If I explicitly asked to clean, run cleanup and report removed and kept paths.'
   }
 });
 
@@ -156,7 +136,7 @@ export const getBootstrapContent = (skillsDir) => {
   const skillPath = path.join(skillsDir, 'using-superpowers', 'SKILL.md');
   if (!fs.existsSync(skillPath)) return null;
 
-  const toolMapping = `OpenCode mapping: use native tools; \`TodoWrite\` means \`todowrite\`, \`Task\` means OpenCode task/subagent support, and \`Skill\` means OpenCode's skill tool. Runtime tools: \`sdp_settings\` for live defaults, \`sdp_init\` for project config setup, \`sdp_profile\` for workflow state, \`sdp_setup_hygiene\` before generated docs, \`sdp_branch_context\` before execution, and \`sdp_doctor\` for diagnostics.`;
+  const configGuidance = `OpenCode mapping: use native tools; \`TodoWrite\` means \`todowrite\`, \`Task\` means OpenCode task/subagent support, and \`Skill\` means OpenCode's skill tool. Configuration is manual and project-local: when workflow defaults matter, read \`superduperpowers.json[c]\` or \`sdp.json[c]\` from the project root or \`.opencode/\`, summarize only relevant settings, and pass them explicitly to subagents. No \`sdp_*\` runtime tools or plugin-managed session state are available.`;
 
   return `<EXTREMELY_IMPORTANT>
 You have SuperDuperPowers.
@@ -167,7 +147,7 @@ Use the full workflow only when the user explicitly invokes SuperDuperPowers, na
 
 If SuperDuperPowers routing is unclear, ask the user to choose Full Brainstorming, Quick Implementation, or No SuperDuperPowers before loading heavy workflow skills. Load \`using-superpowers\` only when you need detailed routing rules.
 
-${toolMapping}
+${configGuidance}
 </EXTREMELY_IMPORTANT>`;
 };
 

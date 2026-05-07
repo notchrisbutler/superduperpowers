@@ -58,7 +58,7 @@ Use the active harness's subagent or worker-dispatch mechanism with the selected
 - `{BASE_SHA}` - Starting commit
 - `{HEAD_SHA}` - Ending commit
 - `{DESCRIPTION}` - Brief summary
-- `{PROFILE_SUMMARY}` - compact workflow profile summary including generated-doc policy, path policy, branch policy, execution strategy, and testing intensity when relevant.
+- `{CONTEXT_SUMMARY}` - task-relevant generated-doc policy, path policy, branch policy, execution strategy, and testing intensity when relevant.
 
 **3. Act on feedback:**
 - Fix Critical issues immediately

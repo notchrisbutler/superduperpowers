@@ -37,30 +37,38 @@ If the route is unclear, ask one structured question before loading heavy workfl
 2. Quick Implementation
 3. No SuperDuperPowers
 
-## Runtime State
+## Project Config
 
-When available, use `sdp_settings` once at the first meaningful route decision to read live defaults. Use it again only when settings may have changed or before major gates that depend on configuration. Use `sdp_profile` to initialize or update route, docs path, branch policy, generated-doc policy, workflow commit policy, testing intensity, and execution strategy when those decisions matter.
+SuperDuperPowers does not depend on hidden tools, global settings, or persisted workflow state. Use explicit user instructions and repository evidence first. When defaults matter and are not already provided, the main orchestrator may read the first project-local config file that exists from this candidate list:
 
-Do not call runtime tools just to restate already-known values. Carry the compact profile summary in prompts instead of making every subagent read state again.
+1. `.opencode/sdp.jsonc`
+2. `.opencode/sdp.json`
+3. `.opencode/superduperpowers.jsonc`
+4. `.opencode/superduperpowers.json`
+5. `sdp.jsonc`
+6. `sdp.json`
+7. `superduperpowers.jsonc`
+8. `superduperpowers.json`
+
+Read project config only when the decision depends on it: docs path, generated-doc policy, branch policy, workflow commit policy, question policy, testing intensity, or execution strategy. Do not make subagents rediscover config. Pass task-relevant config, plan/spec paths, validation expectations, and branch/execution context explicitly in handoff prompts.
 
 ## Fresh-Session Plan Resume
 
 When a fresh session asks to execute or resume an approved SuperDuperPowers plan, do not improvise from memory or stale transcript context.
 
 1. Look first for an explicit plan path in the user's request.
-2. If no explicit plan path is present, check the workflow profile for the approved plan path and execution choice.
-3. If an approved plan path is present, route to `executing-plans` for inline/separate-session execution or `subagent-driven-development` for same-session subagent execution, matching the explicit request or profile.
-4. If no approved plan path is available, stop and ask for the plan path or route back to `brainstorming`/`writing-plans` to produce an approved plan.
+2. If no explicit plan path is present, stop and ask for the approved plan path or route the user back to `brainstorming`/`writing-plans` to produce an approved plan.
+3. If an approved plan path is present, route to `executing-plans` for inline/separate-session execution or `subagent-driven-development` for same-session subagent execution, matching the explicit request or asking for the execution choice when missing.
 
 ## Context Discipline
 
 Frontier models can handle very large contexts, but SuperDuperPowers should still preserve attention and cacheability:
 
-- Put stable workflow rules and repeated project conventions in reusable skills, specs, plans, or profile summaries instead of pasting them into every worker prompt.
+- Put stable workflow rules and repeated project conventions in reusable skills, specs, plans, project-local config, or explicit handoff summaries instead of pasting them into every worker prompt.
 - Keep worker handoffs narrow: include the assigned task, relevant acceptance criteria, exact files, recent evidence, and validation commands; omit unrelated transcript history.
 - Put static instructions before dynamic task data in prompts so provider-side prompt caching can reuse the shared prefix.
 - Summarize exploration as facts with file paths and line references. Do not paste whole files when a path plus focused excerpt is enough.
-- When context grows large, checkpoint the current state into the spec, plan, profile, or final handoff before continuing.
+- When context grows large, checkpoint the current state into the spec, plan, or explicit handoff summary before continuing.
 - Prefer a small number of high-signal reviewer passes over repeated broad reviews with unchanged context.
 
 ## Full Workflow

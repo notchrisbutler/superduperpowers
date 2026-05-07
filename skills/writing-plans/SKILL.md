@@ -9,19 +9,19 @@ metadata:
 
 ## Overview
 
-Write implementation plans for a skilled developer who has almost no project context. Include exact files, code, tests, docs to inspect, validation commands, dependency ordering, review gates, and execution handoff choices. DRY. YAGNI. Scale validation to the workflow profile's testing intensity. Include local commit steps only at verified implementation task-scope boundaries when workflow commits are enabled by an approved execution workflow.
+Write implementation plans for a skilled developer who has almost no project context. Include exact files, code, tests, docs to inspect, validation commands, dependency ordering, review gates, and execution handoff choices. DRY. YAGNI. Scale validation to the selected testing intensity. Include local commit steps only at verified implementation task-scope boundaries when workflow commits are enabled by an approved execution workflow.
 
 Announce at start: “I'm using the writing-plans skill to create the implementation plan.”
 
-Read live settings and the active workflow profile when available. Inherit docs paths, generated-doc policy, branch policy, workflow commit policy, question policy, and testing intensity unless the profile or user overrides them. If testing intensity is missing before execution handoff, ask and persist: full regression, major behavior only, or existing tests only.
+Use explicit user instructions first. When needed, read project-local config for docs paths, generated-doc policy, branch policy, workflow commit policy, question policy, and testing intensity. If testing intensity is missing before execution handoff, ask and record it in the plan or explicit handoff: full regression, major behavior only, or existing tests only.
 
-Save plans to `{DOCS_ROOT}/{SDP_DOCS_DIR}/plans/YYYY-MM-DD-<feature-name>.md` unless user preferences override. Generated plans follow live `generatedDocsPolicy`; do not commit or force-add them unless settings, repo instructions, or the user explicitly require it.
+Save plans to `{DOCS_ROOT}/{SDP_DOCS_DIR}/plans/YYYY-MM-DD-<feature-name>.md` unless user preferences override. Generated plans follow the configured or instructed generated-doc policy; do not commit or force-add them unless project config, repo instructions, or the user explicitly require it.
 
 ## Agent Dispatch
 
-For substantial plans, dispatch `plan-writer` with the approved spec, compact workflow profile, repo conventions, docs path, generated-doc policy, testing intensity, and execution constraints. It may write the plan document but must not implement code. The main agent remains the coordinator and owns todos, branch decisions, commits, reviews, validation gates, and next-step routing. Do not spawn, dispatch, or coordinate any other subagents from inside a plan writer or reviewer; report split, follow-up worker, or reviewer recommendations to the main coordinator, and the main coordinator decides.
+For substantial plans, dispatch `plan-writer` with the approved spec, repo conventions, docs path, generated-doc policy, testing intensity, branch/commit policy, and execution constraints. It may write the plan document but must not implement code. The main agent remains the coordinator and owns todos, branch decisions, commits, reviews, validation gates, and next-step routing. Do not spawn, dispatch, or coordinate any other subagents from inside a plan writer or reviewer; report split, follow-up worker, or reviewer recommendations to the main coordinator, and the main coordinator decides.
 
-After the plan is written, use `plan-reviewer` for broad, high-risk, many-file, multi-worker, or uncertain execution shapes. For small plans, inline self-review is enough unless required by the user or profile. If review requires changes, update once, request one focused re-review, then ask the user if material issues remain.
+After the plan is written, use `plan-reviewer` for broad, high-risk, many-file, multi-worker, or uncertain execution shapes. For small plans, inline self-review is enough unless required by the user, project config, or plan risk. If review requires changes, update once, request one focused re-review, then ask the user if material issues remain.
 
 ## Scope Check
 
@@ -115,7 +115,7 @@ Fix issues inline. Then ask the user to review the saved plan:
 
 > "Plan written to `<path>`. Please review it and let me know if you want changes before execution."
 
-Wait for approval. If changes are requested, update the plan and re-run self-review. After approval, re-read live settings, update the workflow profile or explicit handoff context with the approved plan path before offering execution choices, and respect generated-doc policy.
+Wait for approval. If changes are requested, update the plan and re-run self-review. After approval, include the approved plan path in the explicit execution handoff before offering execution choices, and respect generated-doc policy.
 
 For extended examples/details, read [placeholder and self-review rules](references/placeholder-and-self-review-rules.md) when this extra detail is needed.
 
@@ -127,14 +127,14 @@ After user approval, ask execution method through the active harness's structure
 2. Single-Agent Execution, all in the main agent with no subagents.
 3. Hold off on implementing for now.
 
-If the user chooses Hold off, record `executionMethod: hold` and stop.
+If the user chooses Hold off, summarize that choice in the handoff and stop.
 
-If Single-Agent Execution, record `executionMethod: inline`, run branch preflight, use `using-feature-branches` unless current-branch execution was explicitly approved, then invoke `executing-plans`.
+If Single-Agent Execution, include `executionMethod: inline` in the handoff, run branch preflight, use `using-feature-branches` unless current-branch execution was explicitly approved, then invoke `executing-plans`.
 
-If Subagent Driven Development, record `executionMethod: subagent-driven`, then ask execution strategy:
+If Subagent Driven Development, include `executionMethod: subagent-driven` in the handoff, then ask execution strategy:
 
 1. User-level worktree route using `using-git-worktrees`.
 2. Feature branch route using `using-feature-branches`.
 3. Hold off on implementing for now.
 
-Only invoke execution skills after the profile contains required execution choices and branch/setup preflight passes. Never push unless the user explicitly requests it.
+Only invoke execution skills after the handoff contains required execution choices and branch/setup preflight passes. Never push unless the user explicitly requests it.

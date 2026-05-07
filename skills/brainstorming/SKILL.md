@@ -23,7 +23,7 @@ Keep brainstorming replies concise and user-facing: ask the next useful question
 
 ## Agent Dispatch
 
-When named agents are available and isolated context helps, dispatch `brainstorming-facilitator` with the user request, compact workflow profile, relevant project context, docs policy, and an explicit “may write approved spec, must not implement code” instruction. The main agent remains the coordinator and owns todos, branch decisions, commits, reviews, validation gates, and next-step routing. Do not spawn, dispatch, or coordinate any other subagents from inside a facilitator or reviewer; report split, follow-up worker, or reviewer recommendations to the main coordinator, and the main coordinator decides.
+When named agents are available and isolated context helps, dispatch `brainstorming-facilitator` with the user request, relevant project context, docs policy, task-relevant project config, and an explicit “may write approved spec, must not implement code” instruction. The main agent remains the coordinator and owns todos, branch decisions, commits, reviews, validation gates, and next-step routing. Do not spawn, dispatch, or coordinate any other subagents from inside a facilitator or reviewer; report split, follow-up worker, or reviewer recommendations to the main coordinator, and the main coordinator decides.
 
 Keep direct collaboration in the main session when the design is small, the user is actively answering questions, or dispatch would obscure approval gates.
 
@@ -31,7 +31,7 @@ Keep direct collaboration in the main session when the design is small, the user
 
 Create and complete tasks in this order when this skill is selected:
 
-1. Read compact workflow context with `sdp_settings`/`sdp_profile` only when needed for unknown docs, branch, commit, question, or test policy.
+1. Read explicit user instructions and project-local config only when needed for unknown docs, branch, commit, question, or test policy.
 2. Explore current project context: files, docs, recent commits, existing patterns.
 3. Ask clarifying questions one topic at a time until ambiguity is low enough to write a useful spec.
 4. Propose 2-3 approaches with trade-offs and a recommendation grounded in project evidence or explicit assumptions.
@@ -39,7 +39,7 @@ Create and complete tasks in this order when this skill is selected:
 6. Write the approved design to `{DOCS_ROOT}/{SDP_DOCS_DIR}/specs/YYYY-MM-DD-<topic>-design.md` unless user preferences override.
 7. Self-review the spec for placeholders, contradictions, scope, ambiguity, and frontend quality when applicable; fix issues inline.
 8. Ask the user to review the written spec and wait for approval.
-9. Record the approved spec path in the workflow profile or explicit handoff context.
+9. Record the approved spec path in the spec, plan transition note, or explicit handoff context.
 10. Transition to `writing-plans`; do not invoke implementation skills from brainstorming.
 
 For extended examples/details, read [brainstorming flow details](references/brainstorming-flow-details.md) when this extra detail is needed.
@@ -81,7 +81,7 @@ Then ask:
 
 Wait for the user's response. If they request changes, update the spec and re-run self-review. Only proceed after approval.
 
-After approval, re-read live settings, record the spec path, and respect generated-doc policy. Do not commit or force-add generated specs unless live settings, repo instructions, or the user explicitly require it.
+After approval, record the spec path in the next handoff and respect generated-doc policy from user instructions, project-local config, or repo instructions. Do not commit or force-add generated specs unless those instructions explicitly require it.
 
 ## Transition
 
